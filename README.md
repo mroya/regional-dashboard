@@ -1,10 +1,6 @@
 # 📊 Regional Sales Dashboard | Premium Analytics
 
 <p align="center">
-  <img src="./public/screenshots/banner.png" alt="Dashboard Banner" width="800">
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/badge/Status-Production-success?style=for-the-badge&logo=github" alt="Status">
   <img src="https://img.shields.io/badge/Stack-Next.js%20|%20Firebase-0070f3?style=for-the-badge&logo=next.js" alt="Stack">
   <img src="https://img.shields.io/badge/Design-Glassmorphism-emerald?style=for-the-badge" alt="Design">
