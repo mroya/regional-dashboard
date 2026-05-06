@@ -231,7 +231,12 @@ export default function Dashboard() {
                     <BarChart data={enrichedData.filiais.map(f => ({ name: f.id, val: f.percProj, status: f.status }))}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                       <XAxis dataKey="name" fontSize={11} stroke="#94a3b8" />
-                      <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid #1e293b' }} />
+                      <Tooltip 
+                        cursor={{ fill: 'rgba(255,255,255,0.05)' }} 
+                        contentStyle={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', color: '#fff' }}
+                        itemStyle={{ color: '#fff' }}
+                        formatter={(value) => [`${value.toFixed(1)}%`, '% Projeção']}
+                      />
                       <Bar dataKey="val" name="% Projeção">
                         {enrichedData.filiais.map((f, i) => (<Cell key={i} fill={f.status === 'SUCCESS' ? '#10b981' : f.status === 'WARNING' ? '#f59e0b' : '#ef4444'} />))}
                       </Bar>

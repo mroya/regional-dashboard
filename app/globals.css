@@ -291,6 +291,11 @@ tr:hover {
   outline: none;
 }
 
+.glass-select option {
+  background-color: #1e293b;
+  color: white;
+}
+
 .slider-group {
   display: flex;
   align-items: center;
