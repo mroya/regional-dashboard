@@ -1,115 +1,102 @@
-# 📊 Regional Sales Dashboard
-
-> **Uma solução analítica premium para gestão de performance regional em tempo real.**
-
-Este projeto é um dashboard de vendas avançado, desenvolvido para gerentes regionais que precisam de agilidade na interpretação de dados e no acompanhamento de metas. Com uma interface moderna baseada em **Glassmorphism** e processamento inteligente de relatórios PDF, ele transforma dados brutos em insights acionáveis em segundos.
+# 📊 Regional Sales Dashboard | Premium Analytics
 
 <p align="center">
-  <img src="./public/screenshots/dashboard-preview.png" alt="Preview do Dashboard" width="100%">
+  <img src="./public/screenshots/banner.png" alt="Dashboard Banner" width="800">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Production-success?style=for-the-badge&logo=github" alt="Status">
+  <img src="https://img.shields.io/badge/Stack-Next.js%20|%20Firebase-0070f3?style=for-the-badge&logo=next.js" alt="Stack">
+  <img src="https://img.shields.io/badge/Design-Glassmorphism-emerald?style=for-the-badge" alt="Design">
 </p>
 
 ---
 
-## ✨ Destaques e Diferenciais
-
-- **💎 Interface Ultra-Moderna**: Design premium utilizando Glassmorphism, efeitos de transparência e transições suaves.
-- **📄 Inteligência em Dados**: Parser customizado para extração automática de dados complexos de arquivos PDF.
-- **📱 Foco em Mobilidade**: Totalmente responsivo e integrado com WhatsApp para comunicação instantânea de resultados.
-- **🔒 Segurança Enterprise**: Autenticação e persistência de dados utilizando a infraestrutura robusta do Firebase.
+## 💎 A Visão
+O **Regional Sales Dashboard** não é apenas uma ferramenta de visualização; é um centro de comando estratégico. Projetado para líderes que buscam a excelência, ele combina **inteligência artificial para parsing de dados** com uma interface **ultra-refinada**, permitindo que decisões complexas sejam tomadas com a clareza de um clique.
 
 ---
 
-## 🚀 Funcionalidades Principais
+## ✨ Experiência Premium
 
--   **📈 Visualização de Performance**: Dashboards interativos com Recharts, mostrando tendências e projeções de fechamento.
--   **⚙️ Automação de Relatórios**: Sistema de upload "drag-and-drop" para processamento instantâneo de KPIs.
--   **🟢 Sinalização Inteligente**: Identificação visual automática (Heatmaps e Badges) de filiais que necessitam de atenção.
--   **💬 Quick Share**: Botões de compartilhamento direto para WhatsApp, enviando sumários formatados para equipes.
--   **🌓 Experiência Adaptativa**: Alternância dinâmica entre temas Dark e Light com persistência de preferência.
--   **🌦️ Contexto Local**: Widgets de clima e horário integrados para auxiliar no planejamento logístico regional.
-
----
-
-## 🛠️ Stack Tecnológica
-
--   **Core**: [Next.js 16](https://nextjs.org/) (App Router) & React 19.
--   **Estilização**: Tailwind CSS 4 & Custom Design System (Glassmorphism).
--   **Backend & Auth**: [Firebase Firestore](https://firebase.google.com/) & Firebase Auth.
--   **Data Viz**: [Recharts](https://recharts.org/).
--   **Ícones**: [Lucide React](https://lucide.dev/).
--   **PDF Engine**: [pdf2json](https://github.com/modesty/pdf2json).
-
----
-
-## ⚙️ Instalação e Configuração
-
-### Pré-requisitos
-- Node.js 20+ (Recomendado)
-- Conta no Firebase
-
-### Passo a Passo
-
-1.  **Clonar o repositório**:
-    ```bash
-    git clone https://github.com/seu-usuario/regional-dashboard.git
-    cd regional-dashboard
-    ```
-
-2.  **Instalar dependências**:
-    ```bash
-    npm install
-    ```
-
-3.  **Configurar variáveis de ambiente**:
-    Crie um arquivo `.env.local` na raiz e adicione suas credenciais do Firebase:
-    ```env
-    NEXT_PUBLIC_FIREBASE_API_KEY=sua_key
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=seu_dominio
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID=seu_id
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=seu_bucket
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=seu_sender_id
-    NEXT_PUBLIC_FIREBASE_APP_ID=seu_app_id
-    ```
-
-4.  **Executar em desenvolvimento**:
-    ```bash
-    npm run dev
-    ```
+<table width="100%">
+  <tr>
+    <td width="50%" style="vertical-align: top;">
+      <h3>🚀 Performance Real-Time</h3>
+      <p>Acompanhamento de KPIs em tempo real com integração direta ao Firestore, garantindo que os dados nunca estejam desatualizados.</p>
+    </td>
+    <td width="50%" style="vertical-align: top;">
+      <h3>📄 Smart PDF Parsing</h3>
+      <p>Extração automatizada de dados de relatórios complexos, eliminando o erro humano e o trabalho manual exaustivo.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" style="vertical-align: top;">
+      <h3>📱 Mobile-First Connect</h3>
+      <p>Compartilhamento instantâneo via WhatsApp formatado para leitura rápida em dispositivos móveis.</p>
+    </td>
+    <td width="50%" style="vertical-align: top;">
+      <h3>🌓 Dynamic Aesthetics</h3>
+      <p>Interface adaptativa que respeita o fluxo de trabalho do usuário, com transições suaves entre temas Dark e Light.</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 📱 Estrutura do Projeto
+## 🛠️ Arquitetura de Dados
 
-```text
-├── app/                # Rotas, Layouts e Componentes da Interface
-│   ├── api/            # Endpoints para processamento de PDF
-│   └── globals.css     # Design System: Variáveis, Glassmorphism e Tailwind
-├── lib/                # Configurações do Firebase e Core Business Logic
-├── public/             # Assets estáticos e screenshots
-├── src/                # Componentes compartilhados e hooks
-└── package.json        # Manifest de dependências e scripts
+```mermaid
+graph LR
+    A[Relatório PDF] -->|Upload| B(API Parser)
+    B -->|JSON Struct| C{Business Logic}
+    C -->|Persistência| D[(Firebase Firestore)]
+    D -->|Real-time| E[Next.js UI]
+    E -->|Alertas| F[WhatsApp API]
 ```
 
 ---
 
-## 🤝 Contribuição
+## ⚡ Quick Start
 
-Contribuições são fundamentais para a evolução deste projeto. Se você tem sugestões de melhorias ou encontrou algum bug, sinta-se à vontade para abrir uma *Issue* ou enviar um *Pull Request*.
+### 1. Clonagem & Setup
+```bash
+git clone https://github.com/mroya/regional-dashboard.git
+npm install
+```
 
-1. Faça um Fork do projeto
-2. Crie uma Branch para sua Feature (`git checkout -b feature/AmazingFeature`)
-3. Insira suas alterações (`git commit -m 'Add some AmazingFeature'`)
-4. Envie para a Branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+### 2. Configuração (Environment)
+Configure suas chaves no `.env.local`:
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+```
+
+### 3. Decolagem
+```bash
+npm run dev
+```
 
 ---
 
-## 📄 Licença
+## 🔧 Stack Tecnológica
 
-Distribuído sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+| Camada | Tecnologias |
+| :--- | :--- |
+| **Frontend** | React 19, Next.js 16, Tailwind CSS 4 |
+| **Backend** | Node.js, Firebase Cloud Functions |
+| **Database** | Firestore NoSQL |
+| **Data Viz** | Recharts, Lucide Icons |
+| **Parsing** | pdf2json Engine |
 
 ---
 
 <p align="center">
-  Desenvolvido com foco em alta performance e excelência visual.
+  Desenvolvido por <strong>Márcio Roya</strong><br>
+  <em>Transformando dados em vantagem competitiva.</em>
+</p>
+
+<p align="center">
+  <a href="https://github.com/mroya"><img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
+  <a href="https://www.linkedin.com/in/mroya"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
 </p>
