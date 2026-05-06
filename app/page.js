@@ -26,11 +26,49 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [updatedAt, setUpdatedAt] = useState(null);
+  const [clock, setClock] = useState('');
+  const [weather, setWeather] = useState(null);
 
   const today = new Date();
   const defaultDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   const [referenceDate, setReferenceDate] = useState(defaultDate);
   const [elapsedDays, setElapsedDays] = useState(today.getDate() - 1 || 1);
+
+  // Live clock
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      setClock(now.toLocaleString('pt-BR', { weekday:'short', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' }));
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Weather forecast - Porto Alegre region (Open-Meteo, no key needed)
+  useEffect(() => {
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=-30.0346&longitude=-51.2177&daily=precipitation_probability_max,weathercode,temperature_2m_max,temperature_2m_min&timezone=America%2FSao_Paulo&forecast_days=5')
+      .then(r => r.json())
+      .then(d => {
+        const days = d.daily.time.map((date, i) => ({
+          date,
+          rain: d.daily.precipitation_probability_max[i],
+          code: d.daily.weathercode[i],
+          tMax: d.daily.temperature_2m_max[i],
+          tMin: d.daily.temperature_2m_min[i],
+        }));
+        setWeather(days);
+      })
+      .catch(() => {});
+  }, []);
+
+  const weatherIcon = (code, rain) => {
+    if (rain >= 70) return '🌧️';
+    if (rain >= 40) return '🌦️';
+    if (code <= 1) return '☀️';
+    if (code <= 3) return '⛅';
+    return '🌥️';
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -214,13 +252,50 @@ export default function Dashboard() {
           </div>
 
           <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+            {/* Sidebar Header */}
             <div className="sidebar-header">
-              <div><h3>Dashboard</h3><p><User size={12} /> {user.email?.split('@')[0]}</p></div>
-              <div style={{display:'flex', gap:'0.5rem', alignItems:'center'}}>
-                <button onClick={() => setDarkMode(!darkMode)} className="menu-toggle" title={darkMode ? 'Modo Dia' : 'Modo Noite'} style={{fontSize:'1.1rem'}}>{darkMode ? '☀️' : '🌙'}</button>
-                <button className="menu-toggle" onClick={() => setSidebarOpen(false)} style={{display: sidebarOpen ? 'block' : 'none'}}><X size={20} /></button>
+              <div style={{flex:1}}>
+                <h3 style={{marginBottom:'0.1rem'}}>Dashboard</h3>
+                <p style={{display:'flex', alignItems:'center', gap:'0.3rem', fontSize:'0.8rem', color:'var(--text-secondary)'}}>
+                  <User size={11} /> {user.email?.split('@')[0]}
+                </p>
+              </div>
+              <div style={{display:'flex', gap:'0.4rem', alignItems:'center', flexShrink:0}}>
+                <button onClick={() => setDarkMode(!darkMode)} className="menu-toggle" title={darkMode ? 'Modo Dia' : 'Modo Noite'} style={{fontSize:'1rem', padding:'0.4rem'}}>
+                  {darkMode ? '☀️' : '🌙'}
+                </button>
+                {sidebarOpen && <button className="menu-toggle" onClick={() => setSidebarOpen(false)} style={{padding:'0.4rem'}}><X size={18} /></button>}
               </div>
             </div>
+
+            {/* Clock */}
+            <div className="glass-panel" style={{padding:'0.75rem 1rem', textAlign:'center'}}>
+              <p style={{fontSize:'0.7rem', color:'var(--text-secondary)', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:'0.2rem'}}>🕐 Agora</p>
+              <p style={{fontSize:'0.85rem', fontWeight:600, letterSpacing:'0.02em'}}>{clock}</p>
+            </div>
+
+            {/* Weather widget */}
+            {weather && (
+              <div className="glass-panel" style={{padding:'0.75rem 1rem'}}>
+                <p style={{fontSize:'0.7rem', color:'var(--text-secondary)', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:'0.6rem'}}>🌦️ Previsão POA</p>
+                <div style={{display:'flex', justifyContent:'space-between', gap:'0.25rem'}}>
+                  {weather.slice(0,5).map((d, i) => (
+                    <div key={i} style={{textAlign:'center', flex:1}}>
+                      <div style={{fontSize:'1.1rem'}}>{weatherIcon(d.code, d.rain)}</div>
+                      <div style={{fontSize:'0.6rem', color:'var(--text-secondary)', marginTop:'0.2rem'}}>
+                        {new Date(d.date+'T12:00:00').toLocaleDateString('pt-BR', {weekday:'short'}).replace('.','')}
+                      </div>
+                      <div style={{fontSize:'0.65rem', fontWeight:600, color: d.rain >= 60 ? '#3b82f6' : 'var(--text-primary)'}}>
+                        {d.rain}%
+                      </div>
+                      <div style={{fontSize:'0.6rem', color:'var(--text-secondary)'}}>
+                        {Math.round(d.tMax)}°
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div className="sidebar-controls">
 
