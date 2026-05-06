@@ -282,8 +282,27 @@ export default function Dashboard() {
                       </thead>
                       <tbody>
                         {filteredFiliais.map(f => (
-                          <tr key={f.id} onClick={() => setSelectedFilial(f.id)} style={{cursor:'pointer'}}>
-                            <td><strong>{f.id}</strong></td><td>{f.vdaEft}</td><td>{f.vdaOnt}</td><td>{f.alvo}</td>
+                          <tr 
+                            key={f.id} 
+                            onClick={() => setSelectedFilial(f.id)} 
+                            style={{
+                              cursor: 'pointer',
+                              background: f.dentroMeta 
+                                ? 'rgba(16, 185, 129, 0.07)' 
+                                : 'rgba(239, 68, 68, 0.07)',
+                              borderLeft: `3px solid ${f.dentroMeta ? '#10b981' : '#ef4444'}`,
+                              transition: 'background 0.2s'
+                            }}
+                          >
+                            <td>
+                              <span style={{display:'flex', alignItems:'center', gap:'0.5rem'}}>
+                                <span style={{fontSize:'0.8rem'}}>{f.dentroMeta ? '🟢' : '🔴'}</span>
+                                <strong>{f.id}</strong>
+                              </span>
+                            </td>
+                            <td>{f.vdaEft}</td>
+                            <td>{f.vdaOnt}</td>
+                            <td>{f.alvo}</td>
                             <td className={f.status === 'SUCCESS' ? 'text-success' : f.status === 'WARNING' ? 'text-warning' : 'text-danger'} style={{ fontWeight: 700 }}>{f.percProj.toFixed(1)}%</td>
                           </tr>
                         ))}
