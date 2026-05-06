@@ -2,39 +2,49 @@
 
 > **Uma solução analítica premium para gestão de performance regional em tempo real.**
 
-Este projeto é um dashboard de vendas avançado, desenvolvido para gerentes regionais que precisam de agilidade na interpretação de dados e no acompanhamento de metas. Com uma interface moderna (Glassmorphism) e processamento inteligente de relatórios PDF, ele transforma dados brutos em insights acionáveis em segundos.
+Este projeto é um dashboard de vendas avançado, desenvolvido para gerentes regionais que precisam de agilidade na interpretação de dados e no acompanhamento de metas. Com uma interface moderna baseada em **Glassmorphism** e processamento inteligente de relatórios PDF, ele transforma dados brutos em insights acionáveis em segundos.
 
-![Preview do Dashboard](file:///C:/Users/roya/.gemini/antigravity/brain/970f4676-dbb1-4d27-a862-bd2f12a052d3/regional_dashboard_mockup_1778108514642.png)
+<p align="center">
+  <img src="./public/screenshots/dashboard-preview.png" alt="Preview do Dashboard" width="100%">
+</p>
+
+---
+
+## ✨ Destaques e Diferenciais
+
+- **💎 Interface Ultra-Moderna**: Design premium utilizando Glassmorphism, efeitos de transparência e transições suaves.
+- **📄 Inteligência em Dados**: Parser customizado para extração automática de dados complexos de arquivos PDF.
+- **📱 Foco em Mobilidade**: Totalmente responsivo e integrado com WhatsApp para comunicação instantânea de resultados.
+- **🔒 Segurança Enterprise**: Autenticação e persistência de dados utilizando a infraestrutura robusta do Firebase.
 
 ---
 
 ## 🚀 Funcionalidades Principais
 
--   **📈 Visualização de Performance**: Gráficos interativos com projeção de fechamento mensal.
--   **📄 Parser de PDF Inteligente**: Upload de relatórios PDF com extração automática de dados de filiais e departamentos.
--   **🟢 Sinalização Condicional**: Alertas visuais instantâneos para filiais abaixo da meta.
--   **💬 Integração com WhatsApp**: Compartilhamento de resultados regionais ou individuais diretamente para os gerentes com um clique.
--   **🔐 Autenticação Segura**: Gerenciamento de acesso via Firebase Auth.
--   **🌓 Modo Dark/Light**: Interface adaptável para qualquer ambiente de trabalho.
--   **🌦️ Widgets Integrados**: Relógio em tempo real e previsão do tempo local via API.
+-   **📈 Visualização de Performance**: Dashboards interativos com Recharts, mostrando tendências e projeções de fechamento.
+-   **⚙️ Automação de Relatórios**: Sistema de upload "drag-and-drop" para processamento instantâneo de KPIs.
+-   **🟢 Sinalização Inteligente**: Identificação visual automática (Heatmaps e Badges) de filiais que necessitam de atenção.
+-   **💬 Quick Share**: Botões de compartilhamento direto para WhatsApp, enviando sumários formatados para equipes.
+-   **🌓 Experiência Adaptativa**: Alternância dinâmica entre temas Dark e Light com persistência de preferência.
+-   **🌦️ Contexto Local**: Widgets de clima e horário integrados para auxiliar no planejamento logístico regional.
 
 ---
 
 ## 🛠️ Stack Tecnológica
 
--   **Frontend**: [Next.js 16](https://nextjs.org/) (App Router), React 19.
--   **Estilização**: Tailwind CSS 4 & Vanilla CSS (Custom Design System).
--   **Banco de Dados**: [Firebase Firestore](https://firebase.google.com/).
--   **Gráficos**: [Recharts](https://recharts.org/).
+-   **Core**: [Next.js 16](https://nextjs.org/) (App Router) & React 19.
+-   **Estilização**: Tailwind CSS 4 & Custom Design System (Glassmorphism).
+-   **Backend & Auth**: [Firebase Firestore](https://firebase.google.com/) & Firebase Auth.
+-   **Data Viz**: [Recharts](https://recharts.org/).
 -   **Ícones**: [Lucide React](https://lucide.dev/).
--   **Processamento**: [pdf2json](https://github.com/modesty/pdf2json).
+-   **PDF Engine**: [pdf2json](https://github.com/modesty/pdf2json).
 
 ---
 
 ## ⚙️ Instalação e Configuração
 
 ### Pré-requisitos
-- Node.js 18+
+- Node.js 20+ (Recomendado)
 - Conta no Firebase
 
 ### Passo a Passo
@@ -71,19 +81,20 @@ Este projeto é um dashboard de vendas avançado, desenvolvido para gerentes reg
 ## 📱 Estrutura do Projeto
 
 ```text
-├── app/                # Rotas e interface do Dashboard
-│   ├── api/            # API routes (ex: PDF parser)
-│   └── globals.css     # Estilização global e variáveis
-├── lib/                # Configurações do Firebase e utilitários
-├── public/             # Assets estáticos
-└── package.json        # Dependências e scripts
+├── app/                # Rotas, Layouts e Componentes da Interface
+│   ├── api/            # Endpoints para processamento de PDF
+│   └── globals.css     # Design System: Variáveis, Glassmorphism e Tailwind
+├── lib/                # Configurações do Firebase e Core Business Logic
+├── public/             # Assets estáticos e screenshots
+├── src/                # Componentes compartilhados e hooks
+└── package.json        # Manifest de dependências e scripts
 ```
 
 ---
 
 ## 🤝 Contribuição
 
-Contribuições são o que fazem a comunidade open source um lugar incrível para aprender, inspirar e criar. Qualquer contribuição que você fizer será **muito apreciada**.
+Contribuições são fundamentais para a evolução deste projeto. Se você tem sugestões de melhorias ou encontrou algum bug, sinta-se à vontade para abrir uma *Issue* ou enviar um *Pull Request*.
 
 1. Faça um Fork do projeto
 2. Crie uma Branch para sua Feature (`git checkout -b feature/AmazingFeature`)
@@ -95,10 +106,10 @@ Contribuições são o que fazem a comunidade open source um lugar incrível par
 
 ## 📄 Licença
 
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+Distribuído sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
 
 ---
 
 <p align="center">
-  Desenvolvido com ❤️ para otimização de resultados.
+  Desenvolvido com foco em alta performance e excelência visual.
 </p>
