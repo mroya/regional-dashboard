@@ -431,7 +431,21 @@ body {
 
 .scroll-table {
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 420px;
   -webkit-overflow-scrolling: touch;
+}
+
+.scroll-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #0f172a;
+  backdrop-filter: blur(8px);
+}
+
+.dashboard-container.light .scroll-table thead th {
+  background: #f1f5f9;
 }
 
 table {
