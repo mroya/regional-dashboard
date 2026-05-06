@@ -178,6 +178,24 @@ export default function Dashboard() {
   );
 
   return (
+    <>
+      {loading && (
+        <div className="pdf-loading-overlay">
+          <div className="pdf-spinner">
+            <div className="ring"></div>
+            <div className="ring"></div>
+            <div className="ring"></div>
+            <div className="icon-center">📄</div>
+          </div>
+          <div className="pdf-loading-text">
+            <h3>Processando Relatório...</h3>
+            <p>Lendo e interpretando os dados do PDF</p>
+          </div>
+          <div className="pdf-loading-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      )}
     <div className="dashboard-container">
       {user && (
         <>
@@ -318,5 +336,6 @@ export default function Dashboard() {
         )}
       </main>
     </div>
+    </>
   );
 }

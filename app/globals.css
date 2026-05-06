@@ -1,3 +1,120 @@
+/* Loading Screen */
+.loading-screen {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+}
+
+/* PDF Processing Overlay */
+.pdf-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(16px);
+  animation: overlayIn 0.3s ease-out forwards;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pdf-spinner {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.pdf-spinner .ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  animation: spin 1.2s linear infinite;
+}
+
+.pdf-spinner .ring:nth-child(1) {
+  border-top-color: #3b82f6;
+  animation-duration: 1.2s;
+}
+
+.pdf-spinner .ring:nth-child(2) {
+  inset: 10px;
+  border-top-color: #8b5cf6;
+  animation-duration: 0.9s;
+  animation-direction: reverse;
+}
+
+.pdf-spinner .ring:nth-child(3) {
+  inset: 20px;
+  border-top-color: #06b6d4;
+  animation-duration: 0.7s;
+}
+
+.pdf-spinner .icon-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.pdf-loading-text {
+  text-align: center;
+}
+
+.pdf-loading-text h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200%;
+  animation: gradientShift 2s linear infinite;
+}
+
+.pdf-loading-text p {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.pdf-loading-dots span {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  margin: 0 3px;
+  animation: dotBounce 1.4s ease-in-out infinite;
+}
+
+.pdf-loading-dots span:nth-child(2) { animation-delay: 0.2s; background: #8b5cf6; }
+.pdf-loading-dots span:nth-child(3) { animation-delay: 0.4s; background: #06b6d4; }
+
+@keyframes dotBounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0%; }
+  100% { background-position: 200%; }
+}
+
 :root {
   --background: #0f172a;
   --surface: rgba(30, 41, 59, 0.7);
