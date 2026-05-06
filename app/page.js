@@ -24,8 +24,12 @@ export default function Dashboard() {
   const [selectedFilial, setSelectedFilial] = useState('REGIONAL');
   const [isSaving, setIsSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState(null);
 
-  const [elapsedDays, setElapsedDays] = useState(new Date().getDate() - 1 || 1);
+  const today = new Date();
+  const defaultDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const [referenceDate, setReferenceDate] = useState(defaultDate);
+  const [elapsedDays, setElapsedDays] = useState(today.getDate() - 1 || 1);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -45,6 +49,7 @@ export default function Dashboard() {
           const content = docSnap.data().content;
           setData(content);
           if (docSnap.data().elapsedDays) setElapsedDays(docSnap.data().elapsedDays);
+          if (docSnap.data().updatedAtStr) setUpdatedAt(docSnap.data().updatedAtStr);
         }
       } catch (err) { console.error(err); }
     };
@@ -77,8 +82,10 @@ export default function Dashboard() {
       if (!res.ok) throw new Error(json.error || 'Erro ao processar PDF');
       const parsed = parseRawRows(json.rawRows);
       setData(parsed);
+      const nowStr = new Date().toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      setUpdatedAt(nowStr);
       setIsSaving(true);
-      await setDoc(doc(db, "reports", "latest"), { content: parsed, elapsedDays: elapsedDays, updatedAt: serverTimestamp() });
+      await setDoc(doc(db, "reports", "latest"), { content: parsed, elapsedDays: elapsedDays, updatedAtStr: nowStr, updatedAt: serverTimestamp() });
       setIsSaving(false);
       setSidebarOpen(false);
     } catch (err) { setError(err.message); } finally { setLoading(false); }
@@ -212,11 +219,31 @@ export default function Dashboard() {
             </div>
             
             <div className="sidebar-controls">
+
+              {/* Date picker - calculates elapsed days automatically */}
               <div className="glass-panel control-card">
-                <label><Calendar size={14} /> Dias Decorridos: <strong>{elapsedDays}</strong></label>
-                <div className="slider-group">
-                  <input type="range" min="1" max={enrichedData?.geral.diasUteis || 31} value={elapsedDays} onChange={(e) => setElapsedDays(parseInt(e.target.value))} />
-                </div>
+                <label style={{display:'flex', alignItems:'center', gap:'0.4rem', marginBottom:'0.5rem'}}>
+                  <Calendar size={14} /> Data de Referência
+                </label>
+                <input 
+                  type="date" 
+                  value={referenceDate}
+                  max={defaultDate}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setReferenceDate(val);
+                    if (val) {
+                      const ref = new Date(val + 'T12:00:00');
+                      const days = ref.getDate();
+                      setElapsedDays(days > 0 ? days : 1);
+                    }
+                  }}
+                  className="glass-select"
+                  style={{marginBottom:'0.4rem'}}
+                />
+                <p style={{fontSize:'0.72rem', color:'var(--text-secondary)'}}>
+                  📅 {elapsedDays} dia{elapsedDays !== 1 ? 's' : ''} decorrido{elapsedDays !== 1 ? 's' : ''}
+                </p>
               </div>
 
               <div className="control-card">
@@ -226,6 +253,15 @@ export default function Dashboard() {
                   {enrichedData?.filiais.map(f => <option key={f.id} value={f.id}>Filial {f.id}</option>)}
                 </select>
               </div>
+
+              {/* Last updated card */}
+              {updatedAt && (
+                <div className="glass-panel control-card" style={{fontSize:'0.75rem', textAlign:'center', padding:'0.75rem'}}>
+                  <div style={{color:'var(--text-secondary)', marginBottom:'0.2rem'}}>🕐 Última atualização</div>
+                  <div style={{color:'var(--accent-primary)', fontWeight:600}}>{updatedAt}</div>
+                </div>
+              )}
+
             </div>
 
             <label className="upload-btn"><UploadCloud size={20} /> <span>Carregar PDF</span><input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ display: 'none' }} /></label>

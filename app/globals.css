@@ -442,6 +442,10 @@ th {
   color: white;
 }
 
+input[type="date"] {
+  color-scheme: dark;
+}
+
 .slider-group {
   display: flex;
   align-items: center;
