@@ -455,9 +455,10 @@ table {
 }
 
 th, td {
-  padding: 1rem;
+  padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--surface-border);
   font-size: 0.9rem;
+  text-align: left;
 }
 
 th {
@@ -465,6 +466,13 @@ th {
   font-size: 0.7rem;
   color: var(--text-secondary);
   letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* Align numeric columns to the right */
+table th:not(:first-child),
+table td:not(:first-child) {
+  text-align: right;
 }
 
 /* Mobile Responsiveness */
