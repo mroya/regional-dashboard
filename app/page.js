@@ -179,38 +179,42 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-container">
-      <div className="mobile-header">
-        <button className="menu-toggle" onClick={() => setSidebarOpen(true)}><Menu size={24} /></button>
-        <h3>Área 02</h3>
-        <div style={{width: 40}}></div>
-      </div>
+      {user && (
+        <>
+          <div className="mobile-header">
+            <button className="menu-toggle" onClick={() => setSidebarOpen(true)}><Menu size={24} /></button>
+            <h3>Área 02</h3>
+            <div style={{width: 40}}></div>
+          </div>
 
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div><h3>Dashboard</h3><p><User size={12} /> {user.email?.split('@')[0]}</p></div>
-          <button className="menu-toggle" onClick={() => setSidebarOpen(false)} style={{display: sidebarOpen ? 'block' : 'none'}}><X size={20} /></button>
-        </div>
-        
-        <div className="sidebar-controls">
-          <div className="glass-panel control-card">
-            <label><Calendar size={14} /> Dias Decorridos: <strong>{elapsedDays}</strong></label>
-            <div className="slider-group">
-              <input type="range" min="1" max={enrichedData?.geral.diasUteis || 31} value={elapsedDays} onChange={(e) => setElapsedDays(parseInt(e.target.value))} />
+          <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+            <div className="sidebar-header">
+              <div><h3>Dashboard</h3><p><User size={12} /> {user.email?.split('@')[0]}</p></div>
+              <button className="menu-toggle" onClick={() => setSidebarOpen(false)} style={{display: sidebarOpen ? 'block' : 'none'}}><X size={20} /></button>
             </div>
-          </div>
+            
+            <div className="sidebar-controls">
+              <div className="glass-panel control-card">
+                <label><Calendar size={14} /> Dias Decorridos: <strong>{elapsedDays}</strong></label>
+                <div className="slider-group">
+                  <input type="range" min="1" max={enrichedData?.geral.diasUteis || 31} value={elapsedDays} onChange={(e) => setElapsedDays(parseInt(e.target.value))} />
+                </div>
+              </div>
 
-          <div className="control-card">
-            <label>Unidade:</label>
-            <select value={selectedFilial} onChange={(e) => { setSelectedFilial(e.target.value); setSidebarOpen(false); }} className="glass-select">
-              <option value="REGIONAL">Visão Regional</option>
-              {enrichedData?.filiais.map(f => <option key={f.id} value={f.id}>Filial {f.id}</option>)}
-            </select>
-          </div>
-        </div>
+              <div className="control-card">
+                <label>Unidade:</label>
+                <select value={selectedFilial} onChange={(e) => { setSelectedFilial(e.target.value); setSidebarOpen(false); }} className="glass-select">
+                  <option value="REGIONAL">Visão Regional</option>
+                  {enrichedData?.filiais.map(f => <option key={f.id} value={f.id}>Filial {f.id}</option>)}
+                </select>
+              </div>
+            </div>
 
-        <label className="upload-btn"><UploadCloud size={20} /> <span>Carregar PDF</span><input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ display: 'none' }} /></label>
-        <button onClick={handleLogout} className="btn outline-btn" style={{marginTop:'auto', color:'var(--danger)'}}><LogOut size={18} /> Sair</button>
-      </aside>
+            <label className="upload-btn"><UploadCloud size={20} /> <span>Carregar PDF</span><input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ display: 'none' }} /></label>
+            <button onClick={handleLogout} className="btn outline-btn" style={{marginTop:'auto', color:'var(--danger)'}}><LogOut size={18} /> Sair</button>
+          </aside>
+        </>
+      )}
 
       <main className="main-content">
         {enrichedData && (
