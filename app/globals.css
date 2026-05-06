@@ -1,4 +1,82 @@
-/* Loading Screen */
+/* Detail stats grid */
+.detail-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+/* Light mode overrides */
+.dashboard-container.light {
+  background: #f1f5f9;
+  color: #0f172a;
+  min-height: 100vh;
+}
+
+.dashboard-container.light .glass-panel {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.dashboard-container.light .sidebar {
+  background: rgba(255, 255, 255, 0.95);
+  border-right-color: rgba(0,0,0,0.1);
+  color: #0f172a;
+}
+
+.dashboard-container.light .sidebar h3,
+.dashboard-container.light .sidebar p,
+.dashboard-container.light .sidebar label {
+  color: #0f172a;
+}
+
+.dashboard-container.light .glass-select {
+  background: #f8fafc;
+  border-color: rgba(0,0,0,0.15);
+  color: #0f172a;
+}
+
+.dashboard-container.light .glass-select option {
+  background: #fff;
+  color: #0f172a;
+}
+
+.dashboard-container.light th {
+  color: #64748b;
+}
+
+.dashboard-container.light td {
+  color: #0f172a;
+}
+
+.dashboard-container.light tr:hover {
+  background: rgba(0,0,0,0.03);
+}
+
+.dashboard-container.light .upload-btn {
+  background: rgba(59,130,246,0.08);
+  color: #2563eb;
+}
+
+.dashboard-container.light .menu-toggle {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.dashboard-container.light .stat-label,
+.dashboard-container.light .stat-sub,
+.dashboard-container.light .dept-label {
+  color: #64748b;
+}
+
+/* Smooth theme transition */
+.dashboard-container, .glass-panel, .sidebar, th, td {
+  transition: background 0.3s ease, color 0.2s ease, border-color 0.3s ease;
+}
+
+
 .loading-screen {
   height: 100vh;
   display: flex;
