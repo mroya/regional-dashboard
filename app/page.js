@@ -250,8 +250,10 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              <div className="control-card">
-                <label>Unidade:</label>
+              <div className="glass-panel control-card">
+                <label style={{display:'flex', alignItems:'center', gap:'0.4rem', marginBottom:'0.5rem'}}>
+                  Unidade
+                </label>
                 <select value={selectedFilial} onChange={(e) => { setSelectedFilial(e.target.value); setSidebarOpen(false); }} className="glass-select">
                   <option value="REGIONAL">Visão Regional</option>
                   {enrichedData?.filiais.map(f => <option key={f.id} value={f.id}>Filial {f.id}</option>)}

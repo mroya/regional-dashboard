@@ -502,6 +502,12 @@ th {
 }
 
 /* Controls */
+.sidebar-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .control-card {
   padding: 1rem;
 }
