@@ -183,7 +183,36 @@ export default function Dashboard() {
       const status = percProj >= 100 ? 'SUCCESS' : (percProj >= 95 ? 'WARNING' : 'DANGER');
       return { ...f, mediaReal, projecaoFinal, alvoMensalEst, percProj, status, mediaAlvoNec: diasTotais > 0 ? (alvoMensalEst / diasTotais) : 0 };
     });
-    return { ...data, filiais };
+
+    // Calculate regional aggregates
+    const regional = {
+      vdaEft: filiais.reduce((acc, f) => acc + parseNum(f.vdaEft), 0),
+      vdaOnt: filiais.reduce((acc, f) => acc + parseNum(f.vdaOnt), 0),
+      alvo: filiais.reduce((acc, f) => acc + parseNum(f.alvo), 0),
+      alvoMensalEst: filiais.reduce((acc, f) => acc + f.alvoMensalEst, 0),
+      projecaoFinal: filiais.reduce((acc, f) => acc + f.projecaoFinal, 0),
+      mediaReal: filiais.reduce((acc, f) => acc + f.mediaReal, 0),
+      mediaAlvoNec: filiais.reduce((acc, f) => acc + (f.mediaAlvoNec || 0), 0),
+    };
+    regional.percProj = regional.alvoMensalEst > 0 ? (regional.projecaoFinal / regional.alvoMensalEst) * 100 : 0;
+    regional.status = regional.percProj >= 100 ? 'SUCCESS' : (regional.percProj >= 95 ? 'WARNING' : 'DANGER');
+    regional.dentroMeta = regional.percProj >= 100;
+
+    // Regional departments averages
+    const deptKeys = ['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'];
+    const regionalDepts = deptKeys.map(k => {
+      const dItems = data.departamentos.filter(d => d.departamento === k);
+      if (dItems.length === 0) return null;
+      const avgDesvio = dItems.reduce((acc, d) => acc + parseNum(d.desvioPerc), 0) / dItems.length;
+      const avgEvol = dItems.reduce((acc, d) => acc + parseNum(d.evolucaoPerc), 0) / dItems.length;
+      return {
+        departamento: k,
+        desvioPerc: avgDesvio.toFixed(1).replace('.', ',') + '%',
+        evolucaoPerc: avgEvol.toFixed(1).replace('.', ',') + '%'
+      };
+    }).filter(Boolean);
+
+    return { ...data, filiais, regional, regionalDepts };
   }, [data, elapsedDays]);
 
   const filteredFiliais = useMemo(() => {
@@ -407,10 +436,89 @@ export default function Dashboard() {
           <div className="animate-fade-in">
             {selectedFilial === 'REGIONAL' ? (
               <>
-                <div className="top-stats">
-                  <div className="glass-panel stat-card"><div className="stat-label">Ritmo Regional</div><div className="stat-value primary">{(enrichedData.filiais.reduce((acc, f) => acc + f.percProj, 0) / enrichedData.filiais.length).toFixed(1)}%</div></div>
-                  <div className="glass-panel stat-card"><div className="stat-label">Status Hoje</div><div className="stat-value">{enrichedData.filiais.filter(f => f.dentroMeta).length} / {enrichedData.filiais.length} <span style={{fontSize:'0.8rem', fontWeight:400, color:'var(--text-secondary)'}}>na meta</span></div></div>
-                  <div className="glass-panel stat-card"><div className="stat-label">Calendário</div><div className="stat-value">{elapsedDays} / {enrichedData.geral.diasUteis} <span style={{fontSize:'0.8rem', fontWeight:400, color:'var(--text-secondary)'}}>dias</span></div></div>
+                <div className="detail-grid" style={{ marginBottom: '2rem' }}>
+                  {/* Header with conditional color */}
+                  <div style={{
+                    borderRadius: 'var(--radius-md)',
+                    background: enrichedData.regional.dentroMeta
+                      ? 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.05))'
+                      : 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.05))',
+                    border: `1px solid ${enrichedData.regional.dentroMeta ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)'}`,
+                    padding: '1.5rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '1rem',
+                    boxShadow: enrichedData.regional.dentroMeta ? '0 0 30px rgba(16,185,129,0.15)' : '0 0 30px rgba(239,68,68,0.15)'
+                  }}>
+                    <div style={{display:'flex', alignItems:'center', gap:'1rem'}}>
+                      <div>
+                        <p style={{fontSize:'0.75rem', color: enrichedData.regional.dentroMeta ? '#10b981' : '#ef4444', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em'}}>
+                          {enrichedData.regional.dentroMeta ? '✅ Regional na Meta' : '⚠️ Regional Abaixo da Meta'}
+                        </p>
+                        <h2 style={{fontSize:'1.8rem'}}>Área 02 Sul POA</h2>
+                      </div>
+                    </div>
+                    <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'0.75rem'}}>
+                      <div style={{display:'flex', gap:'0.5rem'}}>
+                        <div className="glass-panel" style={{padding:'0.4rem 0.8rem', fontSize:'0.7rem', display:'flex', alignItems:'center', gap:'0.4rem'}}>
+                          <Calendar size={12} /> {elapsedDays} / {enrichedData.geral.diasUteis} dias
+                        </div>
+                        <button
+                          onClick={shareWhatsApp}
+                          className="whatsapp-btn"
+                          title="Compartilhar resumo regional no WhatsApp"
+                        >
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                          Compartilhar Geral
+                        </button>
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <p style={{fontSize:'0.75rem', color:'var(--text-secondary)'}}>Ritmo Regional</p>
+                        <p style={{fontSize:'2.5rem', fontWeight:800, color: enrichedData.regional.dentroMeta ? '#10b981' : '#ef4444', lineHeight:1}}>{enrichedData.regional.percProj.toFixed(1)}%</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stat cards with color accent */}
+                  <div className="detail-stats">
+                    <div className="glass-panel stat-card" style={{borderTop: `3px solid ${enrichedData.regional.dentroMeta ? '#10b981' : '#ef4444'}`}}>
+                      <div className="stat-label">Projeção (Regional)</div>
+                      <div className="stat-value" style={{color: enrichedData.regional.dentroMeta ? '#10b981' : '#ef4444'}}>R$ {enrichedData.regional.projecaoFinal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</div>
+                      <div className="stat-sub">Meta: R$ {enrichedData.regional.alvoMensalEst.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</div>
+                    </div>
+                    <div className="glass-panel stat-card" style={{borderTop: '3px solid #3b82f6'}}>
+                      <div className="stat-label">Venda Ontem (Total)</div>
+                      <div className="stat-value" style={{color:'#3b82f6'}}>R$ {enrichedData.regional.vdaOnt.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</div>
+                    </div>
+                    <div className="glass-panel stat-card" style={{borderTop: '3px solid #8b5cf6'}}>
+                      <div className="stat-label">Média Diária Regional</div>
+                      <div className="stat-value" style={{color:'#8b5cf6'}}>R$ {enrichedData.regional.mediaReal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</div>
+                      <div className="stat-sub">Meta/dia: R$ {enrichedData.regional.mediaAlvoNec?.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</div>
+                    </div>
+                  </div>
+
+                  {/* Departments */}
+                  <div className="glass-panel depts-box">
+                    <h4>Média de Departamentos (Regional)</h4>
+                    <div className="depts-grid">
+                      {[{ k: 'MEDICAMENTO_GERAL', l: 'Medicamento' }, { k: 'GENERICO', l: 'Genérico' }, { k: 'HB', l: 'HB' }, { k: 'PANVEL', l: 'Panvel' }].map(dept => {
+                        const d = enrichedData.regionalDepts.find(x => x.departamento === dept.k);
+                        if (!d) return null;
+                        const isPos = parseNum(d.desvioPerc) >= 0;
+                        return (
+                          <div key={dept.k} className="dept-card" style={{borderTop: `2px solid ${isPos ? '#10b981' : '#ef4444'}`}}>
+                            <div className="dept-label">{dept.l}</div>
+                            <div className="dept-stats">
+                              <div className={isPos ? 'pos' : 'neg'} style={{fontWeight:700}}>{d.desvioPerc}</div>
+                              <div style={{color:'var(--text-secondary)', fontSize:'0.75rem'}}>evol: {d.evolucaoPerc}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="glass-panel chart-box">
