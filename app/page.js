@@ -32,7 +32,7 @@ export default function Dashboard() {
   const today = new Date();
   const defaultDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   const [referenceDate, setReferenceDate] = useState(defaultDate);
-  const [elapsedDays, setElapsedDays] = useState(today.getDate() - 1 || 1);
+  const [elapsedDays, setElapsedDays] = useState(today.getDate());
 
   // Live clock
   useEffect(() => {
@@ -88,6 +88,7 @@ export default function Dashboard() {
           const content = docSnap.data().content;
           setData(content);
           if (docSnap.data().elapsedDays) setElapsedDays(docSnap.data().elapsedDays);
+          if (docSnap.data().referenceDate) setReferenceDate(docSnap.data().referenceDate);
           if (docSnap.data().updatedAtStr) setUpdatedAt(docSnap.data().updatedAtStr);
         }
       } catch (err) { console.error(err); }
@@ -124,7 +125,13 @@ export default function Dashboard() {
       const nowStr = new Date().toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
       setUpdatedAt(nowStr);
       setIsSaving(true);
-      await setDoc(doc(db, "reports", "latest"), { content: parsed, elapsedDays: elapsedDays, updatedAtStr: nowStr, updatedAt: serverTimestamp() });
+      await setDoc(doc(db, "reports", "latest"), { 
+        content: parsed, 
+        elapsedDays: elapsedDays, 
+        referenceDate: referenceDate,
+        updatedAtStr: nowStr, 
+        updatedAt: serverTimestamp() 
+      });
       setIsSaving(false);
       setSidebarOpen(false);
     } catch (err) { setError(err.message); } finally { setLoading(false); }
