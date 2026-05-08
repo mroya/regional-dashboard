@@ -188,9 +188,10 @@ export default function Dashboard() {
           return clean.length > 0 && !isNaN(clean.replace(/\./g, '').replace(',', '.'));
         });
 
-        if (numericCols.length >= 2 && currentSection === 'GERAL') {
+        if (currentSection === 'GERAL' || isRank) {
           const vdaVal = numericCols[0];
           const metaVal = numericCols[1];
+          // Use the last column if it looks like a branch name/code, otherwise use the first
           const finalId = isBranchCode ? row[0] : (row[row.length-1]?.length > 2 ? row[row.length-1] : row[0]);
           
           result.filiais.push({
