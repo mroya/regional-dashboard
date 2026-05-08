@@ -231,11 +231,18 @@ export default function Dashboard() {
     const regional = {
       vdaEft: filiais.reduce((acc, f) => acc + f.vdaEftNum, 0),
       metaDia: filiais.reduce((acc, f) => acc + f.metaDiaNum, 0),
-      alvoMensalEst: filiais.reduce((acc, f) => acc + f.alvoMensalEst, 0),
-      projecaoFinal: filiais.reduce((acc, f) => acc + f.projecaoFinal, 0),
     };
-    regional.mediaReal = elapsedDays > 0 ? regional.vdaEft / elapsedDays : 0;
-    regional.mediaAlvoNec = (totalDays - elapsedDays) > 0 ? (regional.alvoMensalEst - regional.vdaEft) / (totalDays - elapsedDays) : 0;
+
+    // Calculate regional projections based on AGGREGATE totals for maximum accuracy
+    const regionalVdaMedia = currentElapsed > 0 ? regional.vdaEft / currentElapsed : 0;
+    const regionalMetaMedia = currentElapsed > 0 ? regional.metaDia / currentElapsed : 0;
+    
+    regional.projecaoFinal = regionalVdaMedia * totalDays;
+    regional.alvoMensalEst = regionalMetaMedia * totalDays;
+    
+    regional.mediaReal = regionalVdaMedia;
+    regional.mediaAlvoNec = (totalDays - currentElapsed) > 0 ? (regional.alvoMensalEst - regional.vdaEft) / (totalDays - currentElapsed) : 0;
+    
     regional.percProj = regional.alvoMensalEst > 0 ? (regional.projecaoFinal / regional.alvoMensalEst) * 100 : 0;
     regional.status = regional.percProj >= 100 ? 'SUCCESS' : (regional.percProj >= 95 ? 'WARNING' : 'DANGER');
     regional.dentroMeta = regional.percProj >= 100;
