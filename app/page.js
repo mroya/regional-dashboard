@@ -205,6 +205,8 @@ export default function Dashboard() {
     return result;
   };
 
+  const enrichedData = useMemo(() => {
+    if (!data) return null;
     const refDateObj = new Date(referenceDate + 'T12:00:00');
     const currentElapsed = refDateObj.getDate() || 1;
     const totalDays = parseInt(data.geral.diasUteis || '31');
@@ -273,8 +275,9 @@ export default function Dashboard() {
       return { ...d, share: share.toFixed(1).replace('.', ',') + '%' };
     });
 
-    return { ...data, filiais, regional, regionalDepts, departamentos };
-  }, [data, elapsedDays]);
+    const debug = { currentElapsed, totalDays, regionalMeta: regional.metaDia, regionalVda: regional.vdaEft, ver: '1.2.3 (Stable)' };
+    return { ...data, filiais, regional, regionalDepts, departamentos, debug };
+  }, [data, referenceDate]);
 
   const filteredFiliais = useMemo(() => {
     if (!enrichedData) return [];
