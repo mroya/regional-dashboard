@@ -29,10 +29,15 @@ export default function Dashboard() {
   const [clock, setClock] = useState('');
   const [weather, setWeather] = useState(null);
 
-  const today = new Date();
-  const defaultDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const getYesterdayStr = () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  };
+
+  const defaultDate = getYesterdayStr();
   const [referenceDate, setReferenceDate] = useState(defaultDate);
-  const [elapsedDays, setElapsedDays] = useState(today.getDate());
+  const [elapsedDays, setElapsedDays] = useState(new Date(defaultDate + 'T12:00:00').getDate());
 
   // Live clock
   useEffect(() => {
