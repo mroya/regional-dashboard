@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { UploadCloud, TrendingUp, TrendingDown, Target, DollarSign, Percent, Activity, Save, LogOut, Lock, Mail, User, UserPlus, Key, Calendar, Menu, X, ChevronLeft, PieChart } from 'lucide-react';
+import { UploadCloud, TrendingUp, TrendingDown, Target, DollarSign, Percent, Activity, Save, LogOut, Lock, Mail, User, UserPlus, Key, Calendar, Menu, X, ChevronLeft, PieChart, Trash2 } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from 'firebase/auth';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 
@@ -164,123 +164,91 @@ export default function Dashboard() {
   const parseRawRows = (rows) => {
     let result = { geral: { diasUteis: '31' }, filiais: [], departamentos: [] };
     let currentSection = 'GERAL'; 
-    const branchesMap = new Map();
     const knownBranches = ["38", "44", "113", "167", "171", "184", "186", "192", "313", "347", "351", "376", "378", "441", "456", "464", "487", "778", "829", "831", "868", "876(POA)", "922(POA)"];
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const joined = row.join(' ');
-      
       const matchDias = joined.match(/Dias\s*Úteis[:\s]*(\d+)/i);
       if (matchDias) result.geral.diasUteis = matchDias[1];
-      
       if (joined.includes('Indicadores Gerais')) currentSection = 'GERAL';
-      else if (joined.includes('Vda Eft Meta Dia % Desv')) currentSection = 'RANKING';
       else if (joined.includes('MEDICAMENTO TOTAL')) currentSection = 'MEDICAMENTO_GERAL';
+      else if (joined.includes('MEDICAMENTO - BIO')) currentSection = 'MEDICAMENTO_BIO';
       else if (joined.includes('GENÉRICO')) currentSection = 'GENERICO';
       else if (joined.includes('HB (Não Medicamento)')) currentSection = 'HB';
       else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
+      else if (joined.includes('CUPOM BEM PANVEL')) currentSection = 'CUPOM';
+      else if (joined.includes('TROCO AMIGO')) currentSection = 'TROCO';
 
-      // Strict branch parsing: ONLY in RANKING section, must start with rank, must have currency and %
-      const rankVal = parseInt(row[0]);
-      const isRank = !isNaN(rankVal) && rankVal > 0 && rankVal < 200; // Rank is usually 1-100
-      
-      if (currentSection === 'RANKING' && isRank && row.length >= 5) {
-        const numericCols = row.slice(1).filter(c => {
-          const clean = c.replace(/[R$\s%]/g, '');
-          return clean.length > 0 && !isNaN(clean.replace(/\./g, '').replace(',', '.'));
-        });
-        
-        const hasPercent = row.some(c => c.includes('%'));
-
-        if (numericCols.length >= 2 && hasPercent) {
-          const vdaVal = numericCols[0];
-          const metaVal = numericCols[1];
-          // Try to find a known branch code in the row, or fallback to rank
-          const branchCode = row.find(c => knownBranches.includes(c));
-          const finalId = branchCode || row[0];
-          
-          if (!branchesMap.has(finalId)) {
-            branchesMap.set(finalId, {
-              id: finalId,
-              vdaEft: vdaVal,
-              metaDia: metaVal,
-              desvioPerc: row.find(c => c.includes('%')) || '0%',
-              evolucaoPerc: row[row.length - 1] || '0%'
-            });
-          }
+      if (row.length > 3 && knownBranches.includes(row[0])) {
+        const filialId = row[0];
+        if (currentSection === 'GERAL' && row.length > 5) {
+          result.filiais.push({
+            id: filialId,
+            vdaEft: row[1] || '0',
+            metaDia: row[2] || '0',
+            desvioPerc: row[3] || '0%',
+            evolucaoPerc: row[7] || '0%' // Evolution is actually in column 7
+          });
+        }
+        if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection)) {
+          result.departamentos.push({ 
+            id: filialId, 
+            departamento: currentSection, 
+            vdaEft: row[1] || '0',
+            desvioPerc: row[4] || '0%', 
+            evolucaoPerc: row[5] || '0%' 
+          });
         }
       }
-
-      if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(row[0])) {
-        result.departamentos.push({
-          id: 'REGIONAL',
-          departamento: row[0],
-          vdaEft: row[1] || '0',
-          desvioPerc: row[4] || '0%',
-          evolucaoPerc: row[10] || '0%'
-        });
-      }
     }
-    result.filiais = Array.from(branchesMap.values());
     return result;
   };
 
-  const enrichedData = useMemo(() => {
-    if (!data) return null;
-    
-    // Force calculation based on the SELECTED date in the UI, ignoring potentially stale state
     const refDateObj = new Date(referenceDate + 'T12:00:00');
     const currentElapsed = refDateObj.getDate() || 1;
-    const parsedDays = parseInt(data.geral.diasUteis);
-    const totalDays = (!isNaN(parsedDays) && parsedDays > 25) ? parsedDays : 31;
-    
+    const totalDays = parseInt(data.geral.diasUteis || '31');
+
     const filiais = data.filiais.map(f => {
-      const vdaEft = parseNum(f.vdaEft);
-      const metaDia = parseNum(f.metaDia);
-      
-      // Calculate daily averages using the verified date
-      const vdaMedia = currentElapsed > 0 ? vdaEft / currentElapsed : 0;
-      const metaMedia = currentElapsed > 0 ? metaDia / currentElapsed : 0;
-      
-      const projecaoFinal = vdaMedia * totalDays;
-      const alvoMensalEst = metaMedia * totalDays;
-      
+      const vdaEftNum = parseNum(f.vdaEft);
+      const metaDiaNum = parseNum(f.metaDia);
+      const projecaoFinal = (vdaEftNum / currentElapsed) * totalDays;
+      const alvoMensalEst = (metaDiaNum / currentElapsed) * totalDays;
       const percProj = alvoMensalEst > 0 ? (projecaoFinal / alvoMensalEst) * 100 : 0;
       const status = percProj >= 100 ? 'SUCCESS' : (percProj >= 95 ? 'WARNING' : 'DANGER');
       
       return { 
         ...f, 
-        vdaEftNum: vdaEft,
-        metaDiaNum: metaDia,
+        vdaEftNum,
+        metaDiaNum,
         projecaoFinal, 
         alvoMensalEst, 
         percProj, 
         status, 
-        dentroMeta: parseNum(f.desvioPerc) >= 0,
-        mediaReal: vdaMedia,
-        mediaAlvoNec: (totalDays - elapsedDays) > 0 ? (alvoMensalEst - vdaEft) / (totalDays - elapsedDays) : 0
+        dentroMeta: percProj >= 100,
+        mediaReal: vdaEftNum / currentElapsed,
+        mediaAlvoNec: (totalDays - currentElapsed) > 0 ? (alvoMensalEst - vdaEftNum) / (totalDays - currentElapsed) : 0
       };
     });
 
-    const regional = {
-      vdaEft: filiais.reduce((acc, f) => acc + f.vdaEftNum, 0),
-      metaDia: filiais.reduce((acc, f) => acc + f.metaDiaNum, 0),
-    };
+    // Aggregated Regional metrics
+    const regionalVda = filiais.reduce((acc, f) => acc + f.vdaEftNum, 0);
+    const regionalMeta = filiais.reduce((acc, f) => acc + f.metaDiaNum, 0);
+    const regionalProj = (regionalVda / currentElapsed) * totalDays;
+    const regionalAlvo = (regionalMeta / currentElapsed) * totalDays;
 
-    // Calculate regional projections based on AGGREGATE totals for maximum accuracy
-    const regionalVdaMedia = currentElapsed > 0 ? regional.vdaEft / currentElapsed : 0;
-    const regionalMetaMedia = currentElapsed > 0 ? regional.metaDia / currentElapsed : 0;
-    
-    regional.projecaoFinal = regionalVdaMedia * totalDays;
-    regional.alvoMensalEst = regionalMetaMedia * totalDays;
-    
-    regional.mediaReal = regionalVdaMedia;
-    regional.mediaAlvoNec = (totalDays - currentElapsed) > 0 ? (regional.alvoMensalEst - regional.vdaEft) / (totalDays - currentElapsed) : 0;
-    
-    regional.percProj = regional.alvoMensalEst > 0 ? (regional.projecaoFinal / regional.alvoMensalEst) * 100 : 0;
-    regional.status = regional.percProj >= 100 ? 'SUCCESS' : (regional.percProj >= 95 ? 'WARNING' : 'DANGER');
-    regional.dentroMeta = regional.percProj >= 100;
+    const regional = {
+      vdaEft: regionalVda,
+      metaDia: regionalMeta,
+      projecaoFinal: regionalProj,
+      alvoMensalEst: regionalAlvo,
+      percProj: regionalAlvo > 0 ? (regionalProj / regionalAlvo) * 100 : 0,
+      mediaReal: regionalVda / currentElapsed,
+      mediaAlvo: regionalAlvo / totalDays,
+      currentElapsed,
+      totalDays,
+      dentroMeta: (regionalProj / regionalAlvo) * 100 >= 100
+    };
 
     const deptKeys = ['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'];
     const regionalDepts = deptKeys.map(k => {
@@ -305,9 +273,8 @@ export default function Dashboard() {
       return { ...d, share: share.toFixed(1).replace('.', ',') + '%' };
     });
 
-    const debug = { currentElapsed, totalDays, regionalMeta: regional.metaDia, regionalVda: regional.vdaEft, ver: '1.2.2' };
-    return { ...data, filiais, regional, regionalDepts, departamentos, debug };
-  }, [data, referenceDate, elapsedDays]);
+    return { ...data, filiais, regional, regionalDepts, departamentos };
+  }, [data, elapsedDays]);
 
   const filteredFiliais = useMemo(() => {
     if (!enrichedData) return [];
@@ -546,6 +513,9 @@ export default function Dashboard() {
             </div>
 
             <label className="upload-btn"><UploadCloud size={20} /> <span>Carregar PDF</span><input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ display: 'none' }} /></label>
+            <button className="sidebar-btn" style={{marginTop:'0.5rem', color:'#ef4444', width:'100%', border:'1px solid rgba(239,68,68,0.2)', background:'rgba(239,68,68,0.05)', borderRadius:'12px', padding:'0.8rem', display:'flex', alignItems:'center', justifyContent:'center', gap:'0.6rem', fontSize:'0.9rem', fontWeight:600, cursor:'pointer'}} onClick={handleClearData}>
+              <Trash2 size={18} /> Limpar Dados
+            </button>
             <button onClick={handleLogout} className="btn outline-btn" style={{marginTop:'auto', color:'var(--danger)'}}><LogOut size={18} /> Sair</button>
           </aside>
         </>
@@ -652,23 +622,21 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="glass-panel" style={{height:'400px', minHeight: '400px', padding:'1.5rem', overflow: 'hidden'}}>
-                  <h3 style={{marginBottom:'1.5rem', fontSize:'1.1rem'}}>Estimativa de Fechamento (%)</h3>
-                  <div style={{width: '100%', height: '300px'}}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={enrichedData.filiais}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                        <XAxis dataKey="id" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
-                        <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} />
+                <div className="glass-panel chart-box">
+                  <div className="chart-header"><h4>Estimativa de Fechamento (%)</h4></div>
+                  <div style={{width:'100%', height: 250}}>
+                    <ResponsiveContainer>
+                      <BarChart data={enrichedData.filiais.map(f => ({ name: f.id, val: f.percProj, status: f.status }))}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                        <XAxis dataKey="name" fontSize={10} stroke="#94a3b8" />
                         <Tooltip 
-                          contentStyle={{backgroundColor:'rgba(15,23,42,0.9)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px'}}
-                          itemStyle={{color:'var(--text-primary)'}}
+                          cursor={{ fill: 'rgba(255,255,255,0.05)' }} 
+                          contentStyle={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', color: '#fff' }}
+                          itemStyle={{ color: '#fff' }}
                           formatter={(value) => [`${value.toFixed(1)}%`, 'Projeção']}
                         />
-                        <Bar dataKey="percProj" radius={[4, 4, 0, 0]}>
-                          {enrichedData.filiais.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.percProj >= 100 ? '#10b981' : (entry.percProj >= 95 ? '#f59e0b' : '#ef4444')} />
-                          ))}
+                        <Bar dataKey="val">
+                          {enrichedData.filiais.map((f, i) => (<Cell key={i} fill={f.status === 'SUCCESS' ? '#10b981' : f.status === 'WARNING' ? '#f59e0b' : '#ef4444'} />))}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -840,11 +808,11 @@ export default function Dashboard() {
           </div>
         )}
       </main>
-      
+
       {/* Debug Panel */}
       {enrichedData?.debug && (
         <div style={{position:'fixed', bottom:0, right:0, background:'rgba(0,0,0,0.8)', color:'#aaa', fontSize:'10px', padding:'4px 8px', borderRadius:'4px 0 0 0', zIndex:9999}}>
-          v{enrichedData.debug.ver} | D:{enrichedData.debug.currentElapsed} | T:{enrichedData.debug.totalDays} | M:{Math.round(enrichedData.debug.regionalMeta)}
+          v1.2.3 (Stable) | D:{enrichedData.regional.currentElapsed} | T:{enrichedData.regional.totalDays} | M:{Math.round(enrichedData.regional.metaDia)}
         </div>
       )}
     </div>
