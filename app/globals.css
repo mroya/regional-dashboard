@@ -309,10 +309,146 @@ body {
   font-size: 0.85rem;
 }
 
-/* Dashboard Layout */
-.dashboard-container {
+.sidebar-btn-danger {
   display: flex;
-  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--danger);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sidebar-btn-danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger);
+}
+
+.date-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.8rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.hidden-date-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  appearance: none;
+}
+
+.header-status-card {
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 2rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge.success { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.status-badge.danger { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+.stats-main-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+}
+
+.modern-table th {
+  padding: 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.modern-table th:hover {
+  color: var(--text-primary);
+}
+
+.modern-table td {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: none;
+}
+
+.modern-table tr td:first-child { border-radius: 8px 0 0 8px; }
+.modern-table tr td:last-child { border-radius: 0 8px 8px 0; }
+
+.row-success td { border-left: 3px solid #10b981; }
+.row-danger td { border-left: 3px solid #ef4444; }
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.status-dot.active { background: #10b981; box-shadow: 0 0 10px #10b981; }
+.status-dot.inactive { background: #ef4444; }
+
+.filter-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter-btn {
+  padding: 0.4rem 1rem;
+  border-radius: 99px;
+  border: 1px solid var(--surface-border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn.active {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.version-footer {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  background: rgba(0,0,0,0.8);
+  color: #666;
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 4px 0 0 0;
+  z-index: 9999;
 }
 
 .sidebar {
