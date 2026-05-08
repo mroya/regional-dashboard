@@ -109,6 +109,11 @@ export default function Dashboard() {
   const handleLogout = async () => { try { await signOut(auth); setData(null); } catch (err) { console.error(err); } };
 
   const parseNum = (str) => parseFloat(str?.replace(/[R$\s%]/g, '').replace(/\./g, '').replace(',', '.') || '0');
+  const formatDateBR = (dateStr) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -410,22 +415,48 @@ export default function Dashboard() {
                 <label style={{display:'flex', alignItems:'center', gap:'0.4rem', marginBottom:'0.5rem'}}>
                   <Calendar size={14} /> Data de Referência
                 </label>
-                <input 
-                  type="date" 
-                  value={referenceDate}
-                  max={defaultDate}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setReferenceDate(val);
-                    if (val) {
-                      const ref = new Date(val + 'T12:00:00');
-                      const days = ref.getDate();
-                      setElapsedDays(days > 0 ? days : 1);
-                    }
-                  }}
-                  className="glass-select"
-                  style={{marginBottom:'0.4rem'}}
-                />
+                <div style={{position: 'relative', width: '100%', marginBottom: '0.4rem'}}>
+                  <div className="date-display" style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '0.5rem 0.75rem',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    pointerEvents: 'none'
+                  }}>
+                    {formatDateBR(referenceDate)}
+                    <Calendar size={12} style={{opacity: 0.5}}/>
+                  </div>
+                  <input 
+                    type="date" 
+                    value={referenceDate}
+                    max={defaultDate}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setReferenceDate(val);
+                      if (val) {
+                        const ref = new Date(val + 'T12:00:00');
+                        const days = ref.getDate();
+                        setElapsedDays(days > 0 ? days : 1);
+                      }
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      opacity: 0,
+                      cursor: 'pointer',
+                      appearance: 'none'
+                    }}
+                  />
+                </div>
                 <p style={{fontSize:'0.72rem', color:'var(--text-secondary)'}}>
                   📅 {elapsedDays} dia{elapsedDays !== 1 ? 's' : ''} decorrido{elapsedDays !== 1 ? 's' : ''}
                 </p>
