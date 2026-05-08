@@ -155,7 +155,7 @@ export default function Dashboard() {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const joined = row.join(' ');
-      const matchDias = joined.match(/Dias\s*Úteis:\s*(\d+)/);
+      const matchDias = joined.match(/Dias\s*Úteis[:\s]*(\d+)/i);
       if (matchDias) result.geral.diasUteis = matchDias[1];
       if (joined.includes('Indicadores Gerais')) currentSection = 'GERAL';
       else if (joined.includes('MEDICAMENTO TOTAL')) currentSection = 'MEDICAMENTO_GERAL';
@@ -193,7 +193,8 @@ export default function Dashboard() {
 
   const enrichedData = useMemo(() => {
     if (!data) return null;
-    const totalDays = parseInt(data.geral.diasUteis || '31');
+    const parsedDays = parseInt(data.geral.diasUteis);
+    const totalDays = (!isNaN(parsedDays) && parsedDays > 25) ? parsedDays : 31;
     const filiais = data.filiais.map(f => {
       const vdaEft = parseNum(f.vdaEft);
       const metaDia = parseNum(f.metaDia);
