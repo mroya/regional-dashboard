@@ -174,7 +174,7 @@ export default function Dashboard() {
             vdaEft: row[1] || '0',
             metaDia: row[2] || '0',
             desvioPerc: row[3] || '0%',
-            evolucaoPerc: row[4] || '0%'
+            evolucaoPerc: row[7] || '0%' // Evolution is actually in column 7
           });
         }
         if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection)) {
@@ -197,8 +197,14 @@ export default function Dashboard() {
     const filiais = data.filiais.map(f => {
       const vdaEft = parseNum(f.vdaEft);
       const metaDia = parseNum(f.metaDia);
-      const alvoMensalEst = elapsedDays > 0 ? (metaDia * totalDays) : metaDia;
-      const projecaoFinal = elapsedDays > 0 ? (vdaEft / elapsedDays) * totalDays : vdaEft;
+      
+      // Calculate monthly projection based on daily average
+      const vdaMedia = elapsedDays > 0 ? vdaEft / elapsedDays : 0;
+      const metaMedia = elapsedDays > 0 ? metaDia / elapsedDays : 0;
+      
+      const projecaoFinal = vdaMedia * totalDays;
+      const alvoMensalEst = metaMedia * totalDays;
+      
       const percProj = alvoMensalEst > 0 ? (projecaoFinal / alvoMensalEst) * 100 : 0;
       const status = percProj >= 100 ? 'SUCCESS' : (percProj >= 95 ? 'WARNING' : 'DANGER');
       
@@ -211,7 +217,7 @@ export default function Dashboard() {
         percProj, 
         status, 
         dentroMeta: parseNum(f.desvioPerc) >= 0,
-        mediaReal: elapsedDays > 0 ? vdaEft / elapsedDays : 0,
+        mediaReal: vdaMedia,
         mediaAlvoNec: (totalDays - elapsedDays) > 0 ? (alvoMensalEst - vdaEft) / (totalDays - elapsedDays) : 0
       };
     });
