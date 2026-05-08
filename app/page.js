@@ -616,21 +616,23 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="glass-panel chart-box">
-                  <div className="chart-header"><h4>Estimativa de Fechamento (%)</h4></div>
-                  <div style={{width:'100%', height: 250}}>
-                    <ResponsiveContainer>
-                      <BarChart data={enrichedData.filiais.map(f => ({ name: f.id, val: f.percProj, status: f.status }))}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                        <XAxis dataKey="name" fontSize={10} stroke="#94a3b8" />
+                <div className="glass-panel" style={{height:'400px', minHeight: '400px', padding:'1.5rem', overflow: 'hidden'}}>
+                  <h3 style={{marginBottom:'1.5rem', fontSize:'1.1rem'}}>Estimativa de Fechamento (%)</h3>
+                  <div style={{width: '100%', height: '300px'}}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={enrichedData.filiais}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                        <XAxis dataKey="id" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} />
                         <Tooltip 
-                          cursor={{ fill: 'rgba(255,255,255,0.05)' }} 
-                          contentStyle={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', color: '#fff' }}
-                          itemStyle={{ color: '#fff' }}
+                          contentStyle={{backgroundColor:'rgba(15,23,42,0.9)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px'}}
+                          itemStyle={{color:'var(--text-primary)'}}
                           formatter={(value) => [`${value.toFixed(1)}%`, 'Projeção']}
                         />
-                        <Bar dataKey="val">
-                          {enrichedData.filiais.map((f, i) => (<Cell key={i} fill={f.status === 'SUCCESS' ? '#10b981' : f.status === 'WARNING' ? '#f59e0b' : '#ef4444'} />))}
+                        <Bar dataKey="percProj" radius={[4, 4, 0, 0]}>
+                          {enrichedData.filiais.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.percProj >= 100 ? '#10b981' : (entry.percProj >= 95 ? '#f59e0b' : '#ef4444')} />
+                          ))}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
