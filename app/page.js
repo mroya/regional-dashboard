@@ -172,11 +172,9 @@ export default function Dashboard() {
           result.filiais.push({
             id: filialId,
             vdaEft: row[1] || '0',
-            vdaOnt: row[2] || '0',
-            alvo: row[3] || '0',
-            desvioPerc: row[4] || '0%',
-            evolucaoPerc: row[5] || '0%',
-            dentroMeta: parseFloat((row[4]||'0').replace(',','.')) >= 0
+            metaDia: row[2] || '0',
+            desvioPerc: row[3] || '0%',
+            evolucaoPerc: row[4] || '0%'
           });
         }
         if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection)) {
@@ -195,34 +193,41 @@ export default function Dashboard() {
 
   const enrichedData = useMemo(() => {
     if (!data) return null;
-    const diasTotais = parseInt(data.geral.diasUteis || '31');
+    const totalDays = parseInt(data.geral.diasUteis || '31');
     const filiais = data.filiais.map(f => {
       const vdaEft = parseNum(f.vdaEft);
-      const alvoPer = parseNum(f.alvo);
-      const alvoMensalEst = elapsedDays > 0 ? (alvoPer / elapsedDays) * diasTotais : alvoPer;
-      const mediaReal = elapsedDays > 0 ? vdaEft / elapsedDays : 0;
-      const projecaoFinal = mediaReal * diasTotais;
+      const metaDia = parseNum(f.metaDia);
+      const alvoMensalEst = elapsedDays > 0 ? (metaDia * totalDays) : metaDia;
+      const projecaoFinal = elapsedDays > 0 ? (vdaEft / elapsedDays) * totalDays : vdaEft;
       const percProj = alvoMensalEst > 0 ? (projecaoFinal / alvoMensalEst) * 100 : 0;
       const status = percProj >= 100 ? 'SUCCESS' : (percProj >= 95 ? 'WARNING' : 'DANGER');
-      return { ...f, mediaReal, projecaoFinal, alvoMensalEst, percProj, status, mediaAlvoNec: diasTotais > 0 ? (alvoMensalEst / diasTotais) : 0 };
+      
+      return { 
+        ...f, 
+        vdaEftNum: vdaEft,
+        metaDiaNum: metaDia,
+        projecaoFinal, 
+        alvoMensalEst, 
+        percProj, 
+        status, 
+        dentroMeta: parseNum(f.desvioPerc) >= 0,
+        mediaReal: elapsedDays > 0 ? vdaEft / elapsedDays : 0,
+        mediaAlvoNec: (totalDays - elapsedDays) > 0 ? (alvoMensalEst - vdaEft) / (totalDays - elapsedDays) : 0
+      };
     });
 
-    // Calculate regional aggregates
     const regional = {
-      vdaEft: filiais.reduce((acc, f) => acc + parseNum(f.vdaEft), 0),
-      vdaOnt: filiais.reduce((acc, f) => acc + parseNum(f.vdaOnt), 0),
-      alvo: filiais.reduce((acc, f) => acc + parseNum(f.alvo), 0),
+      vdaEft: filiais.reduce((acc, f) => acc + f.vdaEftNum, 0),
+      metaDia: filiais.reduce((acc, f) => acc + f.metaDiaNum, 0),
       alvoMensalEst: filiais.reduce((acc, f) => acc + f.alvoMensalEst, 0),
       projecaoFinal: filiais.reduce((acc, f) => acc + f.projecaoFinal, 0),
-      mediaReal: filiais.reduce((acc, f) => acc + f.mediaReal, 0),
-      mediaAlvoNec: filiais.reduce((acc, f) => acc + (f.mediaAlvoNec || 0), 0),
-      desvioPerc: (filiais.reduce((acc, f) => acc + parseNum(f.desvioPerc), 0) / filiais.length).toFixed(1).replace('.', ',') + '%',
     };
+    regional.mediaReal = elapsedDays > 0 ? regional.vdaEft / elapsedDays : 0;
+    regional.mediaAlvoNec = (totalDays - elapsedDays) > 0 ? (regional.alvoMensalEst - regional.vdaEft) / (totalDays - elapsedDays) : 0;
     regional.percProj = regional.alvoMensalEst > 0 ? (regional.projecaoFinal / regional.alvoMensalEst) * 100 : 0;
     regional.status = regional.percProj >= 100 ? 'SUCCESS' : (regional.percProj >= 95 ? 'WARNING' : 'DANGER');
     regional.dentroMeta = regional.percProj >= 100;
 
-    // Regional departments averages
     const deptKeys = ['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'];
     const regionalDepts = deptKeys.map(k => {
       const dItems = data.departamentos.filter(d => d.departamento === k);
@@ -239,10 +244,9 @@ export default function Dashboard() {
       };
     }).filter(Boolean);
 
-    // Calculate share for individual departments in the raw data
     const departamentos = data.departamentos.map(d => {
       const branch = filiais.find(f => f.id === d.id);
-      const branchTotal = branch ? parseNum(branch.vdaEft) : 0;
+      const branchTotal = branch ? branch.vdaEftNum : 0;
       const share = branchTotal > 0 ? (parseNum(d.vdaEft) / branchTotal) * 100 : 0;
       return { ...d, share: share.toFixed(1).replace('.', ',') + '%' };
     });
@@ -300,8 +304,7 @@ export default function Dashboard() {
       `${statusEmoji} *${statusText}*`,
       ``,
       `💰 Venda Acumulada: *${f.vdaEft}*`,
-      `📆 Venda Ontem: *R$ ${f.vdaOnt}*`,
-      `🎯 Meta Período: *${f.alvo}*`,
+      `🎯 Meta Diária: *R$ ${f.metaDia}*`,
       `📉 Desvio Atual: *${f.desvioPerc}*`,
       ``,
       `📈 Projeção Mês: *R$ ${f.projecaoFinal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}*`,
@@ -551,8 +554,8 @@ export default function Dashboard() {
                       <div className="stat-sub">Meta: R$ {enrichedData.regional.alvoMensalEst.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</div>
                     </div>
                     <div className="glass-panel stat-card" style={{borderTop: '3px solid #3b82f6'}}>
-                      <div className="stat-label">Venda Ontem (Total)</div>
-                      <div className="stat-value" style={{color:'#3b82f6'}}>R$ {enrichedData.regional.vdaOnt.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</div>
+                      <div className="stat-label">Meta Diária (Total)</div>
+                      <div className="stat-value" style={{color:'#3b82f6'}}>R$ {enrichedData.regional.metaDia.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</div>
                     </div>
                     <div className="glass-panel stat-card" style={{borderTop: '3px solid #8b5cf6'}}>
                       <div className="stat-label">Média Diária Regional</div>
@@ -639,7 +642,7 @@ export default function Dashboard() {
                         <tr>
                           <th onClick={() => setSortConfig({ key: 'id', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' })}>Filial</th>
                           <th>Vda Eft</th>
-                          <th>Vda Ontem</th>
+                          <th>Meta Dia</th>
                           <th onClick={() => setSortConfig({ key: 'percProj', direction: 'desc' })}>% Proj.</th>
                           <th>Desvio</th>
                         </tr>
@@ -665,7 +668,7 @@ export default function Dashboard() {
                               </span>
                             </td>
                             <td>{f.vdaEft}</td>
-                            <td>{f.vdaOnt}</td>
+                            <td>{f.metaDia}</td>
                             <td className={f.status === 'SUCCESS' ? 'text-success' : f.status === 'WARNING' ? 'text-warning' : 'text-danger'} style={{ fontWeight: 700 }}>{f.percProj.toFixed(1)}%</td>
                             <td style={{ color: parseNum(f.desvioPerc) >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 600 }}>{f.desvioPerc}</td>
                           </tr>
@@ -731,8 +734,8 @@ export default function Dashboard() {
                           <div className="stat-sub">Meta: R$ {f.alvoMensalEst.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</div>
                         </div>
                         <div className="glass-panel stat-card" style={{borderTop: '3px solid #3b82f6'}}>
-                          <div className="stat-label">Venda Ontem</div>
-                          <div className="stat-value" style={{color:'#3b82f6'}}>R$ {f.vdaOnt}</div>
+                          <div className="stat-label">Meta Diária</div>
+                          <div className="stat-value" style={{color:'#3b82f6'}}>R$ {f.metaDia}</div>
                         </div>
                         <div className="glass-panel stat-card" style={{borderTop: '3px solid #8b5cf6'}}>
                           <div className="stat-label">Média Diária Real</div>
