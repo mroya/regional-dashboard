@@ -200,6 +200,7 @@ export default function Dashboard() {
       projecaoFinal: filiais.reduce((acc, f) => acc + f.projecaoFinal, 0),
       mediaReal: filiais.reduce((acc, f) => acc + f.mediaReal, 0),
       mediaAlvoNec: filiais.reduce((acc, f) => acc + (f.mediaAlvoNec || 0), 0),
+      desvioPerc: (filiais.reduce((acc, f) => acc + parseNum(f.desvioPerc), 0) / filiais.length).toFixed(1).replace('.', ',') + '%',
     };
     regional.percProj = regional.alvoMensalEst > 0 ? (regional.projecaoFinal / regional.alvoMensalEst) * 100 : 0;
     regional.status = regional.percProj >= 100 ? 'SUCCESS' : (regional.percProj >= 95 ? 'WARNING' : 'DANGER');
@@ -253,7 +254,7 @@ export default function Dashboard() {
       ...filteredFiliais.map(f => {
         const icon = f.status === 'SUCCESS' ? '🟢' : f.status === 'WARNING' ? '🟡' : '🔴';
         const pad = f.id.toString().padEnd(8);
-        return `${icon} Fil. ${pad}→ *${f.percProj.toFixed(1)}%*`;
+        return `${icon} Fil. ${pad}→ *${f.percProj.toFixed(1)}%* (Desv: ${f.desvioPerc})`;
       }),
       ``,
       `_Enviado via Dashboard Regional_`
@@ -274,6 +275,7 @@ export default function Dashboard() {
       `💰 Venda Acumulada: *${f.vdaEft}*`,
       `📆 Venda Ontem: *R$ ${f.vdaOnt}*`,
       `🎯 Meta Período: *${f.alvo}*`,
+      `📉 Desvio Atual: *${f.desvioPerc}*`,
       ``,
       `📈 Projeção Mês: *R$ ${f.projecaoFinal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}*`,
       `🏁 Meta Mensal Est.: *R$ ${f.alvoMensalEst.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}*`,
@@ -572,8 +574,10 @@ export default function Dashboard() {
                       <thead>
                         <tr>
                           <th onClick={() => setSortConfig({ key: 'id', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' })}>Filial</th>
-                          <th>Vda Eft</th><th>Vda Ontem</th><th>Alvo Per.</th>
+                          <th>Vda Eft</th>
+                          <th>Vda Ontem</th>
                           <th onClick={() => setSortConfig({ key: 'percProj', direction: 'desc' })}>% Proj.</th>
+                          <th>Desvio</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -598,8 +602,8 @@ export default function Dashboard() {
                             </td>
                             <td>{f.vdaEft}</td>
                             <td>{f.vdaOnt}</td>
-                            <td>{f.alvo}</td>
                             <td className={f.status === 'SUCCESS' ? 'text-success' : f.status === 'WARNING' ? 'text-warning' : 'text-danger'} style={{ fontWeight: 700 }}>{f.percProj.toFixed(1)}%</td>
+                            <td style={{ color: parseNum(f.desvioPerc) >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 600 }}>{f.desvioPerc}</td>
                           </tr>
                         ))}
                       </tbody>
