@@ -270,8 +270,9 @@ export default function Dashboard() {
       return { ...d, share: share.toFixed(1).replace('.', ',') + '%' };
     });
 
-    return { ...data, filiais, regional, regionalDepts, departamentos };
-  }, [data, elapsedDays]);
+    const debug = { currentElapsed, totalDays, regionalMeta: regional.metaDia, regionalVda: regional.vdaEft, ver: '1.2.2' };
+    return { ...data, filiais, regional, regionalDepts, departamentos, debug };
+  }, [data, referenceDate, elapsedDays]);
 
   const filteredFiliais = useMemo(() => {
     if (!enrichedData) return [];
@@ -804,6 +805,13 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+      
+      {/* Debug Panel */}
+      {enrichedData?.debug && (
+        <div style={{position:'fixed', bottom:0, right:0, background:'rgba(0,0,0,0.8)', color:'#aaa', fontSize:'10px', padding:'4px 8px', borderRadius:'4px 0 0 0', zIndex:9999}}>
+          v{enrichedData.debug.ver} | D:{enrichedData.debug.currentElapsed} | T:{enrichedData.debug.totalDays} | M:{Math.round(enrichedData.debug.regionalMeta)}
+        </div>
+      )}
     </div>
     </>
   );
