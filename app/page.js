@@ -531,10 +531,14 @@ export default function Dashboard() {
                               <span>{dept.l}</span>
                               <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{d.share}</span>
                             </div>
-                            <div className="dept-stats">
-                              <div className={isPos ? 'pos' : 'neg'} style={{fontWeight:700}}>{d.desvioPerc}</div>
-                              <div style={{color:'var(--text-secondary)', fontSize:'0.75rem'}}>evol: {d.evolucaoPerc}</div>
-                            </div>
+                                <div style={{ 
+                                  color: isPos ? 'var(--success)' : 'var(--danger)', 
+                                  fontWeight: 800,
+                                  fontSize: '1rem'
+                                }}>
+                                  {d.desvioPerc}
+                                </div>
+                                <div style={{color:'var(--text-secondary)', fontSize:'0.75rem'}}>evol: {d.evolucaoPerc}</div>
                           </div>
                         );
                       })}
