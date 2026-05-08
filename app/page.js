@@ -176,23 +176,28 @@ export default function Dashboard() {
       else if (joined.includes('HB (Não Medicamento)')) currentSection = 'HB';
       else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
 
-      // Robust branch parsing: check if row starts with rank OR known branch code
-      const isRank = !isNaN(row[0]) && parseInt(row[0]) < 100;
+      // Robust branch parsing: Content-Aware
+      const isRank = !isNaN(row[0]) && parseInt(row[0]) < 1000;
       const isBranchCode = knownBranches.includes(row[0]);
       
       if ((isRank || isBranchCode) && row.length >= 4) {
-        const vdaVal = row[colIndices.vda] || row[1];
-        const metaVal = row[colIndices.meta] || row[2];
-        
-        if (currentSection === 'GERAL') {
-          // If we found a branch code directly, use it, otherwise use rank as ID
+        // Find all strings that look like currency/numbers (contain digits and maybe dots/commas)
+        // We exclude the first column if it's the ID/Rank
+        const numericCols = row.slice(1).filter(c => {
+          const clean = c.replace(/[R$\s%]/g, '');
+          return clean.length > 0 && !isNaN(clean.replace(/\./g, '').replace(',', '.'));
+        });
+
+        if (numericCols.length >= 2 && currentSection === 'GERAL') {
+          const vdaVal = numericCols[0];
+          const metaVal = numericCols[1];
           const finalId = isBranchCode ? row[0] : (row[row.length-1]?.length > 2 ? row[row.length-1] : row[0]);
           
           result.filiais.push({
             id: finalId,
             vdaEft: vdaVal,
             metaDia: metaVal,
-            desvioPerc: row[colIndices.desv] || '0%',
+            desvioPerc: row.find(c => c.includes('%')) || '0%',
             evolucaoPerc: row[row.length - 1] || '0%'
           });
         }
