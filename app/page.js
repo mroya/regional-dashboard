@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { UploadCloud, TrendingUp, TrendingDown, Target, DollarSign, Percent, Activity, Save, LogOut, Lock, Mail, User, UserPlus, Key, Calendar, Menu, X, ChevronLeft } from 'lucide-react';
+import { UploadCloud, TrendingUp, TrendingDown, Target, DollarSign, Percent, Activity, Save, LogOut, Lock, Mail, User, UserPlus, Key, Calendar, Menu, X, ChevronLeft, PieChart } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from 'firebase/auth';
@@ -229,7 +229,15 @@ export default function Dashboard() {
       };
     }).filter(Boolean);
 
-    return { ...data, filiais, regional, regionalDepts };
+    // Calculate share for individual departments in the raw data
+    const departamentos = data.departamentos.map(d => {
+      const branch = filiais.find(f => f.id === d.id);
+      const branchTotal = branch ? parseNum(branch.vdaEft) : 0;
+      const share = branchTotal > 0 ? (parseNum(d.vdaEft) / branchTotal) * 100 : 0;
+      return { ...d, share: share.toFixed(1).replace('.', ',') + '%' };
+    });
+
+    return { ...data, filiais, regional, regionalDepts, departamentos };
   }, [data, elapsedDays]);
 
   const filteredFiliais = useMemo(() => {
@@ -527,18 +535,22 @@ export default function Dashboard() {
                         const isPos = parseNum(d.desvioPerc) >= 0;
                         return (
                           <div key={dept.k} className="dept-card" style={{borderTop: `2px solid ${isPos ? '#10b981' : '#ef4444'}`}}>
-                            <div className="dept-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <div className="dept-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <span>{dept.l}</span>
-                              <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{d.share}</span>
+                              <span style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                <PieChart size={10} /> Part. {d.share}
+                              </span>
                             </div>
-                                <div style={{ 
-                                  color: isPos ? 'var(--success)' : 'var(--danger)', 
-                                  fontWeight: 800,
-                                  fontSize: '1rem'
-                                }}>
-                                  {d.desvioPerc}
-                                </div>
-                                <div style={{color:'var(--text-secondary)', fontSize:'0.75rem'}}>evol: {d.evolucaoPerc}</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '0.4rem' }}>
+                              <div style={{ 
+                                color: isPos ? 'var(--success)' : 'var(--danger)', 
+                                fontWeight: 800,
+                                fontSize: '1rem'
+                              }}>
+                                {d.desvioPerc}
+                              </div>
+                              <div style={{color:'var(--text-secondary)', fontSize:'0.75rem'}}>evol: {d.evolucaoPerc}</div>
+                            </div>
                           </div>
                         );
                       })}
@@ -703,11 +715,22 @@ export default function Dashboard() {
                             const isPos = parseNum(d.desvioPerc) >= 0;
                             return (
                               <div key={dept.k} className="dept-card" style={{borderTop: `2px solid ${isPos ? '#10b981' : '#ef4444'}`}}>
-                                <div className="dept-label">{dept.l}</div>
-                                <div className="dept-stats">
-                                  <div className={isPos ? 'pos' : 'neg'} style={{fontWeight:700}}>{d.desvioPerc}</div>
-                                  <div style={{color:'var(--text-secondary)', fontSize:'0.75rem'}}>evol: {d.evolucaoPerc}</div>
-                                </div>
+                                  <div className="dept-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>{dept.l}</span>
+                                    <span style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                      <PieChart size={10} /> Part. {d.share}
+                                    </span>
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '0.4rem' }}>
+                                    <div style={{ 
+                                      color: isPos ? 'var(--success)' : 'var(--danger)', 
+                                      fontWeight: 800,
+                                      fontSize: '1rem'
+                                    }}>
+                                      {d.desvioPerc}
+                                    </div>
+                                    <div style={{color:'var(--text-secondary)', fontSize:'0.75rem'}}>evol: {d.evolucaoPerc}</div>
+                                  </div>
                               </div>
                             );
                           })}
