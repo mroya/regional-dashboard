@@ -171,28 +171,26 @@ export default function Dashboard() {
       if (matchDias) result.geral.diasUteis = matchDias[1];
       
       if (joined.includes('Indicadores Gerais')) currentSection = 'GERAL';
+      else if (joined.includes('Vda Eft Meta Dia % Desv')) currentSection = 'RANKING';
       else if (joined.includes('MEDICAMENTO TOTAL')) currentSection = 'MEDICAMENTO_GERAL';
       else if (joined.includes('GENÉRICO')) currentSection = 'GENERICO';
       else if (joined.includes('HB (Não Medicamento)')) currentSection = 'HB';
       else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
 
-      // Robust branch parsing: Content-Aware
-      const isRank = !isNaN(row[0]) && parseInt(row[0]) < 1000;
-      const isBranchCode = knownBranches.includes(row[0]);
+      // Robust branch parsing: ONLY in RANKING section
+      const isRank = !isNaN(row[0]) && parseInt(row[0]) > 0 && parseInt(row[0]) < 1000;
       
-      if ((isRank || isBranchCode) && row.length >= 4) {
-        // Find all strings that look like currency/numbers (contain digits and maybe dots/commas)
-        // We exclude the first column if it's the ID/Rank
+      if (currentSection === 'RANKING' && isRank && row.length >= 4) {
         const numericCols = row.slice(1).filter(c => {
           const clean = c.replace(/[R$\s%]/g, '');
           return clean.length > 0 && !isNaN(clean.replace(/\./g, '').replace(',', '.'));
         });
 
-        if (currentSection === 'GERAL' || isRank) {
+        if (numericCols.length >= 2) {
           const vdaVal = numericCols[0];
           const metaVal = numericCols[1];
-          // Use the last column if it looks like a branch name/code, otherwise use the first
-          const finalId = isBranchCode ? row[0] : (row[row.length-1]?.length > 2 ? row[row.length-1] : row[0]);
+          // Branch ID is usually the last word in the row if it's long, or the rank itself
+          const finalId = row.find(c => knownBranches.includes(c)) || row[0];
           
           result.filiais.push({
             id: finalId,
