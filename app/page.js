@@ -147,26 +147,30 @@ export default function Dashboard() {
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
+  const handleClearData = async () => {
+    if (!confirm('Tem certeza que deseja limpar todos os dados do dashboard?')) return;
+    try {
+      setLoading(true);
+      await deleteDoc(doc(db, 'reports', 'latest'));
+      setData(null);
+      alert('Dados limpos com sucesso!');
+    } catch (err) {
+      setError('Erro ao limpar dados: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const parseRawRows = (rows) => {
     let result = { geral: { diasUteis: '31' }, filiais: [], departamentos: [] };
     let currentSection = 'GERAL'; 
-    let colIndices = { vda: 1, meta: 2, desv: 3, evol: 7 }; // Defaults
+    const branchesMap = new Map();
     const knownBranches = ["38", "44", "113", "167", "171", "184", "186", "192", "313", "347", "351", "376", "378", "441", "456", "464", "487", "778", "829", "831", "868", "876(POA)", "922(POA)"];
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const joined = row.join(' ');
       
-      // Header detection for column indices
-      if (joined.includes('Vda Eft') && joined.includes('Meta Dia')) {
-        const vdaIdx = row.findIndex(c => c.toLowerCase().includes('vda'));
-        const metaIdx = row.findIndex(c => c.toLowerCase().includes('meta'));
-        const desvIdx = row.findIndex(c => c.includes('%'));
-        if (vdaIdx !== -1) colIndices.vda = vdaIdx;
-        if (metaIdx !== -1) colIndices.meta = metaIdx;
-        if (desvIdx !== -1) colIndices.desv = desvIdx;
-      }
-
       const matchDias = joined.match(/Dias\s*Úteis[:\s]*(\d+)/i);
       if (matchDias) result.geral.diasUteis = matchDias[1];
       
@@ -177,31 +181,48 @@ export default function Dashboard() {
       else if (joined.includes('HB (Não Medicamento)')) currentSection = 'HB';
       else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
 
-      // Robust branch parsing: ONLY in RANKING section
-      const isRank = !isNaN(row[0]) && parseInt(row[0]) > 0 && parseInt(row[0]) < 1000;
+      // Strict branch parsing: ONLY in RANKING section, must start with rank, must have currency and %
+      const rankVal = parseInt(row[0]);
+      const isRank = !isNaN(rankVal) && rankVal > 0 && rankVal < 200; // Rank is usually 1-100
       
-      if (currentSection === 'RANKING' && isRank && row.length >= 4) {
+      if (currentSection === 'RANKING' && isRank && row.length >= 5) {
         const numericCols = row.slice(1).filter(c => {
           const clean = c.replace(/[R$\s%]/g, '');
           return clean.length > 0 && !isNaN(clean.replace(/\./g, '').replace(',', '.'));
         });
+        
+        const hasPercent = row.some(c => c.includes('%'));
 
-        if (numericCols.length >= 2) {
+        if (numericCols.length >= 2 && hasPercent) {
           const vdaVal = numericCols[0];
           const metaVal = numericCols[1];
-          // Branch ID is usually the last word in the row if it's long, or the rank itself
-          const finalId = row.find(c => knownBranches.includes(c)) || row[0];
+          // Try to find a known branch code in the row, or fallback to rank
+          const branchCode = row.find(c => knownBranches.includes(c));
+          const finalId = branchCode || row[0];
           
-          result.filiais.push({
-            id: finalId,
-            vdaEft: vdaVal,
-            metaDia: metaVal,
-            desvioPerc: row.find(c => c.includes('%')) || '0%',
-            evolucaoPerc: row[row.length - 1] || '0%'
-          });
+          if (!branchesMap.has(finalId)) {
+            branchesMap.set(finalId, {
+              id: finalId,
+              vdaEft: vdaVal,
+              metaDia: metaVal,
+              desvioPerc: row.find(c => c.includes('%')) || '0%',
+              evolucaoPerc: row[row.length - 1] || '0%'
+            });
+          }
         }
       }
+
+      if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(row[0])) {
+        result.departamentos.push({
+          id: 'REGIONAL',
+          departamento: row[0],
+          vdaEft: row[1] || '0',
+          desvioPerc: row[4] || '0%',
+          evolucaoPerc: row[10] || '0%'
+        });
+      }
     }
+    result.filiais = Array.from(branchesMap.values());
     return result;
   };
 
