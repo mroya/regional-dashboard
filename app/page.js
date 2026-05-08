@@ -170,7 +170,13 @@ export default function Dashboard() {
           });
         }
         if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection)) {
-          result.departamentos.push({ id: filialId, departamento: currentSection, desvioPerc: row[4] || '0%', evolucaoPerc: row[5] || '0%' });
+          result.departamentos.push({ 
+            id: filialId, 
+            departamento: currentSection, 
+            vdaEft: row[1] || '0',
+            desvioPerc: row[4] || '0%', 
+            evolucaoPerc: row[5] || '0%' 
+          });
         }
       }
     }
@@ -211,10 +217,13 @@ export default function Dashboard() {
     const regionalDepts = deptKeys.map(k => {
       const dItems = data.departamentos.filter(d => d.departamento === k);
       if (dItems.length === 0) return null;
+      const deptVdaTotal = dItems.reduce((acc, d) => acc + parseNum(d.vdaEft), 0);
+      const share = regional.vdaEft > 0 ? (deptVdaTotal / regional.vdaEft) * 100 : 0;
       const avgDesvio = dItems.reduce((acc, d) => acc + parseNum(d.desvioPerc), 0) / dItems.length;
       const avgEvol = dItems.reduce((acc, d) => acc + parseNum(d.evolucaoPerc), 0) / dItems.length;
       return {
         departamento: k,
+        share: share.toFixed(1).replace('.', ',') + '%',
         desvioPerc: avgDesvio.toFixed(1).replace('.', ',') + '%',
         evolucaoPerc: avgEvol.toFixed(1).replace('.', ',') + '%'
       };
@@ -518,7 +527,10 @@ export default function Dashboard() {
                         const isPos = parseNum(d.desvioPerc) >= 0;
                         return (
                           <div key={dept.k} className="dept-card" style={{borderTop: `2px solid ${isPos ? '#10b981' : '#ef4444'}`}}>
-                            <div className="dept-label">{dept.l}</div>
+                            <div className="dept-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span>{dept.l}</span>
+                              <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{d.share}</span>
+                            </div>
                             <div className="dept-stats">
                               <div className={isPos ? 'pos' : 'neg'} style={{fontWeight:700}}>{d.desvioPerc}</div>
                               <div style={{color:'var(--text-secondary)', fontSize:'0.75rem'}}>evol: {d.evolucaoPerc}</div>
