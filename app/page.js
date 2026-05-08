@@ -193,15 +193,20 @@ export default function Dashboard() {
 
   const enrichedData = useMemo(() => {
     if (!data) return null;
+    
+    // Force calculation based on the SELECTED date in the UI, ignoring potentially stale state
+    const refDateObj = new Date(referenceDate + 'T12:00:00');
+    const currentElapsed = refDateObj.getDate() || 1;
     const parsedDays = parseInt(data.geral.diasUteis);
     const totalDays = (!isNaN(parsedDays) && parsedDays > 25) ? parsedDays : 31;
+    
     const filiais = data.filiais.map(f => {
       const vdaEft = parseNum(f.vdaEft);
       const metaDia = parseNum(f.metaDia);
       
-      // Calculate monthly projection based on daily average
-      const vdaMedia = elapsedDays > 0 ? vdaEft / elapsedDays : 0;
-      const metaMedia = elapsedDays > 0 ? metaDia / elapsedDays : 0;
+      // Calculate daily averages using the verified date
+      const vdaMedia = currentElapsed > 0 ? vdaEft / currentElapsed : 0;
+      const metaMedia = currentElapsed > 0 ? metaDia / currentElapsed : 0;
       
       const projecaoFinal = vdaMedia * totalDays;
       const alvoMensalEst = metaMedia * totalDays;
