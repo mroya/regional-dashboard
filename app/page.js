@@ -534,22 +534,22 @@ export default function Dashboard() {
                         if (!d) return null;
                         const isPos = parseNum(d.desvioPerc) >= 0;
                         return (
-                          <div key={dept.k} className="dept-card" style={{borderTop: `2px solid ${isPos ? '#10b981' : '#ef4444'}`}}>
-                            <div className="dept-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span>{dept.l}</span>
-                              <span style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                                <PieChart size={10} /> Part. {d.share}
+                          <div key={dept.k} className="dept-card" style={{borderTop: `2px solid ${isPos ? '#10b981' : '#ef4444'}`, padding: '0.6rem'}}>
+                            <div className="dept-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.3rem', marginBottom: '0.5rem' }}>
+                              <span style={{fontWeight: 700, fontSize: '0.7rem', opacity: 0.8}}>{dept.l}</span>
+                              <span style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.2rem', opacity: 0.9 }}>
+                                <PieChart size={9} /> PART. {d.share}
                               </span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '0.4rem' }}>
-                              <div style={{ 
-                                color: isPos ? 'var(--success)' : 'var(--danger)', 
-                                fontWeight: 800,
-                                fontSize: '1rem'
-                              }}>
-                                {d.desvioPerc}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
+                                <span style={{fontSize: '0.55rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600}}>Desv.</span>
+                                <span style={{ color: isPos ? 'var(--success)' : 'var(--danger)', fontWeight: 800, fontSize: '1.2rem', lineHeight: 1 }}>{d.desvioPerc}</span>
                               </div>
-                              <div style={{color:'var(--text-secondary)', fontSize:'0.75rem'}}>evol: {d.evolucaoPerc}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <span style={{fontSize: '0.55rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600}}>Evol.</span>
+                                <span style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.75rem' }}>{d.evolucaoPerc}</span>
+                              </div>
                             </div>
                           </div>
                         );
@@ -715,21 +715,21 @@ export default function Dashboard() {
                             const isPos = parseNum(d.desvioPerc) >= 0;
                             return (
                               <div key={dept.k} className="dept-card" style={{borderTop: `2px solid ${isPos ? '#10b981' : '#ef4444'}`}}>
-                                  <div className="dept-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span>{dept.l}</span>
-                                    <span style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                                      <PieChart size={10} /> Part. {d.share}
+                                  <div className="dept-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.3rem', marginBottom: '0.5rem' }}>
+                                    <span style={{fontWeight: 700, fontSize: '0.7rem', opacity: 0.8}}>{dept.l}</span>
+                                    <span style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.2rem', opacity: 0.9 }}>
+                                      <PieChart size={9} /> PART. {d.share}
                                     </span>
                                   </div>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '0.4rem' }}>
-                                    <div style={{ 
-                                      color: isPos ? 'var(--success)' : 'var(--danger)', 
-                                      fontWeight: 800,
-                                      fontSize: '1rem'
-                                    }}>
-                                      {d.desvioPerc}
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
+                                      <span style={{fontSize: '0.55rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600}}>Desv.</span>
+                                      <span style={{ color: isPos ? 'var(--success)' : 'var(--danger)', fontWeight: 800, fontSize: '1.2rem', lineHeight: 1 }}>{d.desvioPerc}</span>
                                     </div>
-                                    <div style={{color:'var(--text-secondary)', fontSize:'0.75rem'}}>evol: {d.evolucaoPerc}</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                      <span style={{fontSize: '0.55rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600}}>Evol.</span>
+                                      <span style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.75rem' }}>{d.evolucaoPerc}</span>
+                                    </div>
                                   </div>
                               </div>
                             );
