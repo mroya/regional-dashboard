@@ -150,40 +150,50 @@ export default function Dashboard() {
   const parseRawRows = (rows) => {
     let result = { geral: { diasUteis: '31' }, filiais: [], departamentos: [] };
     let currentSection = 'GERAL'; 
+    let colIndices = { vda: 1, meta: 2, desv: 3, evol: 7 }; // Defaults
     const knownBranches = ["38", "44", "113", "167", "171", "184", "186", "192", "313", "347", "351", "376", "378", "441", "456", "464", "487", "778", "829", "831", "868", "876(POA)", "922(POA)"];
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const joined = row.join(' ');
+      
+      // Header detection for column indices
+      if (joined.includes('Vda Eft') && joined.includes('Meta Dia')) {
+        const vdaIdx = row.findIndex(c => c.toLowerCase().includes('vda'));
+        const metaIdx = row.findIndex(c => c.toLowerCase().includes('meta'));
+        const desvIdx = row.findIndex(c => c.includes('%'));
+        if (vdaIdx !== -1) colIndices.vda = vdaIdx;
+        if (metaIdx !== -1) colIndices.meta = metaIdx;
+        if (desvIdx !== -1) colIndices.desv = desvIdx;
+      }
+
       const matchDias = joined.match(/Dias\s*Úteis[:\s]*(\d+)/i);
       if (matchDias) result.geral.diasUteis = matchDias[1];
+      
       if (joined.includes('Indicadores Gerais')) currentSection = 'GERAL';
       else if (joined.includes('MEDICAMENTO TOTAL')) currentSection = 'MEDICAMENTO_GERAL';
-      else if (joined.includes('MEDICAMENTO - BIO')) currentSection = 'MEDICAMENTO_BIO';
       else if (joined.includes('GENÉRICO')) currentSection = 'GENERICO';
       else if (joined.includes('HB (Não Medicamento)')) currentSection = 'HB';
       else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
-      else if (joined.includes('CUPOM BEM PANVEL')) currentSection = 'CUPOM';
-      else if (joined.includes('TROCO AMIGO')) currentSection = 'TROCO';
 
-      if (row.length > 3 && knownBranches.includes(row[0])) {
-        const filialId = row[0];
-        if (currentSection === 'GERAL' && row.length > 5) {
+      // Robust branch parsing: check if row starts with rank OR known branch code
+      const isRank = !isNaN(row[0]) && parseInt(row[0]) < 100;
+      const isBranchCode = knownBranches.includes(row[0]);
+      
+      if ((isRank || isBranchCode) && row.length >= 4) {
+        const vdaVal = row[colIndices.vda] || row[1];
+        const metaVal = row[colIndices.meta] || row[2];
+        
+        if (currentSection === 'GERAL') {
+          // If we found a branch code directly, use it, otherwise use rank as ID
+          const finalId = isBranchCode ? row[0] : (row[row.length-1]?.length > 2 ? row[row.length-1] : row[0]);
+          
           result.filiais.push({
-            id: filialId,
-            vdaEft: row[1] || '0',
-            metaDia: row[2] || '0',
-            desvioPerc: row[3] || '0%',
-            evolucaoPerc: row[7] || '0%' // Evolution is actually in column 7
-          });
-        }
-        if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection)) {
-          result.departamentos.push({ 
-            id: filialId, 
-            departamento: currentSection, 
-            vdaEft: row[1] || '0',
-            desvioPerc: row[4] || '0%', 
-            evolucaoPerc: row[5] || '0%' 
+            id: finalId,
+            vdaEft: vdaVal,
+            metaDia: metaVal,
+            desvioPerc: row[colIndices.desv] || '0%',
+            evolucaoPerc: row[row.length - 1] || '0%'
           });
         }
       }
