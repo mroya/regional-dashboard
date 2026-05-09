@@ -1,11 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { db } from '../lib/firebase';
 import { doc, setDoc, getDoc, deleteDoc, serverTimestamp, collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import * as pdfjsLib from 'pdfjs-dist';
 import { parseRawRows } from '../utils/pdf-parser';
 import { parseNum } from '../utils/formatters';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export function useDashboardData(user, referenceDate) {
   const [data, setData] = useState(null);
@@ -35,6 +32,8 @@ export function useDashboardData(user, referenceDate) {
     if (!file) return;
     try {
       setLoading(true);
+      const pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let allRows = [];
