@@ -48,7 +48,7 @@ export default function Dashboard() {
   const defaultDate = getYesterdayStr();
   const [referenceDate, setReferenceDate] = useState(defaultDate);
 
-  const { enrichedData, loading, error, updatedAt, handleFileUpload, handleClearData } = useDashboardData(user, referenceDate);
+  const { enrichedData, loading, uploadStatus, error, updatedAt, handleFileUpload, handleClearData } = useDashboardData(user, referenceDate);
   const { clock, weather, weatherIcon } = useWeather();
 
   useEffect(() => {
@@ -96,8 +96,8 @@ export default function Dashboard() {
             <div className="icon-center">📄</div>
           </div>
           <div className="pdf-loading-text">
-            <h3>Processando Relatório</h3>
-            <p>Extraindo dados e calculando projeções</p>
+            <h3>{uploadStatus || 'Trabalhando no Arquivo'}</h3>
+            <p>Por favor, aguarde enquanto processamos os dados</p>
             <div className="pdf-loading-dots">
               <span></span><span></span><span></span>
             </div>

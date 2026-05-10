@@ -7,6 +7,7 @@ import { parseNum } from '../utils/formatters';
 export function useDashboardData(user, referenceDate) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
   const [error, setError] = useState(null);
   const [updatedAt, setUpdatedAt] = useState(null);
 
@@ -38,12 +39,17 @@ export function useDashboardData(user, referenceDate) {
     if (!file) return;
     try {
       setLoading(true);
+      setUploadStatus('Lendo arquivo PDF...');
       setError(null);
+      
+      const startTime = Date.now();
       const pdfjsLib = await import('pdfjs-dist');
-      // Usa worker local (copiado de node_modules para /public) — sem dependência de CDN externo
       pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+      
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      
+      setUploadStatus(`Processando ${pdf.numPages} páginas...`);
       let allRows = [];
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
@@ -60,29 +66,20 @@ export function useDashboardData(user, referenceDate) {
         allRows = [...allRows, ...sortedRows];
       }
 
-      // ===== DEBUG: mostra as primeiras 80 linhas e candidatas a filial =====
-      console.log('[PDF] Primeiras 80 rows:');
-      allRows.slice(0, 80).forEach((r, idx) => console.log(`  [${idx}]`, JSON.stringify(r)));
-      console.log('[PDF] Rows cujo [0] parece número de filial (2-3 dígitos):');
-      allRows.forEach((r, idx) => {
-        if (r[0] && /^\d{2,3}$/.test(r[0].trim())) console.log(`  [${idx}]`, JSON.stringify(r));
-      });
-      // ===== FIM DEBUG =====
+      // ===== DEBUG: mostra as linhas extraídas para conferência =====
+      console.log('[PDF] Primeiras 50 linhas extraídas:', allRows.slice(0, 50));
+      console.log('[PDF] Exemplo de linha com filial:', allRows.find(r => r.some(c => /^(38|44|113)$/.test(c.trim()))));
 
+      setUploadStatus('Analisando dados das filiais...');
       const parsed = parseRawRows(allRows);
-      console.log('[PDF] Total rows extraídas:', allRows.length);
-      console.log('[PDF] Filiais encontradas:', parsed.filiais.length, parsed.filiais.map(f => f.id));
-      console.log('[PDF] Departamentos encontrados:', parsed.departamentos.length);
-      console.log('[PDF] Dias úteis:', parsed.geral?.diasUteis);
+      
+      setUploadStatus('Salvando no banco de dados...');
       const now = new Date();
       const nowStr = now.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
       
       const refDateObj = new Date(referenceDate + 'T12:00:00');
       const currentElapsed = refDateObj.getDate() || 1;
 
-      // FIX: Salva o documento usando referenceDate como ID (ex: "2025-05-08")
-      // em vez de sempre sobrescrever 'latest'.
-      // Assim cada data tem seus próprios dados e a query por data funciona corretamente.
       await setDoc(doc(db, 'reports', referenceDate), {
         ...parsed,
         timestamp: serverTimestamp(),
@@ -91,10 +88,16 @@ export function useDashboardData(user, referenceDate) {
         elapsedDays: currentElapsed
       });
       
+      // Garante que a animação dure pelo menos 1.5s para feedback visual
+      const duration = Date.now() - startTime;
+      if (duration < 1500) await new Promise(r => setTimeout(r, 1500 - duration));
+      
+      setUploadStatus('Concluído!');
     } catch (err) {
       setError('Erro ao processar PDF: ' + err.message);
     } finally {
       setLoading(false);
+      setUploadStatus('');
     }
   };
 
@@ -179,5 +182,5 @@ export function useDashboardData(user, referenceDate) {
     return { filiais, regional, regionalDepts, departamentos };
   }, [data, referenceDate]);
 
-  return { enrichedData, loading, error, updatedAt, handleFileUpload, handleClearData };
+  return { enrichedData, loading, uploadStatus, error, updatedAt, handleFileUpload, handleClearData };
 }

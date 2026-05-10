@@ -34,26 +34,30 @@ export const parseRawRows = (rows) => {
     }
 
     if (filialId) {
+      // Pega apenas as colunas que parecem números (contêm dígitos) e não são o ID da filial
+      const numericCols = row.filter((cell, idx) => {
+        const clean = cell.replace(/[R$\s.%]/g, '').replace(',', '.');
+        return idx > 0 && !isNaN(parseFloat(clean)) && /\d/.test(cell);
+      });
+
       // Seção GERAL (Ranking)
-      if (currentSection === 'GERAL' && row.length >= 4) {
-        // Tenta encontrar valores numéricos nas colunas seguintes
-        const vals = row.filter(c => /^-?[\d.,R$\s%]+$/.test(c) && /\d/.test(c));
+      if (currentSection === 'GERAL' && numericCols.length >= 2) {
         result.filiais.push({
           id: filialId,
-          vdaEft: row[1] || '0',
-          metaDia: row[2] || '0',
-          desvioPerc: row[3] || '0%',
-          evolucaoPerc: row[row.length - 1] || '0%' // Evolução costuma ser a última coluna
+          vdaEft: numericCols[0] || '0',   // Primeira coluna numérica costuma ser Venda Efetiva
+          metaDia: numericCols[1] || '0',  // Segunda costuma ser Meta do Dia
+          desvioPerc: numericCols[2] || '0%',
+          evolucaoPerc: numericCols[numericCols.length - 1] || '0%'
         });
       }
       // Seções de Departamentos
-      else if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection)) {
+      else if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection) && numericCols.length >= 1) {
         result.departamentos.push({ 
           id: filialId, 
           departamento: currentSection, 
-          vdaEft: row[1] || '0',
-          desvioPerc: row[4] || '0%', 
-          evolucaoPerc: row[5] || '0%' 
+          vdaEft: numericCols[0] || '0',
+          desvioPerc: numericCols[1] || '0%', 
+          evolucaoPerc: numericCols[numericCols.length - 1] || '0%' 
         });
       }
     }
