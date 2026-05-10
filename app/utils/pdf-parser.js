@@ -31,95 +31,33 @@ export const parseRawRows = (rows) => {
     else if (joined.includes('HB (NÃO MEDICAMENTO)')) currentSection = 'HB';
     else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
 
-    // 3. Identificar linha de filial, de mês ou de resumo (Med, HB, etc)
-    const monthKeywords = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-    const summaryKeywords = ['GERAL', 'MED', 'HB (N-MED)', 'CLINIC'];
-    const firstCell = (row[0] || '').trim().toUpperCase();
-    
-    // ATENÇÃO: Busca agressiva para a tabela de resumo (Geral, Med, HB, Clinic)
-    const isSummaryMatch = summaryKeywords.find(k => firstCell === k || firstCell.startsWith(k));
-    if (isSummaryMatch && row.length >= 5) {
-      const numericCols = row.slice(1).map(c => c.trim()).filter(c => {
-        const clean = c.replace(/[R$\s.%]/g, '').replace(',', '.');
-        return !isNaN(parseFloat(clean)) && /\d/.test(c);
-      });
+    // CAPTURA TOTAL: Se a linha tem números, a gente guarda para analisar depois
+    const numericCols = row.filter((cell, idx) => {
+      const clean = cell.replace(/[R$\s.%]/g, '').replace(/\./g, '').replace(',', '.');
+      return !isNaN(parseFloat(clean)) && /\d/.test(cell);
+    });
 
-      if (numericCols.length >= 4) {
-        result.departamentos.push({
-          id: 'SUMMARY',
-          departamento: isSummaryMatch,
-          vdaEft: numericCols[0] || '0',
-          metaDia: numericCols[1] || '0', // Alvo
-          projecao: numericCols[2] || '0',
-          desvioPerc: numericCols[3] || '0%',
-          vlrDesvio: numericCols[4] || 'R$ 0'
-        });
-        // Se achou um resumo, não precisa processar o resto para esta linha
-        continue;
-      }
+    if (numericCols.length >= 3) {
+      result.departamentos.push({
+        id: 'RAW',
+        departamento: row[0] || 'LINHA',
+        vdaEft: numericCols[0] || '0',
+        metaDia: numericCols[1] || '0',
+        projecao: numericCols[2] || '0',
+        desvioPerc: numericCols[3] || '0%',
+        vlrDesvio: numericCols[4] || 'R$ 0',
+        allValues: numericCols
+      });
     }
 
-    let filialId = null;
-    const isSummaryRow = summaryKeywords.some(k => firstCell.includes(k));
-      for (let colIdx = 0; colIdx < Math.min(row.length, 3); colIdx++) {
-        const cellClean = row[colIdx].trim().replace(/\D/g, ''); 
-        const isMonth = monthKeywords.some(m => row[colIdx].toUpperCase().includes(m));
-        if (branchIds.includes(cellClean) && !isMonth) {
-          filialId = cellClean;
-          break;
-        }
-      }
-    }
-
-    if (filialId) {
-      // Pega colunas numéricas, ignorando textos e o ID da filial
-      const numericCols = row.filter((cell, idx) => {
-        const clean = cell.replace(/[R$\s.%]/g, '').replace(',', '.');
-        return idx > 0 && !isNaN(parseFloat(clean)) && /\d/.test(cell);
+    // Mantém a detecção de Dias Úteis e Meses para o topo (que já funciona)
+    if (currentSection === 'GERAL' && monthKeywords.some(m => firstCell.includes(m))) {
+      result.filiais.push({
+        id: firstCell,
+        vdaEft: numericCols[0] || '0',
+        mediaDia: numericCols[1] || '0',
+        rtRep: numericCols[7] || '0%'
       });
-
-      // Seção GERAL ou se a linha parece ser de um mês (como na imagem do usuário)
-      const isMonthLine = monthKeywords.some(m => row.join(' ').toUpperCase().includes(m));
-
-      if ((currentSection === 'GERAL' || isMonthLine) && numericCols.length >= 8) {
-        // Agora mapeamos exatamente como na imagem enviada
-        result.filiais.push({
-          id: filialId || row[0], // Pode ser "Mai 2026"
-          vdaEft: numericCols[0] || '0',
-          mediaDia: numericCols[1] || '0',
-          cupons: numericCols[2] || '0',
-          tktMed: numericCols[3] || '0',
-          descPerc: numericCols[4] || '0%',
-          rentPerc: numericCols[5] || '0%',
-          aptVerba: numericCols[6] || '0',
-          rtRep: numericCols[7] || '0%',
-          evolucaoPerc: numericCols[8] || '0%'
-        });
-      }
-      // Seção de Resumo (Geral, Med, HB, Clinic)
-      else if (currentSection === 'SUMMARY' && numericCols.length >= 4) {
-        result.departamentos.push({
-          id: 'SUMMARY',
-          departamento: filialId, // Ex: "Med"
-          vdaEft: numericCols[0] || '0',
-          metaDia: numericCols[1] || '0', // Alvo
-          projecao: numericCols[2] || '0',
-          desvioPerc: numericCols[3] || '0%',
-          vlrDesvio: numericCols[4] || 'R$ 0'
-        });
-      }
-      // Seções de Departamentos Detalhados
-      else if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'].includes(currentSection) && numericCols.length >= 2) {
-        result.departamentos.push({ 
-          id: filialId, 
-          departamento: currentSection, 
-          vdaEft: numericCols[0] || '0',  // 1ª coluna numérica (Vda Eft)
-          metaDia: numericCols[1] || '0', // 2ª coluna numérica (Alvo)
-          desvioPerc: numericCols[2] || '0%',
-          vlrDesvio: numericCols[3] || 'R$ 0',
-          evolucaoPerc: numericCols[numericCols.length - 1] || '0%' 
-        });
-      }
     }
 
     // 4. Totais Regionais (Linhas que começam com o nome do depto)
