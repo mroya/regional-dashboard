@@ -3,6 +3,9 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 import { sanitizeFirestoreData } from '@/app/utils/firestore';
 
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 export async function POST(request) {
   try {
     const data = await request.json();
