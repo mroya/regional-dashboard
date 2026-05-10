@@ -38,37 +38,39 @@ export const parseRawRows = (rows) => {
     const summaryKeys = [
       { key: 'MED', label: 'MED' },
       { key: 'HB (N-MED)', label: 'HB' },
-      { key: 'CLINIC', label: 'CLINIC' },
-      { key: 'GERAL', label: 'GERAL' }
+      { key: 'CLINIC', label: 'CLINIC' }
     ];
 
+    let foundOnThisLine = false;
     for (const item of summaryKeys) {
       if (cleanJoined.includes(item.key)) {
-        // Pega o texto que vem DEPOIS da palavra-chave
-        const afterKey = cleanJoined.split(item.key)[1];
-        const rawNumbers = afterKey.match(/[\d]{1,3}(?:\.[\d]{3})*(?:,[\d]+)?|[\d]+(?:,[\d]+)?/g) || [];
-        
-        // Remove o índice (1, 2, 3...) se ele estiver lá
-        let validNumbers = [...rawNumbers];
-        if (validNumbers.length >= 5 && parseInt(validNumbers[0]) < 10) {
-          validNumbers.shift();
-        }
+        const parts = cleanJoined.split(item.key);
+        if (parts.length > 1) {
+          const afterKey = parts[parts.length - 1];
+          const rawNumbers = afterKey.match(/[\d]{1,3}(?:\.[\d]{3})*(?:,[\d]+)?|[\d]+(?:,[\d]+)?/g) || [];
+          
+          let validNumbers = [...rawNumbers];
+          if (validNumbers.length >= 5 && parseInt(validNumbers[0]) < 10) {
+            validNumbers.shift();
+          }
 
-        if (validNumbers.length >= 4) {
-          result.departamentos.push({
-            id: 'SUMMARY',
-            departamento: item.label,
-            vdaEft: validNumbers[0],
-            metaDia: validNumbers[1],
-            projecao: validNumbers[2],
-            desvioPerc: validNumbers[3],
-            vlrDesvio: validNumbers[4] || '0',
-            allValues: validNumbers
-          });
-          // Não damos 'continue' aqui porque pode ter mais de um depto na mesma linha
+          if (validNumbers.length >= 4) {
+            result.departamentos.push({
+              id: 'SUMMARY',
+              departamento: item.label,
+              vdaEft: validNumbers[0],
+              metaDia: validNumbers[1],
+              projecao: validNumbers[2],
+              desvioPerc: validNumbers[3],
+              vlrDesvio: validNumbers[4] || '0',
+              allValues: validNumbers
+            });
+            foundOnThisLine = true;
+          }
         }
       }
     }
+    if (foundOnThisLine) continue;
 
     // Mantém apenas a lógica de Filiais (que já funciona para o topo)
     let filialId = null;
