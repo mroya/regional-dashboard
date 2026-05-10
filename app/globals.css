@@ -168,6 +168,7 @@
   margin-bottom: 0.5rem;
   background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   background-size: 200%;
   animation: gradientShift 2s linear infinite;
