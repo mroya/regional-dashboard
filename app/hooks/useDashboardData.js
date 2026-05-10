@@ -43,38 +43,39 @@ export function useDashboardData(user, referenceDate) {
       setError(null);
       
       const startTime = Date.now();
-      const pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+      const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
       
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       
       setUploadStatus(`Processando ${pdf.numPages} páginas...`);
+      let fullText = '';
       let allRows = [];
+
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
+        
+        // Extração de texto bruto para a lógica global
+        fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+
+        // Organização em linhas para a lógica de filiais
         const lines = {};
         textContent.items.forEach(item => {
-          const y = item.transform[5];
-          // Tolerância de 3 pixels para agrupar na mesma linha
-          let foundLine = Object.keys(lines).find(ly => Math.abs(parseFloat(ly) - y) < 3);
-          const lineKey = foundLine || y;
-          if (!lines[lineKey]) lines[lineKey] = [];
-          lines[lineKey].push({ x: item.transform[4], text: item.str });
+          const y = Math.round(item.transform[5] / 2) * 2; // Agrupamento mais agressivo
+          if (!lines[y]) lines[y] = [];
+          lines[y].push({ x: item.transform[4], text: item.str });
         });
-        const sortedRows = Object.keys(lines).sort((a, b) => b - a).map(y => 
+        const pageRows = Object.keys(lines).sort((a, b) => b - a).map(y => 
           lines[y].sort((a, b) => a.x - b.x).map(i => i.text)
         );
-        allRows = [...allRows, ...sortedRows];
+        allRows = [...allRows, ...pageRows];
       }
 
-      // ===== DEBUG: mostra as linhas extraídas para conferência =====
-      console.log('[PDF] Primeiras 50 linhas extraídas:', allRows.slice(0, 50));
-      console.log('[PDF] Exemplo de linha com filial:', allRows.find(r => r.some(c => /^(38|44|113)$/.test(c.trim()))));
-
-      setUploadStatus('Analisando dados das filiais...');
+      console.log("[PDF] Texto extraído:", fullText.substring(0, 500));
       const parsed = parseRawRows(allRows);
+
       
       setUploadStatus('Salvando no banco de dados...');
       const now = new Date();
