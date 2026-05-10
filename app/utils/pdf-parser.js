@@ -35,13 +35,13 @@ export const parseRawRows = (rows) => {
     const splitJoined = joined.replace(/([A-Z])([\d])/g, '$1 $2').replace(/([\d])([A-Z])/g, '$1 $2');
     const cleanJoined = splitJoined.replace(/\s+/g, ' '); 
     
+    // BUSCA POR COLUNA LATERAL: O 'Med' pode estar no meio da linha (2ª coluna do PDF)
     const summaryKeys = [
       { key: 'MED', label: 'MED' },
       { key: 'HB (N-MED)', label: 'HB' },
       { key: 'CLINIC', label: 'CLINIC' }
     ];
 
-    let foundOnThisLine = false;
     for (const item of summaryKeys) {
       if (cleanJoined.includes(item.key)) {
         const parts = cleanJoined.split(item.key);
@@ -62,17 +62,17 @@ export const parseRawRows = (rows) => {
               metaDia: validNumbers[1],
               projecao: validNumbers[2],
               desvioPerc: validNumbers[3],
-              vlrDesvio: validNumbers[4] || '0',
-              allValues: validNumbers
+              vlrDesvio: validNumbers[4] || '0'
             });
-            foundOnThisLine = true;
           }
         }
       }
     }
-    if (foundOnThisLine) continue;
 
-    // Mantém apenas a lógica de Filiais (que já funciona para o topo)
+    // Mantém a detecção de Filiais e Meses (NÃO PODE TER 'CONTINUE' ANTES)
+    const firstCell = (row[0] || '').trim().toUpperCase();
+    const monthKeywords = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    
     let filialId = null;
     for (let colIdx = 0; colIdx < Math.min(row.length, 3); colIdx++) {
       const cellClean = row[colIdx].trim().replace(/\D/g, ''); 
