@@ -157,17 +157,6 @@ export function useDashboardData(user, referenceDate) {
       evolucaoPerc: '0%'
     };
 
-    const regional = {
-      ...coordinatorRaw,
-      id: coordinatorRaw.departamento || 'Área 02 Sul POA',
-      dentroMeta: parseNum(coordinatorRaw.desvioPerc) >= 0,
-      currentElapsed,
-      totalDays,
-      diasRestantes,
-      mediaDia: indicadoresGeraisRow?.mediaDia || 'R$ 0',
-      rtRep: indicadoresGeraisRow?.rtRep || '0,0%'
-    };
-
     // 3. Departamentos do Coordenador (Busca simplificada por MED)
     const regionalDepts = (data.departamentos || []).filter(d => {
       return (d.departamento || '').toUpperCase() === 'MED';
@@ -195,13 +184,14 @@ export function useDashboardData(user, referenceDate) {
     const performanceAcumulada = totalMeta > 0 ? (totalVenda / totalMeta) * 100 : 0;
 
     const regional = {
-      id: 'Área 02 Sul POA',
-      vdaEft: indicadoresGeraisRow?.vdaEft || '0',
-      mediaDia: indicadoresGeraisRow?.mediaDia || '0',
-      desvioPerc: indicadoresGeraisRow?.rtRep || '0%',
+      id: coordinatorRaw.departamento || 'Área 02 Sul POA',
+      vdaEft: indicadoresGeraisRow?.vdaEft || coordinatorRaw.vdaEft || '0',
+      mediaDia: indicadoresGeraisRow?.mediaDia || 'R$ 0',
+      desvioPerc: indicadoresGeraisRow?.rtRep || coordinatorRaw.desvioPerc || '0%',
       currentElapsed,
       totalDays,
-      diasRestantes
+      diasRestantes,
+      dentroMeta: parseNum(coordinatorRaw.desvioPerc) >= 0
     };
 
     return { 
