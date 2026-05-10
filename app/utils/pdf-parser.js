@@ -34,19 +34,33 @@ export const parseRawRows = (rows) => {
     // 3. Identificar linha de filial, de mês ou de resumo (Med, HB, etc)
     const monthKeywords = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
     const summaryKeywords = ['GERAL', 'MED', 'HB (N-MED)', 'CLINIC'];
-    let filialId = null;
-    
-    // Na seção SUMMARY, o ID é o nome do depto (Med, HB, etc) na primeira coluna
     const firstCell = (row[0] || '').trim().toUpperCase();
-    const isSummaryRow = summaryKeywords.some(k => firstCell.includes(k));
     
-    if (currentSection === 'SUMMARY' && isSummaryRow) {
-      filialId = firstCell;
-    } 
-    // Na seção GERAL, o ID é o nome do mês (ex: Mai 2026) na primeira coluna
-    else if (currentSection === 'GERAL' && monthKeywords.some(m => firstCell.includes(m))) {
-      filialId = firstCell;
-    } else {
+    // ATENÇÃO: Busca agressiva para a tabela de resumo (Geral, Med, HB, Clinic)
+    const isSummaryMatch = summaryKeywords.find(k => firstCell === k || firstCell.startsWith(k));
+    if (isSummaryMatch && row.length >= 5) {
+      const numericCols = row.slice(1).map(c => c.trim()).filter(c => {
+        const clean = c.replace(/[R$\s.%]/g, '').replace(',', '.');
+        return !isNaN(parseFloat(clean)) && /\d/.test(c);
+      });
+
+      if (numericCols.length >= 4) {
+        result.departamentos.push({
+          id: 'SUMMARY',
+          departamento: isSummaryMatch,
+          vdaEft: numericCols[0] || '0',
+          metaDia: numericCols[1] || '0', // Alvo
+          projecao: numericCols[2] || '0',
+          desvioPerc: numericCols[3] || '0%',
+          vlrDesvio: numericCols[4] || 'R$ 0'
+        });
+        // Se achou um resumo, não precisa processar o resto para esta linha
+        continue;
+      }
+    }
+
+    let filialId = null;
+    const isSummaryRow = summaryKeywords.some(k => firstCell.includes(k));
       for (let colIdx = 0; colIdx < Math.min(row.length, 3); colIdx++) {
         const cellClean = row[colIdx].trim().replace(/\D/g, ''); 
         const isMonth = monthKeywords.some(m => row[colIdx].toUpperCase().includes(m));

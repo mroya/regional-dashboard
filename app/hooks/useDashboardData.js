@@ -173,8 +173,7 @@ export function useDashboardData(user, referenceDate) {
     
     const regionalDepts = (data.departamentos || []).filter(d => {
       const deptName = (d.departamento || '').trim().toUpperCase();
-      // Aceita qualquer um que tenha "MED" no nome, independente do ID
-      return deptName.includes('MED');
+      return deptName === 'MED' || deptName.includes('MEDICAMENTO');
     }).map(d => {
       const vdaNum = parseNum(d.vdaEft);
       const alvoNum = parseNum(d.metaDia);
