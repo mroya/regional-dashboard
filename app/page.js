@@ -152,6 +152,18 @@ export default function Dashboard() {
                 </div>
               </header>
 
+              {(() => {
+                const medDept = enrichedData.departamentos?.find(d => d.departamento?.toUpperCase().includes('MED')) || {};
+                const medVdaEft = parseNum(medDept.vdaEft);
+                const medAlvo = parseNum(medDept.alvo) || parseNum(medDept.metaDia);
+                const diasDecorridos = enrichedData.geral?.diasDecorridos || 1;
+                const diasRestantes = enrichedData.geral?.diasRestantes || 1;
+                
+                const medVendaDiaria = diasDecorridos > 0 ? medVdaEft / diasDecorridos : 0;
+                // Alvo / dias q falta: The remaining target divided by remaining days
+                const medAlvoPorDiaRestante = diasRestantes > 0 ? Math.max(0, medAlvo - medVdaEft) / diasRestantes : 0;
+
+                return (
               <div className="metrics-grid">
                 <div className="glass-panel metric-card blue">
                   <span className="icon">📅</span>
@@ -177,25 +189,27 @@ export default function Dashboard() {
                   <span className="icon">V</span>
                   <h3>Vda Eft</h3>
                   <div className="big-value">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(parseNum(enrichedData.geral?.vdaEft) || 0)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medVdaEft)}
                   </div>
-                  <p>Mai 2026: {enrichedData.filiais[0]?.vdaEft || '0'}</p>
+                  <p>Diária: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medVendaDiaria)}</p>
                 </div>
                 <div className="glass-panel metric-card blue">
                   <span className="icon">A</span>
-                  <h3>Alvo</h3>
+                  <h3>Alvo (Meta do Mês)</h3>
                   <div className="big-value">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(parseNum(enrichedData.geral?.alvo) || 0)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medAlvo)}
                   </div>
-                  <p>Projecao: {enrichedData.geral?.projecao || '0'}</p>
+                  <p>Nec/Dia Rest.: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medAlvoPorDiaRestante)}</p>
                 </div>
                 <div className="glass-panel metric-card orange">
                   <span className="icon">%</span>
                   <h3>% Desv</h3>
-                  <div className="big-value">{enrichedData.geral?.desvioPerc || '0%'}</div>
-                  <p>VlrDesv: {enrichedData.geral?.vlrDesv || enrichedData.geral?.vlrDesvio || '0'}</p>
+                  <div className="big-value">{medDept.desvioPerc || '0%'}</div>
+                  <p>VlrDesv: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(parseNum(medDept.vlrDesvio || medDept.vlrDesv || '0'))}</p>
                 </div>
               </div>
+                );
+              })()}
 
               {enrichedData.filiais.length > 1 && (
                 <PerformanceChart data={enrichedData.filiais} />

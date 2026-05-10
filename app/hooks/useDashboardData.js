@@ -162,13 +162,13 @@ export function useDashboardData(user, referenceDate) {
 
     const departamentos = (data.departamentos || []).map((d) => {
       const vdaNum = parseNum(d.vdaEft);
-      const metaMesNum = parseNum(d.metaDia) || (vdaNum + parseNum(d.vlrDesvio));
-      const valorRestante = Math.max(0, metaMesNum - vdaNum);
+      const alvoNum = parseNum(d.alvo) || parseNum(d.metaDia) || 0;
+      const valorRestante = Math.max(0, alvoNum - vdaNum);
       const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
 
       return {
         ...d,
-        metaMesNum,
+        alvoNum,
         valorRestante,
         metaRestanteDia,
       };
