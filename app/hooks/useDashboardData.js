@@ -162,9 +162,8 @@ export function useDashboardData(user, referenceDate) {
     const mainDeptNames = ['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'];
     
     const regionalDepts = (data.departamentos || []).filter(d => {
-      // Garante que o ID seja REGIONAL e o nome seja um dos 4 principais
       const deptName = d.departamento.toUpperCase();
-      return d.id === 'REGIONAL' && mainDeptNames.some(name => deptName.includes(name));
+      return mainDeptNames.some(name => deptName.includes(name));
     }).map(d => {
       const vdaNum = parseNum(d.vdaEft);
       const alvoNum = parseNum(d.metaDia);

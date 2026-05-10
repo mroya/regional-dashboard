@@ -56,12 +56,14 @@ export const parseRawRows = (rows) => {
         });
       }
       // Seções de Departamentos
-      else if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection) && numericCols.length >= 1) {
+      else if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection) && numericCols.length >= 2) {
         result.departamentos.push({ 
           id: filialId, 
           departamento: currentSection, 
           vdaEft: numericCols[0] || '0',
-          desvioPerc: numericCols[1] || '0%', 
+          metaDia: numericCols[1] || '0', 
+          desvioPerc: numericCols[2] || '0%',
+          vlrDesvio: numericCols[3] || 'R$ 0',
           evolucaoPerc: numericCols[numericCols.length - 1] || '0%' 
         });
       }
