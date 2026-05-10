@@ -51,11 +51,8 @@ export function RegionalHeader({ regional, shareWhatsApp, monthYear }) {
 }
 
 export function DepartmentGrid({ regionalDepts }) {
-  // Filtramos apenas os departamentos que realmente importam para o coordenador
-  const mainDepts = ['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'];
-  const filteredDepts = mainDepts.map(name => 
-    regionalDepts.find(d => d.departamento.toUpperCase().includes(name))
-  ).filter(Boolean);
+  // Agora usamos diretamente os departamentos que o Hook já filtrou para nós
+  const filteredDepts = regionalDepts;
 
   return (
     <div className="depts-section" style={{marginTop: '2.5rem'}}>
