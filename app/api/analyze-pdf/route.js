@@ -80,7 +80,8 @@ async function callOpenAI(prompt) {
 
 async function callGemini(prompt) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const fallbackModels = ['gemini-1.5-flash-latest', 'gemini-1.5-flash-8b', 'gemini-pro'];
+  // Modelos disponíveis e atualizados
+  const fallbackModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-2.5-pro'];
   let lastError;
 
   for (const modelName of fallbackModels) {
