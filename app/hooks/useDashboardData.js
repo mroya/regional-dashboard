@@ -158,16 +158,13 @@ export function useDashboardData(user, referenceDate) {
       rtRep: coordinatorRaw.rtRep || '0,0%'
     };
 
-    // 3. Departamentos do Coordenador (Filtrando apenas o mês em questão)
-    const monthNamesShort = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-    const selectedMonthName = monthNamesShort[refDateObj.getMonth()];
-
-    // Filtra para mostrar apenas o mês atual ou departamentos que não sejam nomes de meses
+    // 3. Departamentos do Coordenador (Apenas os 4 Principais)
+    const mainDeptNames = ['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'];
+    
     const regionalDepts = (data.departamentos || []).filter(d => {
-      if (d.id !== 'REGIONAL') return false;
+      // Garante que o ID seja REGIONAL e o nome seja um dos 4 principais
       const deptName = d.departamento.toUpperCase();
-      const isOtherMonth = monthNamesShort.some(m => deptName.includes(m) && !deptName.includes(selectedMonthName));
-      return !isOtherMonth;
+      return d.id === 'REGIONAL' && mainDeptNames.some(name => deptName.includes(name));
     }).map(d => {
       const vdaNum = parseNum(d.vdaEft);
       const alvoNum = parseNum(d.metaDia);

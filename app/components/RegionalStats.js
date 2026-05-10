@@ -51,57 +51,95 @@ export function RegionalHeader({ regional, shareWhatsApp, monthYear }) {
 }
 
 export function DepartmentGrid({ regionalDepts }) {
+  // Filtramos apenas os departamentos que realmente importam para o coordenador
+  const mainDepts = ['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'];
+  const filteredDepts = mainDepts.map(name => 
+    regionalDepts.find(d => d.departamento.toUpperCase().includes(name))
+  ).filter(Boolean);
+
   return (
-    <div className="depts-section" style={{marginTop: '2rem'}}>
-      <h4 style={{marginBottom: '1.2rem', opacity: 0.8, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px'}}>
-        Alvos por Departamento (Foco Restante)
-      </h4>
+    <div className="depts-section" style={{marginTop: '2.5rem'}}>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
+        <h4 style={{opacity: 0.9, fontSize: '1.1rem', fontWeight: 700}}>
+          🎯 Alvos por Departamento (O que falta para a Meta)
+        </h4>
+        <div style={{fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '20px'}}>
+          💡 <b>Dica:</b> A "Meta Necessária" é o quanto você precisa vender POR DIA até o fim do mês.
+        </div>
+      </div>
+
       <div className="stats-main-grid" style={{
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-        gap: '1.5rem'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+        gap: '2rem'
       }}>
-        {regionalDepts.map((d, idx) => {
-          const colors = ['#3b82f6', '#8b5cf6', '#06b6d4', '#f59e0b', '#10b981'];
+        {filteredDepts.map((d, idx) => {
+          const colors = ['#3b82f6', '#8b5cf6', '#06b6d4', '#f59e0b'];
           const color = colors[idx % colors.length];
           const isPos = parseNum(d.desvioPerc) >= 0;
 
           return (
-            <div key={d.departamento} className="glass-panel stat-card" style={{borderTop: `3px solid ${color}`, padding: '1.5rem'}}>
-              <div className="stat-label" style={{fontSize: '0.9rem', fontWeight: 800, color: '#fff', marginBottom: '1rem'}}>
-                {d.departamento.replace('_GERAL', '').replace('MEDICAMENTO', 'MED.')}
+            <div key={d.departamento} className="glass-panel stat-card" style={{borderTop: `4px solid ${color}`, padding: '1.8rem', position: 'relative', overflow: 'hidden'}}>
+              {/* Nome do Departamento */}
+              <div style={{display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem'}}>
+                <div style={{width: '12px', height: '12px', borderRadius: '50%', background: color}}></div>
+                <div style={{fontSize: '1.1rem', fontWeight: 800, color: '#fff'}}>
+                  {d.departamento.replace('_GERAL', '').replace('MEDICAMENTO', 'MEDICAMENTOS')}
+                </div>
               </div>
               
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem'}}>
-                <div>
-                  <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Alvo</p>
-                  <p style={{fontWeight: 700, fontSize: '1rem'}}>{d.metaDia || 'R$ 0'}</p>
+              {/* Grid de Dados Principais */}
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem'}}>
+                <div className="data-box">
+                  <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.3rem'}}>Alvo do Mês</p>
+                  <p style={{fontWeight: 700, fontSize: '1.1rem'}} title="Meta total definida para este mês">{d.metaDia || 'R$ 0'}</p>
                 </div>
-                <div>
-                  <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Projeção</p>
-                  <p style={{fontWeight: 700, fontSize: '1rem'}}>{d.projecao || 'R$ 0'}</p>
-                </div>
-              </div>
-
-              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.8rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', marginBottom: '1rem'}}>
-                <div>
-                  <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Desvio</p>
-                  <p style={{fontWeight: 800, color: isPos ? '#10b981' : '#ef4444', fontSize: '1.1rem'}}>{d.desvioPerc}</p>
-                </div>
-                <div style={{textAlign: 'right'}}>
-                  <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Valor</p>
-                  <p style={{fontWeight: 600, color: isPos ? '#10b981' : '#ef4444', fontSize: '0.9rem'}}>{d.vlrDesvio || 'R$ 0'}</p>
+                <div className="data-box">
+                  <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.3rem'}}>Venda Atual</p>
+                  <p style={{fontWeight: 700, fontSize: '1.1rem'}} title="Quanto já foi vendido até hoje">{d.vdaEft || 'R$ 0'}</p>
                 </div>
               </div>
 
-              <div style={{borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem'}}>
-                <p style={{fontSize: '0.65rem', color: color, fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.3rem'}}>Meta Diária Necessária</p>
-                <p style={{fontSize: '1.4rem', fontWeight: 900, color: '#fff'}}>{d.metaRestanteDia || 'R$ 0'}</p>
-                <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)'}}>Para os próximos dias</p>
+              {/* Box de Desvio (Explicado) */}
+              <div style={{
+                padding: '1rem', 
+                background: isPos ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', 
+                borderRadius: '12px', 
+                border: `1px solid ${isPos ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}`,
+                marginBottom: '1.5rem'
+              }}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                  <div>
+                    <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Desvio vs Alvo</p>
+                    <p style={{fontWeight: 800, color: isPos ? '#10b981' : '#ef4444', fontSize: '1.4rem'}}>{d.desvioPerc}</p>
+                  </div>
+                  <div style={{textAlign: 'right'}}>
+                    <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Diferença (R$)</p>
+                    <p style={{fontWeight: 600, color: isPos ? '#10b981' : '#ef4444', fontSize: '0.9rem'}}>{d.vlrDesvio || 'R$ 0'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Resultado Final (O Plano de Ação) */}
+              <div style={{borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '1.2rem'}}>
+                <p style={{fontSize: '0.75rem', color: color, fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.4rem'}}>
+                  🚀 Meta Diária Necessária
+                </p>
+                <p style={{fontSize: '1.8rem', fontWeight: 900, color: '#fff', letterSpacing: '-1px'}}>
+                  {d.metaRestanteDia || 'R$ 0'}
+                </p>
+                <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.2rem'}}>
+                  Venda média diária para bater o alvo até o dia 31.
+                </p>
               </div>
             </div>
           );
         })}
+      </div>
+
+      {/* Seção de Ajuda Rápida */}
+      <div className="glass-panel" style={{marginTop: '2rem', padding: '1rem', borderLeft: '4px solid #3b82f6', fontSize: '0.8rem', color: 'var(--text-secondary)'}}>
+        <b>Como ler estes dados?</b> Se a <b>Meta Diária Necessária</b> for maior que a sua meta diária normal, significa que você precisa acelerar as vendas para compensar o desvio negativo atual.
       </div>
     </div>
   );
