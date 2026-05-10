@@ -124,17 +124,18 @@ export async function POST(request) {
     let parsedData;
 
     try {
-      require('fs').writeFileSync('debug-gemini.json', rawText);
       parsedData = extractJson(rawText);
     } catch (parseError) {
       console.warn('[Gemini] JSON invalido, tentando reparar:', parseError.message);
-      parsedData = await repairJsonWithGemini(successfulModel, rawText);
-      require('fs').writeFileSync('debug-gemini-repaired.json', JSON.stringify(parsedData, null, 2));
+      try {
+        parsedData = await repairJsonWithGemini(successfulModel, rawText);
+      } catch (repairError) {
+        throw new Error('Erro ao reparar JSON: ' + repairError.message + ' | RAW: ' + rawText.slice(0, 500));
+      }
     }
 
     // Removido o salvamento do Firestore daqui (movido para o client-side)
     // para evitar hangs da SDK client do Firebase no ambiente Node/Serverless.
-
 
     return NextResponse.json({ success: true, data: parsedData });
   } catch (error) {
