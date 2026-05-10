@@ -1,3 +1,5 @@
+export const runtime = 'nodejs';
+
 export async function POST(req) {
   try {
     const formData = await req.formData();
@@ -8,10 +10,14 @@ export async function POST(req) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    const [pdfjsLib, pdfjsWorker] = await Promise.all([
+      import('pdfjs-dist/legacy/build/pdf.mjs'),
+      import('pdfjs-dist/legacy/build/pdf.worker.mjs'),
+    ]);
+    globalThis.pdfjsWorker = pdfjsWorker;
+
     const loadingTask = pdfjsLib.getDocument({
       data: new Uint8Array(buffer),
-      disableWorker: true,
     });
     const pdf = await loadingTask.promise;
 
