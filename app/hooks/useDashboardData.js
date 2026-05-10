@@ -49,6 +49,7 @@ export function useDashboardData(user, referenceDate) {
       setUploadStatus('Extraindo texto do relatorio...');
       setError(null);
 
+      // Step 1: Extract text from PDF
       const formData = new FormData();
       formData.append('file', file);
 
@@ -63,22 +64,23 @@ export function useDashboardData(user, referenceDate) {
 
       const parsedData = await parseResponse.json();
 
-      setUploadStatus('Atualizando painel...');
+      // Step 2: Send extracted text to Gemini for intelligent analysis
+      setUploadStatus('Analisando com IA Gemini...');
 
-      const response = await fetch('/api/update-dashboard', {
+      const analyzeResponse = await fetch('/api/analyze-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...parsedData,
+          text: parsedData.text,
           referenceDate,
         }),
       });
 
-      if (!response.ok) {
-        const fallback = response.status === 504
-          ? 'A atualizacao demorou demais e a Vercel encerrou a requisicao. Tente novamente.'
-          : 'Erro ao atualizar o painel';
-        throw new Error(await readErrorMessage(response, fallback));
+      if (!analyzeResponse.ok) {
+        const fallback = analyzeResponse.status === 504
+          ? 'A analise demorou demais e a Vercel encerrou a requisicao. Tente novamente.'
+          : 'Erro ao analisar o PDF com IA';
+        throw new Error(await readErrorMessage(analyzeResponse, fallback));
       }
 
       setUploadStatus('Concluido!');
@@ -119,10 +121,24 @@ export function useDashboardData(user, referenceDate) {
       const valorRestante = Math.max(0, alvoTotal - vdaNum);
       const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
 
+      // Derived fields for BranchDetail
+      const mediaReal = currentElapsed > 0 ? vdaNum / currentElapsed : 0;
+      const projecaoFinal = mediaReal * totalDays;
+      const alvoMensalEst = alvoTotal || mediaDiaNum * totalDays;
+      const percProj = alvoMensalEst > 0 ? (projecaoFinal / alvoMensalEst) * 100 : 0;
+      const dentroMeta = percProj >= 100;
+      const mediaAlvoNec = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
+
       return {
         ...f,
         valorRestante,
         metaRestanteDia,
+        mediaReal,
+        projecaoFinal,
+        alvoMensalEst,
+        percProj,
+        dentroMeta,
+        mediaAlvoNec,
         desvioPerc: f.desvioPerc || '0%',
       };
     });

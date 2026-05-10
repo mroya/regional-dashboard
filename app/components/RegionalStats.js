@@ -76,8 +76,8 @@ export default function RegionalStats({ data }) {
   if (!data || !data.filiais) return null;
 
   const chartData = data.filiais.map((f) => ({
-    name: f.id.substring(0, 3),
-    venda: parseFloat(f.vdaEft.replace(/[R$\s.]/g, '').replace(',', '.')) || 0,
+    name: (f.id || '').substring(0, 3),
+    venda: parseFloat((f.vdaEft || '0').replace(/[R$\s.]/g, '').replace(',', '.')) || 0,
   })).reverse();
 
   const filteredDepts = data.departamentos || [];

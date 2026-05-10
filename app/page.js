@@ -9,6 +9,7 @@ import LoginPage from './components/LoginPage';
 import Sidebar from './components/Sidebar';
 import RegionalStats from './components/RegionalStats';
 import BranchDetail from './components/BranchDetail';
+import RankingTable from './components/RankingTable';
 import dynamic from 'next/dynamic';
 import { Brain, CheckCircle2, FileText, Loader2 } from 'lucide-react';
 
@@ -34,6 +35,8 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [selectedFilial, setSelectedFilial] = useState('REGIONAL');
+  const [filterMeta, setFilterMeta] = useState('ALL');
+  const [sortConfig, setSortConfig] = useState({ key: 'percProj', direction: 'desc' });
 
   const getYesterdayStr = () => {
     const d = new Date();
@@ -60,6 +63,12 @@ export default function Dashboard() {
       if (authMode === 'LOGIN') await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
       else await createUserWithEmailAndPassword(auth, loginEmail, loginPassword);
     } catch (err) { setAuthError(err.message); }
+  };
+
+  const shareFilialWhatsApp = (f) => {
+    if (!f) return;
+    const text = `📊 Filial ${f.id}\n💰 Venda: ${f.vdaEft || 'N/A'}\n📈 Projeção: ${f.percProj?.toFixed(1) || 0}%\n${f.dentroMeta ? '✅ Na Meta' : '⚠️ Abaixo da Meta'}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   if (authLoading) return <div className="loading-screen">Carregando...</div>;
@@ -188,14 +197,31 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {enrichedData.filiais.length > 1 && (
+                <PerformanceChart data={enrichedData.filiais} />
+              )}
+
+              {enrichedData.filiais.length > 1 && (
+                <RankingTable
+                  filiais={enrichedData.filiais}
+                  filterMeta={filterMeta}
+                  setFilterMeta={setFilterMeta}
+                  sortConfig={sortConfig}
+                  setSortConfig={setSortConfig}
+                  setSelectedFilial={setSelectedFilial}
+                />
+              )}
+
               <div className="charts-section">
                 <RegionalStats data={enrichedData} />
               </div>
             </div>
           ) : (
             <BranchDetail 
-              filial={enrichedData.filiais.find(f => f.id === selectedFilial)} 
-              onBack={() => setSelectedFilial('REGIONAL')}
+              f={enrichedData.filiais.find(f => f.id === selectedFilial)}
+              depts={enrichedData.departamentos || []}
+              setSelectedFilial={setSelectedFilial}
+              shareFilialWhatsApp={shareFilialWhatsApp}
             />
           )
         ) : (
