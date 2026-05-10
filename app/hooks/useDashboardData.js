@@ -146,17 +146,33 @@ export function useDashboardData(user, referenceDate) {
       evolucaoPerc: '0%'
     };
 
+    // 2. Dados do Coordenador (Geral)
+    const coordinatorRaw = (data.departamentos || []).find(d => d.id === 'REGIONAL') || {
+      vdaEft: '0',
+      metaDia: '0',
+      desvioPerc: '0%',
+      evolucaoPerc: '0%'
+    };
+
+    const regional = {
+      ...coordinatorRaw,
+      id: coordinatorRaw.departamento || 'Área 02 Sul POA',
+      dentroMeta: parseNum(coordinatorRaw.desvioPerc) >= 0,
+      currentElapsed,
+      totalDays,
+      diasRestantes,
+      mediaDia: coordinatorRaw.mediaDia || 'R$ 0',
+      rtRep: coordinatorRaw.rtRep || '0,0%'
+    };
+
     // 3. Departamentos do Coordenador (Filtrando apenas o mês em questão)
     const monthNamesShort = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
     const selectedMonthName = monthNamesShort[refDateObj.getMonth()];
-    const selectedYear = refDateObj.getFullYear();
-    const monthKey = `${selectedMonthName} ${selectedYear}`;
 
     // Filtra para mostrar apenas o mês atual ou departamentos que não sejam nomes de meses
     const regionalDepts = (data.departamentos || []).filter(d => {
       if (d.id !== 'REGIONAL') return false;
       const deptName = d.departamento.toUpperCase();
-      // Se for um nome de mês, só deixa passar se for o mês selecionado
       const isOtherMonth = monthNamesShort.some(m => deptName.includes(m) && !deptName.includes(selectedMonthName));
       return !isOtherMonth;
     }).map(d => {
