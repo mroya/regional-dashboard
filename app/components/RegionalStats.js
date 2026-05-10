@@ -14,13 +14,14 @@ export function RegionalHeader({ regional, shareWhatsApp }) {
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start'}}>
           <div>
             <p className={`status-badge ${regional.dentroMeta ? 'success' : 'danger'}`}>
-              {regional.dentroMeta ? '✅ Regional na Meta' : '⚠️ Regional Abaixo'}
+              {regional.dentroMeta ? '✅ Na Meta' : '⚠️ Abaixo da Meta'}
             </p>
-            <h2 style={{fontSize:'1.8rem', marginTop:'0.5rem'}}>Área 02 Sul POA</h2>
+            <h2 style={{fontSize:'1.8rem', marginTop:'0.5rem'}}>Visão do Coordenador</h2>
+            <p style={{fontSize:'0.8rem', opacity: 0.7}}>Área 02 Sul POA</p>
           </div>
           <div style={{textAlign:'right'}}>
-            <p style={{fontSize:'0.75rem', color:'var(--text-secondary)'}}>Ritmo Regional</p>
-            <h2 style={{fontSize:'2.2rem', color: regional.dentroMeta ? '#10b981' : '#ef4444'}}>{regional.percProj.toFixed(1)}%</h2>
+            <p style={{fontSize:'0.75rem', color:'var(--text-secondary)'}}>Performance Coordenador</p>
+            <h2 style={{fontSize:'2.2rem', color: regional.dentroMeta ? '#10b981' : '#ef4444'}}>{regional.desvioPerc}</h2>
           </div>
         </div>
         <button onClick={shareWhatsApp} className="whatsapp-btn" style={{marginTop:'1.5rem'}}>Compartilhar Geral</button>
@@ -28,18 +29,17 @@ export function RegionalHeader({ regional, shareWhatsApp }) {
 
       <div className="stats-main-grid">
         <div className="glass-panel stat-card" style={{borderTop: `3px solid ${regional.dentroMeta ? '#10b981' : '#ef4444'}`}}>
-          <div className="stat-label">Projeção (Regional)</div>
-          <div className="stat-value" style={{color: regional.dentroMeta ? '#10b981' : '#ef4444'}}>{formatCurrency(regional.projecaoFinal)}</div>
-          <div className="stat-sub">Meta: {formatCurrency(regional.alvoMensalEst)}</div>
+          <div className="stat-label">Venda Efetiva</div>
+          <div className="stat-value" style={{color: regional.dentroMeta ? '#10b981' : '#ef4444'}}>{regional.vdaEft}</div>
+          <div className="stat-sub">Meta do Dia: {regional.metaDia}</div>
         </div>
         <div className="glass-panel stat-card" style={{borderTop: '3px solid #3b82f6'}}>
-          <div className="stat-label">Meta Diária (Total)</div>
-          <div className="stat-value" style={{color:'#3b82f6'}}>{formatCurrency(regional.metaDia)}</div>
+          <div className="stat-label">Desvio Acumulado</div>
+          <div className="stat-value" style={{color:'#3b82f6'}}>{regional.desvioPerc}</div>
         </div>
         <div className="glass-panel stat-card" style={{borderTop: '3px solid #8b5cf6'}}>
-          <div className="stat-label">Média Diária Regional</div>
-          <div className="stat-value" style={{color:'#8b5cf6'}}>{formatCurrency(regional.mediaReal)}</div>
-          <div className="stat-sub">Meta/dia: {formatCurrency(regional.mediaAlvo)}</div>
+          <div className="stat-label">Evolução Venda</div>
+          <div className="stat-value" style={{color:'#8b5cf6'}}>{regional.evolucaoPerc}</div>
         </div>
       </div>
     </div>
@@ -49,7 +49,7 @@ export function RegionalHeader({ regional, shareWhatsApp }) {
 export function DepartmentGrid({ regionalDepts }) {
   return (
     <div className="glass-panel depts-box">
-      <h4>Média de Departamentos (Regional)</h4>
+      <h4>Performance de Departamentos</h4>
       <div className="depts-grid">
         {regionalDepts.map(d => {
           const isPos = parseNum(d.desvioPerc) >= 0;

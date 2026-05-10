@@ -122,62 +122,30 @@ export function useDashboardData(user, referenceDate) {
     const totalDays = parseInt(data.geral?.diasUteis || '31');
 
     const filiais = (data.filiais || []).map(f => {
-      const vdaEftNum = parseNum(f.vdaEft);
-      const metaDiaNum = parseNum(f.metaDia);
-      // projecaoFinal: extrapola o ritmo atual para o mês inteiro
-      const projecaoFinal = currentElapsed > 0 ? (vdaEftNum / currentElapsed) * totalDays : 0;
-      // alvoMensalEst: metaDia é a meta DIÁRIA — multiplica pelo total de dias úteis
-      const alvoMensalEst = metaDiaNum * totalDays;
-      const percProj = alvoMensalEst > 0 ? (projecaoFinal / alvoMensalEst) * 100 : 0;
-      
+      const desvNum = parseNum(f.desvioPerc);
       return { 
         ...f, 
-        vdaEftNum, metaDiaNum, projecaoFinal, alvoMensalEst, percProj,
-        dentroMeta: percProj >= 100,
-        mediaReal: currentElapsed > 0 ? vdaEftNum / currentElapsed : 0,
-        mediaAlvoNec: (totalDays - currentElapsed) > 0 ? (alvoMensalEst - vdaEftNum) / (totalDays - currentElapsed) : 0
+        percProj: desvNum, // Para o gráfico, usamos o valor do Desvio
+        dentroMeta: desvNum >= 0
       };
     });
 
-    const regionalVda = filiais.reduce((acc, f) => acc + f.vdaEftNum, 0);
-    const regionalMetaDia = filiais.reduce((acc, f) => acc + f.metaDiaNum, 0);
-    // Projeção regional: extrapola ritmo atual para o mês
-    const regionalProj = currentElapsed > 0 ? (regionalVda / currentElapsed) * totalDays : 0;
-    // Meta mensal regional: soma das metas diárias × dias úteis
-    const regionalAlvo = regionalMetaDia * totalDays;
-
-    const regional = {
-      vdaEft: regionalVda,
-      metaDia: regionalMetaDia,
-      projecaoFinal: regionalProj,
-      alvoMensalEst: regionalAlvo,
-      percProj: regionalAlvo > 0 ? (regionalProj / regionalAlvo) * 100 : 0,
-      mediaReal: currentElapsed > 0 ? regionalVda / currentElapsed : 0,
-      mediaAlvo: regionalAlvo > 0 ? regionalAlvo / totalDays : 0,
-      currentElapsed, totalDays,
-      dentroMeta: regionalAlvo > 0 && (regionalProj / regionalAlvo) * 100 >= 100
+    const coordinatorRaw = (data.departamentos || []).find(d => d.id === 'REGIONAL') || {
+      vdaEft: '0',
+      metaDia: '0',
+      desvioPerc: '0%',
+      evolucaoPerc: '0%'
     };
 
-    const deptKeys = ['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'];
-    const regionalDepts = deptKeys.map(k => {
-      const dItems = (data.departamentos || []).filter(d => d.departamento === k);
-      if (dItems.length === 0) return null;
-      const totalVda = dItems.reduce((acc, d) => acc + parseNum(d.vdaEft), 0);
-      const avgDesv = dItems.reduce((acc, d) => acc + parseNum(d.desvioPerc), 0) / dItems.length;
-      const avgEvol = dItems.reduce((acc, d) => acc + parseNum(d.evolucaoPerc), 0) / dItems.length;
-      return {
-        departamento: k, vdaEft: totalVda,
-        desvioPerc: avgDesv.toFixed(1).replace('.', ',') + '%',
-        evolucaoPerc: avgEvol.toFixed(1).replace('.', ',') + '%'
-      };
-    }).filter(Boolean);
+    const regional = {
+      ...coordinatorRaw,
+      id: coordinatorRaw.departamento || 'Área 02 Sul POA',
+      dentroMeta: parseNum(coordinatorRaw.desvioPerc) >= 0,
+      currentElapsed
+    };
 
-    const departamentos = (data.departamentos || []).map(d => {
-      const branch = filiais.find(f => f.id === d.id);
-      const branchTotal = branch ? branch.vdaEftNum : 0;
-      const share = branchTotal > 0 ? (parseNum(d.vdaEft) / branchTotal) * 100 : 0;
-      return { ...d, share: share.toFixed(1).replace('.', ',') + '%' };
-    });
+    const regionalDepts = (data.departamentos || []).filter(d => d.id === 'REGIONAL');
+    const departamentos = data.departamentos || [];
 
     return { filiais, regional, regionalDepts, departamentos };
   }, [data, referenceDate]);

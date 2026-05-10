@@ -73,12 +73,12 @@ export default function Dashboard() {
   const shareWhatsApp = () => {
     if (!enrichedData) return;
     const { regional } = enrichedData;
-    const msg = `📊 *RESUMO REGIONAL AREA 02*\n📅 Data: ${new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR')}\n📈 Ritmo: ${regional.percProj.toFixed(1)}%\n💰 Projeção: R$ ${Math.round(regional.projecaoFinal).toLocaleString('pt-BR')}\n🎯 Meta: R$ ${Math.round(regional.alvoMensalEst).toLocaleString('pt-BR')}`;
+    const msg = `📊 *RESUMO COORDENADOR AREA 02*\n📅 Data: ${new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR')}\n📈 Performance: ${regional.desvioPerc}\n💰 Venda: ${regional.vdaEft}\n🎯 Meta: ${regional.metaDia}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const shareFilialWhatsApp = (f) => {
-    const msg = `🏪 *FILIAL ${f.id}*\n📅 Data: ${new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR')}\n📈 Ritmo: ${f.percProj.toFixed(1)}%\n💰 Projeção: R$ ${Math.round(f.projecaoFinal).toLocaleString('pt-BR')}\n🎯 Meta: R$ ${Math.round(f.alvoMensalEst).toLocaleString('pt-BR')}`;
+    const msg = `🏪 *FILIAL ${f.id}*\n📅 Data: ${new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR')}\n📈 Performance: ${f.desvioPerc}\n💰 Venda: ${f.vdaEft}\n🎯 Meta: ${f.metaDia}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -160,7 +160,7 @@ export default function Dashboard() {
 
         {enrichedData?.regional && (
           <div className="version-footer">
-            v1.3.0 | Refactored | D:{enrichedData.regional.currentElapsed} | T:{enrichedData.regional.totalDays}
+            v1.4.0 | Visão Coordenador | D:{enrichedData.regional.currentElapsed}
           </div>
         )}
       </div>
