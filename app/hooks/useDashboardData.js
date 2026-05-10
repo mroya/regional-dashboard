@@ -3,6 +3,18 @@ import { db } from '../lib/firebase';
 import { doc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { parseNum } from '../utils/formatters';
 
+async function readErrorMessage(response, fallback) {
+  const text = await response.text();
+  if (!text) return fallback;
+
+  try {
+    const data = JSON.parse(text);
+    return data.error || fallback;
+  } catch {
+    return text.slice(0, 200) || fallback;
+  }
+}
+
 export function useDashboardData(user, referenceDate) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -46,8 +58,7 @@ export function useDashboardData(user, referenceDate) {
       });
 
       if (!parseResponse.ok) {
-        const errData = await parseResponse.json();
-        throw new Error(errData.error || 'Erro ao extrair texto do PDF');
+        throw new Error(await readErrorMessage(parseResponse, 'Erro ao extrair texto do PDF'));
       }
 
       const { text: fullText } = await parseResponse.json();
@@ -64,8 +75,10 @@ export function useDashboardData(user, referenceDate) {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Erro na analise da IA');
+        const fallback = response.status === 504
+          ? 'A analise demorou demais e a Vercel encerrou a requisicao. Tente novamente ou reduza o PDF.'
+          : 'Erro na analise da IA';
+        throw new Error(await readErrorMessage(response, fallback));
       }
 
       setUploadStatus('Concluido!');
