@@ -91,6 +91,10 @@ export function useDashboardData(user, referenceDate) {
         elapsedDays: currentElapsed
       });
       
+      // Atualiza o estado local IMEDIATAMENTE para garantir que os cards apareçam
+      setData(parsed);
+      setUpdatedAt(nowStr);
+      
       // Garante que a animação dure pelo menos 1.5s para feedback visual
       const duration = Date.now() - startTime;
       if (duration < 1500) await new Promise(r => setTimeout(r, 1500 - duration));
