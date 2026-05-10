@@ -83,6 +83,23 @@ export function useDashboardData(user, referenceDate) {
         throw new Error(await readErrorMessage(analyzeResponse, fallback));
       }
 
+      setUploadStatus('Salvando painel...');
+      const analyzeResult = await analyzeResponse.json();
+      
+      const docRef = doc(db, 'reports', referenceDate);
+      const { setDoc, serverTimestamp } = await import('firebase/firestore');
+      await setDoc(docRef, {
+        ...analyzeResult.data,
+        updatedAtStr: new Date().toLocaleString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        timestamp: serverTimestamp(),
+        referenceDate,
+      }, { merge: true });
+
       setUploadStatus('Concluido!');
     } catch (err) {
       console.error('Erro no upload:', err);

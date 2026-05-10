@@ -1,8 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { db } from '@/app/lib/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
-import { sanitizeFirestoreData } from '@/app/utils/firestore';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -130,18 +127,9 @@ export async function POST(request) {
       parsedData = await repairJsonWithGemini(successfulModel, rawText);
     }
 
-    const docRef = doc(db, 'reports', referenceDate);
-    await setDoc(docRef, {
-      ...sanitizeFirestoreData(parsedData),
-      updatedAtStr: new Date().toLocaleString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      timestamp: serverTimestamp(),
-      referenceDate,
-    }, { merge: true });
+    // Removido o salvamento do Firestore daqui (movido para o client-side)
+    // para evitar hangs da SDK client do Firebase no ambiente Node/Serverless.
+
 
     return NextResponse.json({ success: true, data: parsedData });
   } catch (error) {
