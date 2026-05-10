@@ -31,27 +31,32 @@ export const parseRawRows = (rows) => {
     else if (joined.includes('HB (NÃO MEDICAMENTO)')) currentSection = 'HB';
     else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
 
-    // BUSCA INTELIGENTE: Separa texto de número grudado (ex: Med3.427 -> Med 3.427)
+    // BUSCA INTELIGENTE: Separa texto de número grudado e remove o índice (1, 2, 3...)
     const splitJoined = joined.replace(/([A-Z])([\d])/g, '$1 $2').replace(/([\d])([A-Z])/g, '$1 $2');
     const cleanJoined = splitJoined.replace(/\s+/g, ' '); 
     
-    if (cleanJoined.includes('MED') || cleanJoined.includes('HB (N-MED)') || cleanJoined.includes('CLINIC')) {
+    // Se a linha tem "MED", "HB" ou "CLINIC"
+    const deptMatch = cleanJoined.match(/\b(MED|HB|CLINIC)\b/);
+    if (deptMatch) {
       const rawNumbers = cleanJoined.match(/[\d]{1,3}(?:\.[\d]{3})*(?:,[\d]+)?|[\d]+(?:,[\d]+)?/g) || [];
       
-      if (rawNumbers.length >= 4) {
-        const deptKey = cleanJoined.includes('HB') ? 'HB' : cleanJoined.includes('CLINIC') ? 'CLINIC' : 'MED';
-        
+      // Se o primeiro número for pequeno (índice 1, 2, 3, 4) e tivermos muitos números, removemos ele
+      let validNumbers = [...rawNumbers];
+      if (validNumbers.length >= 5 && parseInt(validNumbers[0]) < 10) {
+        validNumbers.shift();
+      }
+
+      if (validNumbers.length >= 4) {
         result.departamentos.push({
           id: 'SUMMARY',
-          departamento: deptKey,
-          vdaEft: rawNumbers[0],
-          metaDia: rawNumbers[1],
-          projecao: rawNumbers[2],
-          desvioPerc: rawNumbers[3],
-          vlrDesvio: rawNumbers[4] || '0',
-          allValues: rawNumbers
+          departamento: deptMatch[1],
+          vdaEft: validNumbers[0],
+          metaDia: validNumbers[1], // Alvo
+          projecao: validNumbers[2],
+          desvioPerc: validNumbers[3],
+          vlrDesvio: validNumbers[4] || '0',
+          allValues: validNumbers
         });
-        // Se achou, não precisa processar mais esta linha
         continue;
       }
     }
