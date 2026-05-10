@@ -1,67 +1,95 @@
-export const parseRawRows = (rows) => {
-  let result = { geral: { diasUteis: '31', diasRestantes: '24' }, filiais: [], departamentos: [] };
-  
-  const monthKeywords = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+const MONTH_KEYWORDS = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i].map(cell => (cell || '').toString().trim());
+function hasNumber(value) {
+  return /\d/.test(value || '');
+}
+
+function cleanValue(value) {
+  return (value || '').toString().replace(/[^\d.,%-]/g, '');
+}
+
+function isNumericCell(value) {
+  const clean = cleanValue(value).replace(/[.%]/g, '').replace(/\./g, '').replace(',', '.');
+  return clean !== '' && !Number.isNaN(Number.parseFloat(clean));
+}
+
+function getMonthIndex(row) {
+  return row.findIndex((cell) => {
+    const value = (cell || '').toString().trim().toUpperCase();
+    return MONTH_KEYWORDS.some((month) => value.includes(month)) && /\d{4}/.test(value);
+  });
+}
+
+function getNumericValues(cells) {
+  return cells.filter(isNumericCell).map(cleanValue);
+}
+
+export const parseRawRows = (rows) => {
+  const result = {
+    geral: {
+      diasUteis: '31',
+      diasDecorridos: '0',
+      diasRestantes: '0',
+      vdaEft: '0',
+      alvo: '0',
+      projecao: '0',
+      desvioPerc: '0%',
+      vlrDesv: '0',
+      performanceGeral: '0%',
+    },
+    filiais: [],
+    departamentos: [],
+  };
+
+  for (const rawRow of rows) {
+    const row = rawRow.map((cell) => (cell || '').toString().trim()).filter(Boolean);
     const joined = row.join(' ').toUpperCase();
 
-    // 1. Captura Dias Úteis e Restantes
-    const matchDias = joined.match(/DIAS\s*ÚTEIS[:\s]*(\d+)/i);
-    if (matchDias) result.geral.diasUteis = matchDias[1];
-    const matchRest = joined.match(/DIAS\s*REST[\.:\s]*(\d+)/i);
-    if (matchRest) result.geral.diasRestantes = matchRest[1];
+    const diasUteis = joined.match(/DIAS\s*(?:UTEIS|ÚTEIS|ÃšTEIS)[:\s]*(\d+)/i);
+    if (diasUteis) result.geral.diasUteis = diasUteis[1];
 
-    // 2. Busca de Departamentos (Varredura de Células)
-    // Se a linha contém MED, HB ou CLINIC, pegamos os números dessa linha
-    const medIdx = row.findIndex(c => c.toUpperCase() === 'MED');
-    const hbIdx = row.findIndex(c => c.toUpperCase().includes('HB'));
-    const clinicIdx = row.findIndex(c => c.toUpperCase() === 'CLINIC');
-    const geralIdx = row.findIndex(c => c.toUpperCase() === 'GERAL');
+    const diasRestantes = joined.match(/DIAS\s*REST[\.:\s]*(\d+)/i);
+    if (diasRestantes) result.geral.diasRestantes = diasRestantes[1];
 
-    const targetIdx = medIdx !== -1 ? medIdx : (hbIdx !== -1 ? hbIdx : (clinicIdx !== -1 ? clinicIdx : (geralIdx !== -1 && joined.includes('INDICADORES') ? -1 : geralIdx)));
-
-    if (targetIdx !== -1) {
-      // Pega todas as células após o nome do departamento que contêm números
-      const numbers = row.slice(targetIdx + 1).filter(c => /[\d]/.test(c)).map(c => c.replace(/[^\d.,%-]/g, ''));
-      
-      if (numbers.length >= 4) {
-        let label = 'GERAL';
-        if (medIdx !== -1) label = 'MED';
-        else if (hbIdx !== -1) label = 'HB (N-MED)';
-        else if (clinicIdx !== -1) label = 'CLINIC';
-
-        result.departamentos.push({
-          id: 'SUMMARY',
-          departamento: label,
-          vdaEft: numbers[0],
-          metaDia: numbers[1],
-          projecao: numbers[2],
-          desvioPerc: numbers[3],
-          vlrDesvio: numbers[4] || '0'
-        });
+    const geralIdx = row.findIndex((cell) => cell.toUpperCase() === 'GERAL');
+    if (geralIdx !== -1 && result.geral.vdaEft === '0') {
+      const values = getNumericValues(row.slice(geralIdx + 1));
+      if (values.length >= 5) {
+        result.geral.vdaEft = values[0];
+        result.geral.alvo = values[1];
+        result.geral.projecao = values[2];
+        result.geral.desvioPerc = values[3];
+        result.geral.vlrDesv = values[4];
+        result.geral.performanceGeral = values[3];
       }
     }
 
-    // 3. Captura de Meses (Topo do Dashboard)
-    const firstCell = (row[0] || '').toUpperCase();
-    if (monthKeywords.some(m => firstCell.includes(m))) {
-      const numericCols = row.filter(cell => {
-        const clean = cell.replace(/[R$\s.%]/g, '').replace(/\./g, '').replace(',', '.');
-        return !isNaN(parseFloat(clean)) && /\d/.test(cell);
-      });
+    const monthIdx = getMonthIndex(row);
+    if (monthIdx === -1) continue;
 
-      if (numericCols.length >= 8) {
-        result.filiais.push({
-          id: firstCell,
-          vdaEft: numericCols[0] || '0',
-          mediaDia: numericCols[1] || '0',
-          rtRep: numericCols[7] || '0%'
-        });
-      }
+    const monthLabel = row[monthIdx].toUpperCase();
+    if (monthLabel !== 'MAI 2026') continue;
+
+    const values = getNumericValues(row.slice(monthIdx + 1));
+    if (values.length >= 8 && !values[0].includes('%') && result.filiais.length === 0) {
+      result.filiais.push({
+        id: monthLabel,
+        vdaEft: values[0],
+        mediaDia: values[1],
+        rtRep: values[7],
+      });
     }
   }
-  
+
+  const diasUteisNum = Number.parseInt(result.geral.diasUteis, 10);
+  const diasRestantesNum = Number.parseInt(result.geral.diasRestantes, 10);
+  if (Number.isFinite(diasUteisNum) && Number.isFinite(diasRestantesNum)) {
+    result.geral.diasDecorridos = String(Math.max(0, diasUteisNum - diasRestantesNum));
+  }
+
+  if (!hasNumber(result.geral.diasRestantes)) {
+    result.geral.diasRestantes = '0';
+  }
+
   return result;
 };

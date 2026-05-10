@@ -1,3 +1,5 @@
+import { parseRawRows } from '@/app/utils/pdf-parser';
+
 export const runtime = 'nodejs';
 
 export async function POST(req) {
@@ -32,7 +34,7 @@ export async function POST(req) {
 
       textContent.items.forEach((item) => {
         const [, , , , x, y] = item.transform;
-        const roundedY = Math.round(y * 10) / 10;
+        const roundedY = Math.round(y / 2) * 2;
         if (!rowsMap.has(roundedY)) rowsMap.set(roundedY, []);
 
         rowsMap.get(roundedY).push({
@@ -65,20 +67,7 @@ export async function POST(req) {
     }
 
     const extractData = {
-      geral: {
-        mediaDia: '0',
-        filiaisMeta: '0%',
-        filiaisAbaixo: '0%',
-      },
-      filiais: [],
-      departamentos: {
-        medicamento: [],
-        generico: [],
-        semBio: [],
-        higiene: [],
-        panvel: [],
-      },
-      trocoAmigo: [],
+      ...parseRawRows(allRows),
       rawRows: allRows,
       text: fullText,
     };

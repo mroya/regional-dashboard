@@ -107,12 +107,14 @@ export default function RegionalStats({ data }) {
         </div>
       </div>
 
-      <div className="department-grid">
-        <h2 className="section-title" style={{ marginBottom: '1.5rem' }}>Alvos por Departamento</h2>
-        {filteredDepts.map((d, idx) => (
-          <DepartmentCard key={idx} dept={d} />
-        ))}
-      </div>
+      {filteredDepts.length > 0 && (
+        <div className="department-grid">
+          <h2 className="section-title" style={{ marginBottom: '1.5rem' }}>Alvos por Departamento</h2>
+          {filteredDepts.map((d, idx) => (
+            <DepartmentCard key={idx} dept={d} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

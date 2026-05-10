@@ -10,11 +10,19 @@ import Sidebar from './components/Sidebar';
 import RegionalStats from './components/RegionalStats';
 import BranchDetail from './components/BranchDetail';
 import dynamic from 'next/dynamic';
+import { Brain, CheckCircle2, FileText, Loader2 } from 'lucide-react';
 
 const PerformanceChart = dynamic(() => import('./components/PerformanceChart'), {
   ssr: false,
   loading: () => <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>A carregar gráfico...</div>
 });
+
+function getProcessingStep(status) {
+  const text = (status || '').toLowerCase();
+  if (text.includes('gemini') || text.includes('ia')) return 2;
+  if (text.includes('atualizando') || text.includes('concl')) return 3;
+  return 1;
+}
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -36,6 +44,7 @@ export default function Dashboard() {
   const [referenceDate, setReferenceDate] = useState(getYesterdayStr());
   const { data: enrichedData, loading, uploadStatus, error, updatedAt, handleFileUpload, handleClearData } = useDashboardData(user, referenceDate);
   const { clock, weather, weatherIcon } = useWeather();
+  const processingStep = getProcessingStep(uploadStatus);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -69,9 +78,34 @@ export default function Dashboard() {
 
       {loading && (
         <div className="pdf-loading-overlay">
-          <div className="pdf-spinner">
-            <div className="ring"></div>
-            <p>{uploadStatus || 'Processando...'}</p>
+          <div className="processing-card">
+            <div className="processing-orbit" aria-hidden="true">
+              <div className="processing-ring"></div>
+              <div className="processing-core">
+                <Loader2 size={28} />
+              </div>
+            </div>
+
+            <div className="processing-copy">
+              <span className="processing-eyebrow">Atualizando relatorio</span>
+              <h2>{uploadStatus || 'Processando dados...'}</h2>
+              <p>Estamos lendo o PDF, organizando os indicadores e salvando a nova visao do painel.</p>
+            </div>
+
+            <div className="processing-steps">
+              <div className={`processing-step ${processingStep >= 1 ? 'active' : ''}`}>
+                {processingStep > 1 ? <CheckCircle2 size={18} /> : <FileText size={18} />}
+                <span>Extrair PDF</span>
+              </div>
+              <div className={`processing-step ${processingStep >= 2 ? 'active' : ''}`}>
+                {processingStep > 2 ? <CheckCircle2 size={18} /> : <Brain size={18} />}
+                <span>Organizar dados</span>
+              </div>
+              <div className={`processing-step ${processingStep >= 3 ? 'active' : ''}`}>
+                <CheckCircle2 size={18} />
+                <span>Atualizar painel</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -129,6 +163,28 @@ export default function Dashboard() {
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(parseNum(enrichedData.filiais[0]?.mediaDia) || 0)}
                   </div>
                   <p>%RT Rep: {enrichedData.filiais[0]?.rtRep || '0%'}</p>
+                </div>
+                <div className="glass-panel metric-card blue">
+                  <span className="icon">V</span>
+                  <h3>Vda Eft</h3>
+                  <div className="big-value">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(parseNum(enrichedData.geral?.vdaEft) || 0)}
+                  </div>
+                  <p>Mai 2026: {enrichedData.filiais[0]?.vdaEft || '0'}</p>
+                </div>
+                <div className="glass-panel metric-card blue">
+                  <span className="icon">A</span>
+                  <h3>Alvo</h3>
+                  <div className="big-value">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(parseNum(enrichedData.geral?.alvo) || 0)}
+                  </div>
+                  <p>Projecao: {enrichedData.geral?.projecao || '0'}</p>
+                </div>
+                <div className="glass-panel metric-card orange">
+                  <span className="icon">%</span>
+                  <h3>% Desv</h3>
+                  <div className="big-value">{enrichedData.geral?.desvioPerc || '0%'}</div>
+                  <p>VlrDesv: {enrichedData.geral?.vlrDesv || enrichedData.geral?.vlrDesvio || '0'}</p>
                 </div>
               </div>
 

@@ -99,11 +99,10 @@
   inset: 0;
   z-index: 9999;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
-  background: rgba(15, 23, 42, 0.92);
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.88);
   backdrop-filter: blur(16px);
   animation: overlayIn 0.3s ease-out forwards;
 }
@@ -113,93 +112,130 @@
   to { opacity: 1; }
 }
 
-.pdf-spinner {
-  position: relative;
-  width: 100px;
-  height: 100px;
+.processing-card {
+  width: min(460px, 100%);
+  min-height: 360px;
+  padding: 2rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.96);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  text-align: center;
 }
 
-.pdf-spinner .ring {
+.processing-orbit {
+  width: 96px;
+  height: 96px;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.processing-ring {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 3px solid transparent;
-  animation: spin 1.2s linear infinite;
-}
-
-.pdf-spinner .ring:nth-child(1) {
+  border: 3px solid rgba(59, 130, 246, 0.16);
   border-top-color: #3b82f6;
-  animation-duration: 1.2s;
+  border-right-color: #06b6d4;
+  animation: spin 1s linear infinite;
 }
 
-.pdf-spinner .ring:nth-child(2) {
-  inset: 10px;
-  border-top-color: #8b5cf6;
-  animation-duration: 0.9s;
-  animation-direction: reverse;
+.processing-core {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #bfdbfe;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.28);
 }
 
-.pdf-spinner .ring:nth-child(3) {
-  inset: 20px;
-  border-top-color: #06b6d4;
-  animation-duration: 0.7s;
-}
-
-.pdf-spinner .icon-center {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
+.processing-core svg {
+  animation: spin 1.2s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-.pdf-loading-text {
-  text-align: center;
+.processing-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-width: 340px;
 }
 
-.pdf-loading-text h3 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-size: 200%;
-  animation: gradientShift 2s linear infinite;
+.processing-eyebrow {
+  color: #60a5fa;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.pdf-loading-text p {
-  font-size: 0.85rem;
+.processing-copy h2 {
+  color: #f8fafc;
+  font-size: 1.35rem;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.processing-copy p {
   color: #94a3b8;
+  font-size: 0.92rem;
+  line-height: 1.5;
 }
 
-.pdf-loading-dots span {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #3b82f6;
-  margin: 0 3px;
-  animation: dotBounce 1.4s ease-in-out infinite;
+.processing-steps {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
 }
 
-.pdf-loading-dots span:nth-child(2) { animation-delay: 0.2s; background: #8b5cf6; }
-.pdf-loading-dots span:nth-child(3) { animation-delay: 0.4s; background: #06b6d4; }
-
-@keyframes dotBounce {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-  40% { transform: scale(1.1); opacity: 1; }
+.processing-step {
+  min-height: 68px;
+  padding: 0.75rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
-@keyframes gradientShift {
-  0% { background-position: 0%; }
-  100% { background-position: 200%; }
+.processing-step.active {
+  color: #dbeafe;
+  border-color: rgba(59, 130, 246, 0.35);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+@media (max-width: 520px) {
+  .processing-card {
+    min-height: 340px;
+    padding: 1.5rem;
+  }
+
+  .processing-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .processing-step {
+    min-height: 44px;
+    flex-direction: row;
+  }
 }
 
 :root {

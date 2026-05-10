@@ -61,23 +61,23 @@ export function useDashboardData(user, referenceDate) {
         throw new Error(await readErrorMessage(parseResponse, 'Erro ao extrair texto do PDF'));
       }
 
-      const { text: fullText } = await parseResponse.json();
+      const parsedData = await parseResponse.json();
 
-      setUploadStatus('Gemini analisando dados (IA)...');
+      setUploadStatus('Atualizando painel...');
 
-      const response = await fetch('/api/analyze-pdf', {
+      const response = await fetch('/api/update-dashboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: fullText,
+          ...parsedData,
           referenceDate,
         }),
       });
 
       if (!response.ok) {
         const fallback = response.status === 504
-          ? 'A analise demorou demais e a Vercel encerrou a requisicao. Tente novamente ou reduza o PDF.'
-          : 'Erro na analise da IA';
+          ? 'A atualizacao demorou demais e a Vercel encerrou a requisicao. Tente novamente.'
+          : 'Erro ao atualizar o painel';
         throw new Error(await readErrorMessage(response, fallback));
       }
 
@@ -108,9 +108,9 @@ export function useDashboardData(user, referenceDate) {
   const enrichedData = useMemo(() => {
     if (!data) return null;
     const refDateObj = new Date(referenceDate + 'T12:00:00');
-    const currentElapsed = refDateObj.getDate() || 1;
     const totalDays = parseInt(data.geral?.diasUteis || '31');
-    const diasRestantes = Math.max(0, totalDays - currentElapsed);
+    const currentElapsed = parseInt(data.geral?.diasDecorridos || '', 10) || refDateObj.getDate() || 1;
+    const diasRestantes = parseInt(data.geral?.diasRestantes || '', 10) || Math.max(0, totalDays - currentElapsed);
 
     const filiais = (data.filiais || []).map((f) => {
       const vdaNum = parseNum(f.vdaEft);
@@ -148,6 +148,7 @@ export function useDashboardData(user, referenceDate) {
         diasUteis: totalDays,
         diasDecorridos: currentElapsed,
         diasRestantes,
+        vlrDesvio: data.geral?.vlrDesvio || data.geral?.vlrDesv || '0',
       },
       filiais,
       departamentos,
