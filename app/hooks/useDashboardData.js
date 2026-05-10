@@ -56,9 +56,12 @@ export function useDashboardData(user, referenceDate) {
         const textContent = await page.getTextContent();
         const lines = {};
         textContent.items.forEach(item => {
-          const y = Math.round(item.transform[5]);
-          if (!lines[y]) lines[y] = [];
-          lines[y].push({ x: item.transform[4], text: item.str });
+          const y = item.transform[5];
+          // Tolerância de 3 pixels para agrupar na mesma linha
+          let foundLine = Object.keys(lines).find(ly => Math.abs(parseFloat(ly) - y) < 3);
+          const lineKey = foundLine || y;
+          if (!lines[lineKey]) lines[lineKey] = [];
+          lines[lineKey].push({ x: item.transform[4], text: item.str });
         });
         const sortedRows = Object.keys(lines).sort((a, b) => b - a).map(y => 
           lines[y].sort((a, b) => a.x - b.x).map(i => i.text)

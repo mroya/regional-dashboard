@@ -1,7 +1,7 @@
 export const parseRawRows = (rows) => {
   let result = { geral: { diasUteis: '31', diasRestantes: '24' }, filiais: [], departamentos: [] };
   
-  // Transforma tudo em um blocão de texto para busca global
+  // Transforma tudo em um blocão de texto limpo
   const fullText = rows.map(row => row.join(' ')).join('\n').toUpperCase();
   const monthKeywords = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
 
@@ -12,21 +12,22 @@ export const parseRawRows = (rows) => {
   const matchRest = fullText.match(/DIAS\s*REST[\.:\s]*(\d+)/i);
   if (matchRest) result.geral.diasRestantes = matchRest[1];
 
-  // 2. Captura da Tabela de Resumo (Busca Flexível)
-  const keywords = ['GERAL', 'MED', 'HB (N-MED)', 'CLINIC'];
+  // 2. Busca por Departamentos (A Lógica Ninja)
+  // Procuramos pela palavra chave e pegamos os próximos 5 blocos de números
+  const keywords = ['MED', 'HB', 'CLINIC', 'GERAL'];
   
   keywords.forEach(key => {
-    const regex = new RegExp(`${key.replace('(', '\\(').replace(')', '\\)')}\\s+([\\d\\s.,%\\-]+)`, 'g');
-    let m;
+    // Busca a palavra chave e ignora o que vem antes (ex: "2 MED")
+    const regex = new RegExp(`(?:\\d+\\s+)?${key}(?:\\s+\\(N-MED\\))?\\s+([\\d\\s.,%\\-]+)`, 'g');
+    let match;
     while ((match = regex.exec(fullText)) !== null) {
-      // Pega o blocão de números e limpa
-      const numBlock = match[1].trim();
-      const numbers = numBlock.match(/[\d]{1,3}(?:\.[\d]{3})*(?:,[\d]+)?|[\d]+(?:,[\d]+)?/g) || [];
+      const numbers = match[1].match(/[\d]{1,3}(?:\.[\d]{3})*(?:,[\d]+)?|[\d]+(?:,[\d]+)?/g) || [];
       
+      // Se achou pelo menos 4 números, é a linha de resumo
       if (numbers.length >= 4) {
         result.departamentos.push({
           id: 'SUMMARY',
-          departamento: key,
+          departamento: key === 'HB' ? 'HB (N-MED)' : key,
           vdaEft: numbers[0],
           metaDia: numbers[1],
           projecao: numbers[2],
@@ -37,7 +38,7 @@ export const parseRawRows = (rows) => {
     }
   });
 
-  // 3. Captura de Meses (Topo do Dashboard) - Mantendo a lógica de linhas que já funcionava
+  // 3. Captura de Meses (Topo do Dashboard)
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i].map(cell => (cell || '').toString().trim());
     const firstCell = (row[0] || '').toUpperCase();
