@@ -16,6 +16,7 @@ export function useDashboardData(user, referenceDate) {
     const unsubscribe = onSnapshot(docRef, (snapshot) => {
       if (snapshot.exists()) {
         const docData = snapshot.data();
+        console.log('[Firebase] Dados recebidos:', docData);
         setData(docData);
         setUpdatedAt(docData.updatedAtStr);
         setError(null);

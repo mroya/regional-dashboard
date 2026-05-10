@@ -17,25 +17,21 @@ export async function POST(request) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
-      Você é um analista financeiro. Analise o texto extraído de um PDF de relatório de vendas e extraia os dados estritamente no formato JSON abaixo.
-      Retorne APENAS o JSON puro, sem comentários ou blocos de código.
+      Você é um analista financeiro. Analise o texto extraído de um PDF e extraia os indicadores financeiros no formato JSON.
+      
+      IMPORTANTE:
+      - Procure por variações de nomes: "MED" ou "Medicamentos", "HB" ou "HB (N-Med)", "Clinic" ou "Clínica".
+      - Mapeie sempre para os nomes padrões: "MED", "HB (N-MED)", "CLINIC" e "GERAL".
       
       TEXTO:
       ${text}
 
-      FORMATO ESPERADO:
+      FORMATO JSON:
       {
         "geral": { "diasUteis": "31", "diasRestantes": "..." },
         "filiais": [ { "id": "Mês", "vdaEft": "...", "mediaDia": "...", "rtRep": "..." } ],
         "departamentos": [ 
-          { 
-            "departamento": "MED", 
-            "vdaEft": "...", 
-            "metaDia": "...", 
-            "projecao": "...", 
-            "desvioPerc": "...", 
-            "vlrDesvio": "..." 
-          },
+          { "departamento": "MED", "vdaEft": "...", "metaDia": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
           { "departamento": "HB (N-MED)", "vdaEft": "...", "metaDia": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
           { "departamento": "CLINIC", "vdaEft": "...", "metaDia": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
           { "departamento": "GERAL", "vdaEft": "...", "metaDia": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." }
@@ -47,10 +43,16 @@ export async function POST(request) {
     const response = await result.response;
     let jsonText = response.text().trim();
     
-    // Limpeza de possíveis formatações de markdown que a IA possa colocar
-    jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
+    console.log('[Gemini] Resposta bruta:', jsonText);
+
+    // Limpeza ultra-agressiva de JSON
+    jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').replace(/\\n/g, '').trim();
+    if (jsonText.includes('{') && jsonText.includes('}')) {
+      jsonText = jsonText.substring(jsonText.indexOf('{'), jsonText.lastIndexOf('}') + 1);
+    }
     
     const parsedData = JSON.parse(jsonText);
+    console.log('[Gemini] JSON parseado com sucesso');
 
     // Salva direto no Firebase
     const docRef = doc(db, 'reports', referenceDate);
