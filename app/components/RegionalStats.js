@@ -28,18 +28,20 @@ export function RegionalHeader({ regional, shareWhatsApp }) {
       </div>
 
       <div className="stats-main-grid">
-        <div className="glass-panel stat-card" style={{borderTop: `3px solid ${regional.dentroMeta ? '#10b981' : '#ef4444'}`}}>
-          <div className="stat-label">Venda Efetiva</div>
-          <div className="stat-value" style={{color: regional.dentroMeta ? '#10b981' : '#ef4444'}}>{regional.vdaEft}</div>
-          <div className="stat-sub">Meta do Dia: {regional.metaDia}</div>
-        </div>
         <div className="glass-panel stat-card" style={{borderTop: '3px solid #3b82f6'}}>
-          <div className="stat-label">Desvio Acumulado</div>
-          <div className="stat-value" style={{color:'#3b82f6'}}>{regional.desvioPerc}</div>
+          <div className="stat-label">Dias Úteis do Mês</div>
+          <div className="stat-value" style={{color:'#3b82f6'}}>{regional.totalDays}</div>
+          <div className="stat-sub">Decorridos: {regional.currentElapsed}</div>
+        </div>
+        <div className="glass-panel stat-card" style={{borderTop: '3px solid #f59e0b'}}>
+          <div className="stat-label">Dias Restantes</div>
+          <div className="stat-value" style={{color:'#f59e0b'}}>{regional.diasRestantes}</div>
+          <div className="stat-sub">Para bater a meta</div>
         </div>
         <div className="glass-panel stat-card" style={{borderTop: '3px solid #8b5cf6'}}>
-          <div className="stat-label">Evolução Venda</div>
-          <div className="stat-value" style={{color:'#8b5cf6'}}>{regional.evolucaoPerc}</div>
+          <div className="stat-label">Média Dia (Meta)</div>
+          <div className="stat-value" style={{color:'#8b5cf6'}}>{regional.mediaDia}</div>
+          <div className="stat-sub">%RT Rep: {regional.rtRep}</div>
         </div>
       </div>
     </div>
@@ -48,29 +50,35 @@ export function RegionalHeader({ regional, shareWhatsApp }) {
 
 export function DepartmentGrid({ regionalDepts }) {
   return (
-    <div className="glass-panel depts-box">
-      <h4>Performance de Departamentos</h4>
-      <div className="depts-grid">
-        {regionalDepts.map(d => {
-          const isPos = parseNum(d.desvioPerc) >= 0;
-          return (
-            <div key={d.departamento} className="dept-card" style={{borderTop: `2px solid ${isPos ? '#10b981' : '#ef4444'}`, padding: '0.6rem'}}>
-              <div className="dept-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{fontWeight: 700, fontSize: '0.7rem', opacity: 0.8}}>{d.departamento.replace('_GERAL','').replace('MEDICAMENTO','MED.')}</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
-                  <span style={{fontSize: '0.55rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Desv.</span>
-                  <span style={{ color: isPos ? 'var(--success)' : 'var(--danger)', fontWeight: 800, fontSize: '1.2rem' }}>{d.desvioPerc}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span style={{fontSize: '0.55rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Evol.</span>
-                  <span style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.75rem' }}>{d.evolucaoPerc}</span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+    <div className="glass-panel depts-box" style={{padding: '1.5rem'}}>
+      <h4 style={{marginBottom: '1rem'}}>Alvo por Departamento (Restante do Mês)</h4>
+      <div className="table-wrapper">
+        <table className="modern-table" style={{fontSize: '0.85rem'}}>
+          <thead>
+            <tr>
+              <th style={{textAlign: 'left'}}>Departamento</th>
+              <th>Alvo</th>
+              <th>Projeç.</th>
+              <th>% Desv</th>
+              <th>Vlr Desv</th>
+              <th style={{color: 'var(--accent-primary)'}}>Meta/Dia Rest.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {regionalDepts.map(d => (
+              <tr key={d.departamento}>
+                <td style={{textAlign: 'left', fontWeight: 700}}>{d.departamento.replace('_GERAL','')}</td>
+                <td>{d.metaDia || 'R$ 0'}</td>
+                <td>{d.projecao || 'R$ 0'}</td>
+                <td style={{color: parseNum(d.desvioPerc) >= 0 ? 'var(--success)' : 'var(--danger)'}}>{d.desvioPerc}</td>
+                <td style={{color: parseNum(d.vlrDesvio) >= 0 ? 'var(--success)' : 'var(--danger)'}}>{d.vlrDesvio || 'R$ 0'}</td>
+                <td style={{fontWeight: 800, background: 'rgba(59,130,246,0.05)', color: 'var(--accent-primary)'}}>
+                  {d.metaRestanteDia || 'R$ 0'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

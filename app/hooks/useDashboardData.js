@@ -141,7 +141,12 @@ export function useDashboardData(user, referenceDate) {
       ...coordinatorRaw,
       id: coordinatorRaw.departamento || 'Área 02 Sul POA',
       dentroMeta: parseNum(coordinatorRaw.desvioPerc) >= 0,
-      currentElapsed
+      currentElapsed,
+      totalDays,
+      diasRestantes,
+      // Estes campos virão do parser no próximo passo
+      mediaDia: coordinatorRaw.mediaDia || 'R$ 0',
+      rtRep: coordinatorRaw.rtRep || '0,0%'
     };
 
     const regionalDepts = (data.departamentos || []).filter(d => d.id === 'REGIONAL');
