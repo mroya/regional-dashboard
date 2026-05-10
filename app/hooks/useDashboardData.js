@@ -120,13 +120,22 @@ export function useDashboardData(user, referenceDate) {
     const refDateObj = new Date(referenceDate + 'T12:00:00');
     const currentElapsed = refDateObj.getDate() || 1;
     const totalDays = parseInt(data.geral?.diasUteis || '31');
+    const diasRestantes = Math.max(0, totalDays - currentElapsed);
 
     const filiais = (data.filiais || []).map(f => {
       const desvNum = parseNum(f.desvioPerc);
+      const vdaNum = parseNum(f.vdaEft);
+      const alvoNum = parseNum(f.metaDia);
+      const valorRestante = Math.max(0, alvoNum - vdaNum);
+      const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
+
       return { 
         ...f, 
-        percProj: desvNum, // Para o gráfico, usamos o valor do Desvio
-        dentroMeta: desvNum >= 0
+        percProj: desvNum,
+        dentroMeta: desvNum >= 0,
+        metaRestanteDia: 'R$ ' + metaRestanteDia.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        vdaNum,
+        alvoNum
       };
     });
 
@@ -144,12 +153,21 @@ export function useDashboardData(user, referenceDate) {
       currentElapsed,
       totalDays,
       diasRestantes,
-      // Estes campos virão do parser no próximo passo
       mediaDia: coordinatorRaw.mediaDia || 'R$ 0',
       rtRep: coordinatorRaw.rtRep || '0,0%'
     };
 
-    const regionalDepts = (data.departamentos || []).filter(d => d.id === 'REGIONAL');
+    const regionalDepts = (data.departamentos || []).filter(d => d.id === 'REGIONAL').map(d => {
+      const vdaNum = parseNum(d.vdaEft);
+      const alvoNum = parseNum(d.metaDia);
+      const valorRestante = Math.max(0, alvoNum - vdaNum);
+      const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
+      
+      return {
+        ...d,
+        metaRestanteDia: 'R$ ' + metaRestanteDia.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      };
+    });
     const departamentos = data.departamentos || [];
 
     return { filiais, regional, regionalDepts, departamentos };
