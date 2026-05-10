@@ -52,25 +52,26 @@ export function useDashboardData(user, referenceDate) {
         fullText += textContent.items.map(item => item.str).join(' ') + '\n';
       }
 
-      setUploadStatus('Enviando texto para IA...');
+      setUploadStatus('Gemini analisando dados (IA)...');
       
-      const response = await fetch(MAKE_WEBHOOK_URL, {
+      // 2. Envia para nossa API interna
+      const response = await fetch('/api/analyze-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: fullText,
-          referenceDate: referenceDate,
-          fileName: file.name
+          referenceDate: referenceDate
         })
       });
 
-      if (!response.ok) throw new Error('Erro ao enviar para o Make');
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Erro na análise da IA');
+      }
 
-      setUploadStatus('IA Processando...');
-      await new Promise(r => setTimeout(r, 8000));
       setUploadStatus('Concluído!');
     } catch (err) {
-      setError('Erro no processamento: ' + err.message);
+      setError('Erro: ' + err.message);
     } finally {
       setLoading(false);
       setUploadStatus('');
