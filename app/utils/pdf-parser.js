@@ -31,11 +31,11 @@ export const parseRawRows = (rows) => {
     else if (joined.includes('HB (NÃO MEDICAMENTO)')) currentSection = 'HB';
     else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
 
-    // BUSCA ULTRA-PERMISSIVA: Procura palavras-chave e números na mesma linha
-    const cleanJoined = joined.replace(/\s+/g, ' '); // Remove espaços duplos
+    // BUSCA INTELIGENTE: Separa texto de número grudado (ex: Med3.427 -> Med 3.427)
+    const splitJoined = joined.replace(/([A-Z])([\d])/g, '$1 $2').replace(/([\d])([A-Z])/g, '$1 $2');
+    const cleanJoined = splitJoined.replace(/\s+/g, ' '); 
     
     if (cleanJoined.includes('MED') || cleanJoined.includes('HB (N-MED)') || cleanJoined.includes('CLINIC')) {
-      // Pega todos os blocos que parecem números (incluindo pontos e vírgulas)
       const rawNumbers = cleanJoined.match(/[\d]{1,3}(?:\.[\d]{3})*(?:,[\d]+)?|[\d]+(?:,[\d]+)?/g) || [];
       
       if (rawNumbers.length >= 4) {
