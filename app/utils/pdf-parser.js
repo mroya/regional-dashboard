@@ -1,35 +1,53 @@
 export const parseRawRows = (rows) => {
   let result = { geral: { diasUteis: '31' }, filiais: [], departamentos: [] };
   let currentSection = 'GERAL'; 
-  const knownBranches = ["38", "44", "113", "167", "171", "184", "186", "192", "313", "347", "351", "376", "378", "441", "456", "464", "487", "778", "829", "831", "868", "876(POA)", "922(POA)"];
+  
+  // Lista de filiais limpa (apenas números para busca flexível)
+  const branchIds = ["38", "44", "113", "167", "171", "184", "186", "192", "313", "347", "351", "376", "378", "441", "456", "464", "487", "778", "829", "831", "868", "876", "922"];
 
   for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const joined = row.join(' ');
-    const matchDias = joined.match(/Dias\s*Úteis[:\s]*(\d+)/i);
+    const row = rows[i].map(cell => (cell || '').toString().trim());
+    const joined = row.join(' ').toUpperCase();
+    
+    // 1. Detectar Dias Úteis
+    const matchDias = joined.match(/DIAS\s*ÚTEIS[:\s]*(\d+)/i);
     if (matchDias) result.geral.diasUteis = matchDias[1];
     
-    if (joined.includes('Indicadores Gerais')) currentSection = 'GERAL';
+    // 2. Troca de Seção (Case Insensitive)
+    if (joined.includes('INDICADORES GERAIS')) currentSection = 'GERAL';
     else if (joined.includes('MEDICAMENTO TOTAL')) currentSection = 'MEDICAMENTO_GERAL';
     else if (joined.includes('MEDICAMENTO - BIO')) currentSection = 'MEDICAMENTO_BIO';
     else if (joined.includes('GENÉRICO')) currentSection = 'GENERICO';
-    else if (joined.includes('HB (Não Medicamento)')) currentSection = 'HB';
+    else if (joined.includes('HB (NÃO MEDICAMENTO)')) currentSection = 'HB';
     else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
     else if (joined.includes('CUPOM BEM PANVEL')) currentSection = 'CUPOM';
     else if (joined.includes('TROCO AMIGO')) currentSection = 'TROCO';
 
-    if (row.length > 3 && knownBranches.includes(row[0])) {
-      const filialId = row[0];
-      if (currentSection === 'GERAL' && row.length > 5) {
+    // 3. Identificar linha de filial (Procura o ID nas primeiras 3 colunas)
+    let filialId = null;
+    for (let colIdx = 0; colIdx < Math.min(row.length, 3); colIdx++) {
+      const cellClean = row[colIdx].replace(/\D/g, ''); // pega só os números da célula
+      if (branchIds.includes(cellClean)) {
+        filialId = cellClean;
+        break;
+      }
+    }
+
+    if (filialId) {
+      // Seção GERAL (Ranking)
+      if (currentSection === 'GERAL' && row.length >= 4) {
+        // Tenta encontrar valores numéricos nas colunas seguintes
+        const vals = row.filter(c => /^-?[\d.,R$\s%]+$/.test(c) && /\d/.test(c));
         result.filiais.push({
           id: filialId,
           vdaEft: row[1] || '0',
           metaDia: row[2] || '0',
           desvioPerc: row[3] || '0%',
-          evolucaoPerc: row[7] || '0%'
+          evolucaoPerc: row[row.length - 1] || '0%' // Evolução costuma ser a última coluna
         });
       }
-      if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection)) {
+      // Seções de Departamentos
+      else if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection)) {
         result.departamentos.push({ 
           id: filialId, 
           departamento: currentSection, 
@@ -40,15 +58,20 @@ export const parseRawRows = (rows) => {
       }
     }
 
-    if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'].includes(row[0])) {
-      result.departamentos.push({
-        id: 'REGIONAL',
-        departamento: row[0],
-        vdaEft: row[1] || '0',
-        desvioPerc: row[4] || '0%',
-        evolucaoPerc: row[10] || '0%'
-      });
+    // 4. Totais Regionais (Linhas que começam com o nome do depto)
+    const firstCell = (row[0] || '').toUpperCase();
+    if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'].includes(firstCell) || joined.startsWith(firstCell)) {
+      if (firstCell.length > 3) {
+        result.departamentos.push({
+          id: 'REGIONAL',
+          departamento: firstCell.replace(' TOTAL', ''),
+          vdaEft: row[1] || '0',
+          desvioPerc: row[4] || '0%',
+          evolucaoPerc: row[row.length - 1] || '0%'
+        });
+      }
     }
   }
+  
   return result;
 };

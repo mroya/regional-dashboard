@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -12,20 +12,10 @@ import {
 
 export default function PerformanceChart({ data = [] }) {
   const [isMounted, setIsMounted] = useState(false);
-  const containerRef = useRef(null);
 
   useEffect(() => {
-    // Aguarda o DOM estar pronto e o container ter dimensões reais
-    const timer = setTimeout(() => {
-      if (containerRef.current && containerRef.current.offsetWidth > 0) {
-        setIsMounted(true);
-      } else {
-        // Fallback: tenta novamente em 200ms se o container ainda não tiver largura
-        const fallback = setTimeout(() => setIsMounted(true), 200);
-        return () => clearTimeout(fallback);
-      }
-    }, 100);
-
+    // Aguarda o próximo frame do browser para o container ter dimensões reais
+    const timer = setTimeout(() => setIsMounted(true), 50);
     return () => clearTimeout(timer);
   }, []);
 
@@ -54,10 +44,9 @@ export default function PerformanceChart({ data = [] }) {
         Solução: definir height fixo aqui e usar height="100%" no ResponsiveContainer.
       */}
       <div
-        ref={containerRef}
         style={{
           width: '100%',
-          height: '320px', // altura explícita em px — obrigatório para o ResponsiveContainer funcionar
+          height: '320px',
           minWidth: 0,
         }}
       >

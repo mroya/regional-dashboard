@@ -1,3 +1,11 @@
+/* Dashboard Layout — este display:flex é obrigatório para o main-content (flex:1) funcionar */
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+}
+
 /* Detail stats grid */
 .detail-stats {
   display: grid;
@@ -569,6 +577,12 @@ body {
   overflow-x: auto;
   overflow-y: auto;
   max-height: 420px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* table-wrapper: usado no RankingTable */
+.table-wrapper {
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
