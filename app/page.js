@@ -1,23 +1,14 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import { auth } from './lib/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-
-// Hooks
 import { useDashboardData } from './hooks/useDashboardData';
 import { useWeather } from './hooks/useWeather';
-
-// Components
 import LoginPage from './components/LoginPage';
 import Sidebar from './components/Sidebar';
-import { RegionalHeader, DepartmentGrid } from './components/RegionalStats';
-import RankingTable from './components/RankingTable';
+import RegionalStats from './components/RegionalStats';
 import BranchDetail from './components/BranchDetail';
-
 import dynamic from 'next/dynamic';
 
-// Importação dinâmica para impedir que o gráfico renderize no servidor
 const PerformanceChart = dynamic(() => import('./components/PerformanceChart'), {
   ssr: false,
   loading: () => <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>A carregar gráfico...</div>
@@ -30,32 +21,18 @@ export default function Dashboard() {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [authError, setAuthError] = useState('');
-  const [authMessage, setAuthMessage] = useState('');
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [selectedFilial, setSelectedFilial] = useState('REGIONAL');
-  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
-  const [filterMeta, setFilterMeta] = useState('ALL');
 
   const getYesterdayStr = () => {
     const d = new Date();
     d.setDate(d.getDate() - 1);
-    // Compensa o fuso horário local antes de converter para ISO
     return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
   };
 
-  const defaultDate = getYesterdayStr();
-  const [referenceDate, setReferenceDate] = useState(defaultDate);
-
-  const getMonthName = (dateStr) => {
-    const d = new Date(dateStr + 'T12:00:00');
-    return d.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-  };
-
-  const currentMonthYear = getMonthName(referenceDate);
-
-  const { enrichedData, loading, uploadStatus, error, updatedAt, handleFileUpload, handleClearData } = useDashboardData(user, referenceDate);
+  const [referenceDate, setReferenceDate] = useState(getYesterdayStr());
+  const { data: enrichedData, loading, uploadStatus, error, updatedAt, handleFileUpload, handleClearData } = useDashboardData(user, referenceDate);
   const { clock, weather, weatherIcon } = useWeather();
 
   useEffect(() => {
@@ -68,124 +45,114 @@ export default function Dashboard() {
 
   const handleAuth = async (e) => {
     e.preventDefault();
-    setAuthError('');
     try {
       if (authMode === 'LOGIN') await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
       else await createUserWithEmailAndPassword(auth, loginEmail, loginPassword);
     } catch (err) { setAuthError(err.message); }
   };
 
-  const handleLogout = () => signOut(auth);
-
-  const shareWhatsApp = () => {
-    if (!enrichedData) return;
-    const { regional } = enrichedData;
-    const msg = `📊 *RESUMO COORDENADOR - ${currentMonthYear.toUpperCase()}*\n📅 Ref: ${new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR')}\n📈 Performance: ${regional.desvioPerc}\n💰 Venda: ${regional.vdaEft}\n🎯 Meta: ${regional.metaDia}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-  };
-
-  const shareFilialWhatsApp = (f) => {
-    const msg = `🏪 *FILIAL ${f.id} - ${currentMonthYear.toUpperCase()}*\n📅 Ref: ${new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR')}\n📈 Performance: ${f.desvioPerc}\n💰 Venda: ${f.vdaEft}\n🎯 Meta: ${f.metaDia}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-  };
-
   if (authLoading) return <div className="loading-screen">Carregando...</div>;
-  if (!user) return <LoginPage {...{ authMode, setAuthMode, loginEmail, setLoginEmail, loginPassword, setLoginPassword, handleAuth, authError, authMessage }} />;
+  if (!user) return <LoginPage {...{ authMode, setAuthMode, loginEmail, setLoginEmail, loginPassword, setLoginPassword, handleAuth, authError }} />;
 
   return (
-    <>
-      {/* Botão Hambúrguer para Mobile */}
-      <button 
-        className="mobile-menu-btn" 
-        onClick={() => setSidebarOpen(true)}
-        style={{ display: sidebarOpen ? 'none' : 'flex' }}
-      >
-        <div className="hamburger-line"></div>
-        <div className="hamburger-line"></div>
-        <div className="hamburger-line"></div>
-      </button>
+    <div className={`dashboard-container ${darkMode ? 'dark' : 'light'}`}>
+      {/* Botão Hambúrguer (Visível quando a sidebar está fechada) */}
+      {!sidebarOpen && (
+        <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
+          <div className="hamburger-line"></div>
+          <div className="hamburger-line"></div>
+          <div className="hamburger-line"></div>
+        </button>
+      )}
 
       {loading && (
         <div className="pdf-loading-overlay">
           <div className="pdf-spinner">
             <div className="ring"></div>
-            <div className="ring"></div>
-            <div className="ring"></div>
-            <div className="icon-center">📄</div>
-          </div>
-          <div className="pdf-loading-text">
-            <h3>{uploadStatus || 'Trabalhando no Arquivo'}</h3>
-            <p>Por favor, aguarde enquanto processamos os dados</p>
-            <div className="pdf-loading-dots">
-              <span></span><span></span><span></span>
-            </div>
+            <p>{uploadStatus || 'Processando...'}</p>
           </div>
         </div>
       )}
-      <div className={`dashboard-container ${darkMode ? 'dark' : 'light'}`}>
-        <Sidebar 
-          {...{ 
-            user, sidebarOpen, setSidebarOpen, darkMode, setDarkMode, clock, weather, weatherIcon,
-            referenceDate, setReferenceDate, defaultDate, 
-            elapsedDays: enrichedData?.geral?.diasDecorridos || 0,
-            selectedFilial, setSelectedFilial, 
-            enrichedData, updatedAt, handleFileUpload, handleClearData, handleLogout 
-          }} 
-        />
-  <main className="main-content">
-          {error && <div className="error-banner">{error}</div>}
 
-          {enrichedData && (
+      <Sidebar 
+        {...{ 
+          user, sidebarOpen, setSidebarOpen, darkMode, setDarkMode, clock, weather, weatherIcon,
+          referenceDate, setReferenceDate, defaultDate: getYesterdayStr(), 
+          elapsedDays: enrichedData?.geral?.diasDecorridos || 0,
+          selectedFilial, setSelectedFilial, 
+          enrichedData, updatedAt, handleFileUpload, handleClearData, 
+          handleLogout: () => signOut(auth) 
+        }} 
+      />
+
+      <main className="main-content">
+        {error && <div className="error-banner">{error}</div>}
+
+        {enrichedData ? (
+          selectedFilial === 'REGIONAL' ? (
             <div className="animate-fade-in">
-              {selectedFilial === 'REGIONAL' ? (
-                <>
-                  <div className="animate-fade-in">
-                    <RegionalHeader
-                      regional={enrichedData.regional}
-                      shareWhatsApp={shareWhatsApp}
-                      monthYear={currentMonthYear}
-                    />
-
-                    <DepartmentGrid
-                      regionalDepts={enrichedData.regionalDepts}
-                    />
+              <header className="main-header glass-panel">
+                <div className="header-info">
+                  <div className="status-badge">
+                    <span className="dot"></span> NA META
                   </div>
-
-                  <PerformanceChart
-                    data={enrichedData.filiais}
-                  />
-
-                  <div className="animate-fade-in">
-                    <RankingTable
-                      {...{
-                        filiais: enrichedData.filiais,
-                        filterMeta,
-                        setFilterMeta,
-                        sortConfig,
-                        setSortConfig,
-                        setSelectedFilial // Adiciona esta linha
-                      }}
-                    />
+                  <h1>Visão Do Coordenador</h1>
+                  <p className="subtitle">Área 02 Sul POA • {new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+                </div>
+                <div className="header-metrics">
+                  <div className="metric-main">
+                    <span className="label">Performance Acumulada</span>
+                    <span className="value">{enrichedData.geral?.performanceGeral || '0%'}</span>
                   </div>
-                </>
-              ) : (
-                <BranchDetail
-                  f={enrichedData.filiais.find(f => f.id === selectedFilial)}
-                  depts={enrichedData.departamentos}
-                  setSelectedFilial={setSelectedFilial}
-                  shareFilialWhatsApp={shareFilialWhatsApp}
-                />
-              )}
+                </div>
+              </header>
+
+              <div className="metrics-grid">
+                <div className="glass-panel metric-card blue">
+                  <span className="icon">📅</span>
+                  <h3>Dias Úteis do Mês</h3>
+                  <div className="big-value">{enrichedData.geral?.diasUteis}</div>
+                  <p>Decorridos: {enrichedData.geral?.diasDecorridos}</p>
+                </div>
+                <div className="glass-panel metric-card orange">
+                  <span className="icon">⏳</span>
+                  <h3>Dias Restantes</h3>
+                  <div className="big-value">{enrichedData.geral?.diasRestantes}</div>
+                  <p>Para bater a meta</p>
+                </div>
+                <div className="glass-panel metric-card purple">
+                  <span className="icon">💰</span>
+                  <h3>Média Dia (Meta)</h3>
+                  <div className="big-value">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(parseNum(enrichedData.filiais[0]?.mediaDia) || 0)}
+                  </div>
+                  <p>%RT Rep: {enrichedData.filiais[0]?.rtRep || '0%'}</p>
+                </div>
+              </div>
+
+              <div className="charts-section">
+                <RegionalStats data={enrichedData} />
+              </div>
             </div>
-          )}
-        </main>
-
-        {enrichedData?.regional && (
-          <div className="version-footer">
-            v1.4.0 | Visão Coordenador | D:{enrichedData.regional.currentElapsed}
+          ) : (
+            <BranchDetail 
+              filial={enrichedData.filiais.find(f => f.id === selectedFilial)} 
+              onBack={() => setSelectedFilial('REGIONAL')}
+            />
+          )
+        ) : (
+          <div className="empty-state glass-panel">
+            <div className="empty-icon">📊</div>
+            <h2>Nenhum dado para esta data</h2>
+            <p>Selecione a data correta na barra lateral e carregue o PDF do relatório.</p>
           </div>
         )}
-      </div>
-    </>
+      </main>
+    </div>
   );
+}
+
+function parseNum(str) {
+  if (!str) return 0;
+  return parseFloat(str.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
 }
