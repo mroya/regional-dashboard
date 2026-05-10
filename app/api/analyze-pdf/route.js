@@ -11,7 +11,7 @@ const MAX_INPUT_CHARS = 30000;
 function buildPrompt(text) {
   return `
 Voce e um analista financeiro. Analise o texto extraido de um PDF e extraia os indicadores financeiros no formato JSON.
-Responda somente com JSON valido, sem markdown e sem explicacoes.
+Responda somente com JSON valido, minificado, sem markdown e sem explicacoes.
 
 IMPORTANTE:
 - Procure por variacoes de nomes: "MED" ou "Medicamentos", "HB" ou "HB (N-Med)", "Clinic" ou "Clinica".
@@ -36,11 +36,32 @@ FORMATO JSON:
 }
 
 function extractJson(text) {
-  let jsonText = text.trim().replace(/```json/g, '').replace(/```/g, '').replace(/\\n/g, '').trim();
+  let jsonText = text
+    .trim()
+    .replace(/```json/g, '')
+    .replace(/```/g, '')
+    .replace(/,\s*([}\]])/g, '$1')
+    .trim();
+
   if (jsonText.includes('{') && jsonText.includes('}')) {
     jsonText = jsonText.substring(jsonText.indexOf('{'), jsonText.lastIndexOf('}') + 1);
   }
+
   return JSON.parse(jsonText);
+}
+
+async function repairJsonWithGemini(model, invalidJson) {
+  const repairPrompt = `
+Corrija o texto abaixo para JSON valido.
+Responda somente com o JSON corrigido, sem markdown e sem explicacoes.
+
+TEXTO:
+${invalidJson.slice(0, 12000)}
+`;
+
+  const repairResult = await model.generateContent(repairPrompt);
+  const repairResponse = await repairResult.response;
+  return extractJson(repairResponse.text());
 }
 
 export async function POST(request) {
@@ -68,6 +89,7 @@ export async function POST(request) {
     const prompt = buildPrompt(limitedText);
 
     let result;
+    let successfulModel;
     let lastModelError;
 
     for (const modelName of modelNames) {
@@ -81,6 +103,7 @@ export async function POST(request) {
           },
         });
         result = await model.generateContent(prompt);
+        successfulModel = model;
         break;
       } catch (error) {
         lastModelError = error;
@@ -95,7 +118,15 @@ export async function POST(request) {
     }
 
     const response = await result.response;
-    const parsedData = extractJson(response.text());
+    const rawText = response.text();
+    let parsedData;
+
+    try {
+      parsedData = extractJson(rawText);
+    } catch (parseError) {
+      console.warn('[Gemini] JSON invalido, tentando reparar:', parseError.message);
+      parsedData = await repairJsonWithGemini(successfulModel, rawText);
+    }
 
     const docRef = doc(db, 'reports', referenceDate);
     await setDoc(docRef, {
