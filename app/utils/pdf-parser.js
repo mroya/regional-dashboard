@@ -24,28 +24,33 @@ export const parseRawRows = (rows) => {
     else if (joined.includes('TROCO AMIGO')) currentSection = 'TROCO';
 
     // 3. Identificar linha de filial (Procura o ID nas primeiras 3 colunas)
+    const monthKeywords = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
     let filialId = null;
     for (let colIdx = 0; colIdx < Math.min(row.length, 3); colIdx++) {
-      const cellClean = row[colIdx].replace(/\D/g, ''); // pega só os números da célula
-      if (branchIds.includes(cellClean)) {
+      const cellClean = row[colIdx].trim().replace(/\D/g, ''); 
+      // Ignora se for apenas um nome de mês (ex: "ABR 2026")
+      const isMonth = monthKeywords.some(m => row[colIdx].toUpperCase().includes(m));
+      if (branchIds.includes(cellClean) && !isMonth) {
         filialId = cellClean;
         break;
       }
     }
 
     if (filialId) {
-      // Pega apenas as colunas que parecem números (contêm dígitos) e não são o ID da filial
+      // Pega colunas numéricas, ignorando textos e o ID da filial
       const numericCols = row.filter((cell, idx) => {
         const clean = cell.replace(/[R$\s.%]/g, '').replace(',', '.');
         return idx > 0 && !isNaN(parseFloat(clean)) && /\d/.test(cell);
       });
 
-      // Seção GERAL (Ranking)
-      if (currentSection === 'GERAL' && numericCols.length >= 2) {
+      // Seção GERAL ou se a linha parece ser de um mês (como na imagem do usuário)
+      const isMonthLine = monthKeywords.some(m => row.join(' ').toUpperCase().includes(m));
+
+      if ((currentSection === 'GERAL' || isMonthLine) && numericCols.length >= 2) {
         result.filiais.push({
           id: filialId,
-          vdaEft: numericCols[0] || '0',   // Primeira coluna numérica costuma ser Venda Efetiva
-          metaDia: numericCols[1] || '0',  // Segunda costuma ser Meta do Dia
+          vdaEft: numericCols[0] || '0',
+          metaDia: numericCols[1] || '0',
           desvioPerc: numericCols[2] || '0%',
           evolucaoPerc: numericCols[numericCols.length - 1] || '0%'
         });
