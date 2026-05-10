@@ -76,6 +76,8 @@ export default function PerformanceChart({ data = [] }) {
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(val) => `${val}%`}
+                domain={[0, 110]} // Escala fixa para não distorcer quando os dados são 0
+                allowDataOverflow={true}
               />
 
               <Tooltip
@@ -96,6 +98,9 @@ export default function PerformanceChart({ data = [] }) {
               <Bar
                 dataKey="percProj"
                 radius={[4, 4, 0, 0]}
+                isAnimationActive={false} // Desativa animação para as cores aparecerem de imediato
+                minPointSize={2} // Garante que mesmo 0% apareça como uma linha fina
+                fill="#ef4444" // Cor padrão (vermelho)
               >
                 {data.map((entry, index) => (
                   <Cell
