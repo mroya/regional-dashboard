@@ -16,11 +16,10 @@ export async function POST(request) {
     }
 
     const docRef = doc(db, 'reports', referenceDate);
-    const sanitizedData = sanitizeFirestoreData(parsedData);
     
     // Salva os dados processados pela IA
     await setDoc(docRef, {
-      ...sanitizedData,
+      ...sanitizeFirestoreData(parsedData),
       updatedAtStr: new Date().toLocaleString('pt-BR', { 
         day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' 
       }),

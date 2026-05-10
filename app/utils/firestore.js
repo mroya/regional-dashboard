@@ -1,18 +1,19 @@
-export function sanitizeFirestoreData(value) {
-  if (Array.isArray(value)) {
-    return value.map((item) => {
-      if (Array.isArray(item)) {
-        return JSON.stringify(item);
+/**
+ * Sanitiza dados para Firestore, convertendo arrays aninhados em strings.
+ * Firestore não suporta arrays aninhados diretamente.
+ */
+export function sanitizeFirestoreData(data) {
+  if (Array.isArray(data)) {
+    return data.map(sanitizeFirestoreData).join(', ');
+  } else if (data !== null && typeof data === 'object') {
+    const sanitized = {};
+    for (const key in data) {
+      if (data.hasOwnProperty(key)) {
+        sanitized[key] = sanitizeFirestoreData(data[key]);
       }
-      return sanitizeFirestoreData(item);
-    });
+    }
+    return sanitized;
+  } else {
+    return data;
   }
-
-  if (value && typeof value === 'object' && !(value instanceof Date)) {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, nested]) => [key, sanitizeFirestoreData(nested)])
-    );
-  }
-
-  return value;
 }

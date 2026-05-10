@@ -129,10 +129,9 @@ export async function POST(request) {
       parsedData = await repairJsonWithGemini(successfulModel, rawText);
     }
 
-    const sanitizedData = sanitizeFirestoreData(parsedData);
     const docRef = doc(db, 'reports', referenceDate);
     await setDoc(docRef, {
-      ...sanitizedData,
+      ...sanitizeFirestoreData(parsedData),
       updatedAtStr: new Date().toLocaleString('pt-BR', {
         day: '2-digit',
         month: '2-digit',

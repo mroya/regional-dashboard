@@ -27,15 +27,8 @@ function getNumericValues(cells) {
 export const parseRawRows = (rows) => {
   const result = {
     geral: {
-      diasUteis: '31',
-      diasDecorridos: '0',
-      diasRestantes: '0',
-      vdaEft: '0',
-      alvo: '0',
-      projecao: '0',
-      desvioPerc: '0%',
-      vlrDesv: '0',
-      performanceGeral: '0%',
+      diasUteis: '',
+      diasRestantes: '',
     },
     filiais: [],
     departamentos: [],
@@ -45,50 +38,80 @@ export const parseRawRows = (rows) => {
     const row = rawRow.map((cell) => (cell || '').toString().trim()).filter(Boolean);
     const joined = row.join(' ').toUpperCase();
 
-    const diasUteis = joined.match(/DIAS\s*(?:UTEIS|ÚTEIS|ÃšTEIS)[:\s]*(\d+)/i);
-    if (diasUteis) result.geral.diasUteis = diasUteis[1];
+    // Extract Dias úteis
+    const diasUteisMatch = joined.match(/DIAS\s*(?:UTEIS|ÚTEIS|ÃšTEIS)[:\s]*[=]*\s*(\d+)/i);
+    if (diasUteisMatch) {
+      result.geral.diasUteis = diasUteisMatch[1];
+    }
 
-    const diasRestantes = joined.match(/DIAS\s*REST[\.:\s]*(\d+)/i);
-    if (diasRestantes) result.geral.diasRestantes = diasRestantes[1];
+    // Extract Dias Rest.
+    const diasRestMatch = joined.match(/DIAS\s*REST[\.:\s]*[=]*\s*(\d+)/i);
+    if (diasRestMatch) {
+      result.geral.diasRestantes = diasRestMatch[1];
+    }
 
-    const geralIdx = row.findIndex((cell) => cell.toUpperCase() === 'GERAL');
-    if (geralIdx !== -1 && result.geral.vdaEft === '0') {
-      const values = getNumericValues(row.slice(geralIdx + 1));
-      if (values.length >= 5) {
-        result.geral.vdaEft = values[0];
-        result.geral.alvo = values[1];
-        result.geral.projecao = values[2];
-        result.geral.desvioPerc = values[3];
-        result.geral.vlrDesv = values[4];
-        result.geral.performanceGeral = values[3];
+    // Extract Mai 2026 Média DIa
+    const mediaDiaMatch = joined.match(/MAI\s*2026\s*MÉDIA\s*DIA[:\s]*[=]*\s*([\d.,]+)/i);
+    if (mediaDiaMatch) {
+      if (result.filiais.length === 0) {
+        result.filiais.push({
+          id: 'Mai 2026',
+          mediaDia: mediaDiaMatch[1],
+        });
+      } else {
+        result.filiais[0].mediaDia = mediaDiaMatch[1];
       }
     }
 
-    const monthIdx = getMonthIndex(row);
-    if (monthIdx === -1) continue;
+    // Extract Mai 2026 %Rt Rep
+    const rtRepMatch = joined.match(/MAI\s*2026\s*%RT\s*REP[:\s]*[=]*\s*([\d.,%]+)/i);
+    if (rtRepMatch) {
+      if (result.filiais.length === 0) {
+        result.filiais.push({
+          id: 'Mai 2026',
+          rtRep: rtRepMatch[1],
+        });
+      } else {
+        result.filiais[0].rtRep = rtRepMatch[1];
+      }
+    }
 
-    const monthLabel = row[monthIdx].toUpperCase();
-    if (monthLabel !== 'MAI 2026') continue;
-
-    const values = getNumericValues(row.slice(monthIdx + 1));
-    if (values.length >= 8 && !values[0].includes('%') && result.filiais.length === 0) {
-      result.filiais.push({
-        id: monthLabel,
-        vdaEft: values[0],
-        mediaDia: values[1],
-        rtRep: values[7],
+    // Extract Med Vda Eft
+    const medVdaEftMatch = joined.match(/MED\s*VDA\s*EFT[:\s]*[=]*\s*([\d.,]+)/i);
+    if (medVdaEftMatch) {
+      result.departamentos.push({
+        departamento: 'MED',
+        vdaEft: medVdaEftMatch[1],
       });
     }
-  }
 
-  const diasUteisNum = Number.parseInt(result.geral.diasUteis, 10);
-  const diasRestantesNum = Number.parseInt(result.geral.diasRestantes, 10);
-  if (Number.isFinite(diasUteisNum) && Number.isFinite(diasRestantesNum)) {
-    result.geral.diasDecorridos = String(Math.max(0, diasUteisNum - diasRestantesNum));
-  }
+    // Extract Med Alvo
+    const medAlvoMatch = joined.match(/MED\s*ALVO[:\s]*[=]*\s*([\d.,]+)/i);
+    if (medAlvoMatch) {
+      const dept = result.departamentos.find(d => d.departamento === 'MED');
+      if (dept) dept.metaDia = medAlvoMatch[1];
+    }
 
-  if (!hasNumber(result.geral.diasRestantes)) {
-    result.geral.diasRestantes = '0';
+    // Extract Med Projeç
+    const medProjecMatch = joined.match(/MED\s*PROJEÇ[:\s]*[=]*\s*([\d.,]+)/i);
+    if (medProjecMatch) {
+      const dept = result.departamentos.find(d => d.departamento === 'MED');
+      if (dept) dept.projecao = medProjecMatch[1];
+    }
+
+    // Extract Med %Desv
+    const medDesvPercMatch = joined.match(/MED\s*%DESV[:\s]*[=]*\s*([\d.,%]+)/i);
+    if (medDesvPercMatch) {
+      const dept = result.departamentos.find(d => d.departamento === 'MED');
+      if (dept) dept.desvioPerc = medDesvPercMatch[1];
+    }
+
+    // Extract Med VlrDesv
+    const medVlrDesvMatch = joined.match(/MED\s*VLRDESV[:\s]*[=]*\s*([\d.,]+)/i);
+    if (medVlrDesvMatch) {
+      const dept = result.departamentos.find(d => d.departamento === 'MED');
+      if (dept) dept.vlrDesvio = medVlrDesvMatch[1];
+    }
   }
 
   return result;
