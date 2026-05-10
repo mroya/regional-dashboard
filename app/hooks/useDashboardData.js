@@ -139,13 +139,6 @@ export function useDashboardData(user, referenceDate) {
       };
     });
 
-    const coordinatorRaw = (data.departamentos || []).find(d => d.id === 'REGIONAL') || {
-      vdaEft: '0',
-      metaDia: '0',
-      desvioPerc: '0%',
-      evolucaoPerc: '0%'
-    };
-
     // 2. Dados do Coordenador (Geral)
     const coordinatorRaw = (data.departamentos || []).find(d => d.id === 'REGIONAL') || {
       vdaEft: '0',
