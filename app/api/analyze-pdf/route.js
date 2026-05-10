@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { db } from '@/app/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
+import { sanitizeFirestoreData } from '@/app/utils/firestore';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -128,9 +129,10 @@ export async function POST(request) {
       parsedData = await repairJsonWithGemini(successfulModel, rawText);
     }
 
+    const sanitizedData = sanitizeFirestoreData(parsedData);
     const docRef = doc(db, 'reports', referenceDate);
     await setDoc(docRef, {
-      ...parsedData,
+      ...sanitizedData,
       updatedAtStr: new Date().toLocaleString('pt-BR', {
         day: '2-digit',
         month: '2-digit',

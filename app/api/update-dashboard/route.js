@@ -1,6 +1,7 @@
 import { db } from '@/app/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
+import { sanitizeFirestoreData } from '@/app/utils/firestore';
 
 export async function POST(request) {
   try {
@@ -12,10 +13,11 @@ export async function POST(request) {
     }
 
     const docRef = doc(db, 'reports', referenceDate);
+    const sanitizedData = sanitizeFirestoreData(parsedData);
     
     // Salva os dados processados pela IA
     await setDoc(docRef, {
-      ...parsedData,
+      ...sanitizedData,
       updatedAtStr: new Date().toLocaleString('pt-BR', { 
         day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' 
       }),
