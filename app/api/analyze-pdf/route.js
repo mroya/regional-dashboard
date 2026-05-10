@@ -20,9 +20,11 @@ export async function POST(request) {
       }, { status: 500 });
     }
 
-    // Configura o modelo
     const genAI = new GoogleGenerativeAI(geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const modelNames = [
+      process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      'gemini-2.0-flash',
+    ].filter((model, index, models) => model && models.indexOf(model) === index);
 
     const prompt = `
       Você é um analista financeiro. Analise o texto extraído de um PDF e extraia os indicadores financeiros no formato JSON.
@@ -47,7 +49,26 @@ export async function POST(request) {
       }
     `;
 
-    const result = await model.generateContent(prompt);
+    let result;
+    let lastModelError;
+
+    for (const modelName of modelNames) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        result = await model.generateContent(prompt);
+        break;
+      } catch (error) {
+        lastModelError = error;
+        if (!error.message?.includes('404 Not Found')) {
+          throw error;
+        }
+      }
+    }
+
+    if (!result) {
+      throw lastModelError || new Error('Nenhum modelo Gemini disponivel para generateContent');
+    }
+
     const response = await result.response;
     let jsonText = response.text().trim();
     
