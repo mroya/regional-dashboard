@@ -638,6 +638,36 @@ table td:not(:first-child) {
     transform: translateX(0);
   }
 
+  /* Mobile Menu Button */
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 999;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--accent-primary);
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.hamburger-line {
+  width: 20px;
+  height: 2px;
+  background-color: white;
+  border-radius: 2px;
+}
+
+@media (max-width: 1024px) {
+  .mobile-menu-btn {
+    display: flex;
+  }
+}
+
   .main-content {
     padding: 1rem;
     padding-top: 5rem; /* Space for mobile header */

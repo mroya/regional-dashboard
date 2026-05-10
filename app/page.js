@@ -94,6 +94,17 @@ export default function Dashboard() {
 
   return (
     <>
+      {/* Botão Hambúrguer para Mobile */}
+      <button 
+        className="mobile-menu-btn" 
+        onClick={() => setSidebarOpen(true)}
+        style={{ display: sidebarOpen ? 'none' : 'flex' }}
+      >
+        <div className="hamburger-line"></div>
+        <div className="hamburger-line"></div>
+        <div className="hamburger-line"></div>
+      </button>
+
       {loading && (
         <div className="pdf-loading-overlay">
           <div className="pdf-spinner">
@@ -112,14 +123,16 @@ export default function Dashboard() {
         </div>
       )}
       <div className={`dashboard-container ${darkMode ? 'dark' : 'light'}`}>
-        <Sidebar {...{
-          user, sidebarOpen, setSidebarOpen, darkMode, setDarkMode, clock, weather, weatherIcon,
-          referenceDate, setReferenceDate, defaultDate,
-          elapsedDays: enrichedData?.regional.currentElapsed || 1,
-          selectedFilial, setSelectedFilial, enrichedData, updatedAt, handleFileUpload, handleClearData, handleLogout
-        }} />
-
-        <main className="main-content">
+        <Sidebar 
+          {...{ 
+            user, sidebarOpen, setSidebarOpen, darkMode, setDarkMode, clock, weather, weatherIcon,
+            referenceDate, setReferenceDate, defaultDate, 
+            elapsedDays: enrichedData?.geral?.diasDecorridos || 0,
+            selectedFilial, setSelectedFilial, 
+            enrichedData, updatedAt, handleFileUpload, handleClearData, handleLogout 
+          }} 
+        />
+  <main className="main-content">
           {error && <div className="error-banner">{error}</div>}
 
           {enrichedData && (

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { db } from '../lib/firebase';
-import { doc, setDoc, getDoc, deleteDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { parseNum } from '../utils/formatters';
 
 export function useDashboardData(user, referenceDate) {
@@ -32,14 +32,12 @@ export function useDashboardData(user, referenceDate) {
     const file = e.target.files[0];
     if (!file) return;
     
-    const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/jwaloiiwvyzvahbo2ddmux9mxa1r2erc';
-
     try {
       setLoading(true);
-      setUploadStatus('Lendo texto do PDF...');
+      setUploadStatus('Extraindo texto do relatório...');
       setError(null);
 
-      // Extração de texto local (rápida)
+      // 1. Extrai texto localmente via CDN para compatibilidade mobile
       const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs');
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
       
@@ -55,7 +53,7 @@ export function useDashboardData(user, referenceDate) {
 
       setUploadStatus('Gemini analisando dados (IA)...');
       
-      // 2. Envia para nossa API interna
+      // 2. Envia para nossa API interna (onde está a Gemini API Key segura)
       const response = await fetch('/api/analyze-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -72,6 +70,7 @@ export function useDashboardData(user, referenceDate) {
 
       setUploadStatus('Concluído!');
     } catch (err) {
+      console.error('Erro no upload:', err);
       setError('Erro: ' + err.message);
     } finally {
       setLoading(false);
@@ -99,26 +98,33 @@ export function useDashboardData(user, referenceDate) {
     const totalDays = parseInt(data.geral?.diasUteis || '31');
     const diasRestantes = Math.max(0, totalDays - currentElapsed);
 
-    const filiais = (data.filiais || []).map(f => ({
-      ...f,
-      valorRestante: Math.max(0, (parseNum(f.mediaDia) * totalDays) - parseNum(f.vdaEft)),
-      metaRestanteDia: diasRestantes > 0 ? Math.max(0, (parseNum(f.mediaDia) * totalDays) - parseNum(f.vdaEft)) / diasRestantes : 0
-    }));
+    const filiais = (data.filiais || []).map(f => {
+      const vdaNum = parseNum(f.vdaEft);
+      const mediaDiaNum = parseNum(f.mediaDia);
+      const alvoTotal = mediaDiaNum * totalDays;
+      const valorRestante = Math.max(0, alvoTotal - vdaNum);
+      const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
+      
+      return {
+        ...f,
+        valorRestante,
+        metaRestanteDia,
+        desvioPerc: f.desvioPerc || '0%'
+      };
+    });
 
-    const regionalDepts = (data.departamentos || []).map(d => {
+    const departamentos = (data.departamentos || []).map(d => {
       const vdaNum = parseNum(d.vdaEft);
       const projNum = parseNum(d.projecao);
-      const desvio = parseNum(d.desvioPerc) / 100;
-      const metaMesNum = projNum / (desvio + 1);
+      const metaMesNum = parseNum(d.metaDia) || (vdaNum + parseNum(d.vlrDesvio)); // Fallback
       const valorRestante = Math.max(0, metaMesNum - vdaNum);
+      const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
       
       return {
         ...d,
-        vdaEftNum: vdaNum,
-        projecaoNum: projNum,
         metaMesNum,
         valorRestante,
-        metaRestanteDia: diasRestantes > 0 ? valorRestante / diasRestantes : 0
+        metaRestanteDia
       };
     });
 
@@ -131,7 +137,7 @@ export function useDashboardData(user, referenceDate) {
         diasRestantes
       },
       filiais,
-      departamentos: regionalDepts
+      departamentos
     };
   }, [data, referenceDate]);
 
