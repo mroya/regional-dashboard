@@ -1,0 +1,93 @@
+{
+  "geral": {
+    "diasUteis": "31",
+    "diasRestantes": "24"
+  },
+  "filiais": [
+    {
+      "id": "Mar 2026",
+      "vdaEft": "4.985.595",
+      "mediaDia": "712.228",
+      "rtRep": "30,41%"
+    },
+    {
+      "id": "Abr 2026",
+      "vdaEft": "4.633.889",
+      "mediaDia": "661.984",
+      "rtRep": "32,08%"
+    },
+    {
+      "id": "Mai 2026",
+      "vdaEft": "5.090.745",
+      "mediaDia": "727.249",
+      "rtRep": "31,31%"
+    },
+    {
+      "id": "Mai 2025",
+      "vdaEft": "4.456.574",
+      "mediaDia": "636.653",
+      "rtRep": "31,35%"
+    },
+    {
+      "id": null,
+      "vdaEft": "Med",
+      "mediaDia": "HB (N-Med)",
+      "rtRep": "BIO"
+    },
+    {
+      "id": "Mar 2026",
+      "vdaEft": "30,05%",
+      "mediaDia": "31,12%",
+      "rtRep": "18,91%"
+    },
+    {
+      "id": "Abr 2026",
+      "vdaEft": "32,21%",
+      "mediaDia": "31,76%",
+      "rtRep": "26,60%"
+    },
+    {
+      "id": "Mai 2026",
+      "vdaEft": "31,33%",
+      "mediaDia": "31,27%",
+      "rtRep": "17,65%"
+    },
+    {
+      "id": "Mai 2025",
+      "vdaEft": "31,04%",
+      "mediaDia": "31,73%",
+      "rtRep": "28,69%"
+    },
+    {
+      "id": null,
+      "vdaEft": "Med",
+      "mediaDia": "HB (N-Med)",
+      "rtRep": "BIO"
+    },
+    {
+      "id": "Mar 2026",
+      "vdaEft": "66,97%",
+      "mediaDia": "32,27%",
+      "rtRep": "0,89%"
+    },
+    {
+      "id": "Abr 2026",
+      "vdaEft": "66,23%",
+      "mediaDia": "31,81%",
+      "rtRep": "0,71%"
+    },
+    {
+      "id": "Mai 2026",
+      "vdaEft": "67,34%",
+      "mediaDia": "31,36%",
+      "rtRep": "0,80%"
+    },
+    {
+      "id": "Mai 2025",
+      "vdaEft": "65,88%",
+      "mediaDia": "32,89%",
+      "rtRep": "0,47%"
+    }
+  ],
+  "departamentos": []
+}

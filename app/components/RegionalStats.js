@@ -111,27 +111,9 @@ export function DepartmentGrid({ regionalDepts }) {
                     <p style={{fontWeight: 800, color: isPos ? '#10b981' : '#ef4444', fontSize: '1.4rem'}}>{d.desvioPerc}</p>
                   </div>
                   <div style={{textAlign: 'right'}}>
-                    <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Diferença (R$)</p>
-                    <p style={{fontWeight: 600, color: isPos ? '#10b981' : '#ef4444', fontSize: '0.9rem'}}>{d.vlrDesvio || 'R$ 0'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Resultado Final (O Plano de Ação) */}
-              <div style={{borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '1.2rem'}}>
-                <p style={{fontSize: '0.75rem', color: color, fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.4rem'}}>
-                  🚀 Meta Diária Necessária
-                </p>
-                <p style={{fontSize: '1.8rem', fontWeight: 900, color: '#fff', letterSpacing: '-1px'}}>
-                  {d.metaRestanteDia || 'R$ 0'}
-                </p>
-                <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.2rem'}}>
-                  Venda média diária para bater o alvo até o dia 31.
-                </p>
-              </div>
-            </div>
-          );
-        })}
+        {filteredDepts.map((d) => (
+          <DepartmentCard key={d.departamento} dept={d} />
+        ))}
       </div>
 
       {/* Seção de Ajuda Rápida */}

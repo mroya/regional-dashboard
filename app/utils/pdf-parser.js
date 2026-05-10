@@ -1,50 +1,39 @@
 export const parseRawRows = (rows) => {
-  let result = { geral: { diasUteis: '31' }, filiais: [], departamentos: [] };
-  let currentSection = 'GERAL'; 
+  let result = { geral: { diasUteis: '31', diasRestantes: '24' }, filiais: [], departamentos: [] };
   
-  const branchIds = ["38", "44", "113", "167", "171", "184", "186", "192", "313", "347", "351", "376", "378", "441", "456", "464", "487", "778", "829", "831", "868", "876", "922"];
+  // Transforma tudo em um blocão de texto para busca global
+  const fullText = rows.map(row => row.join(' ')).join('\n').toUpperCase();
   const monthKeywords = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
 
+  // 1. Captura Dias Úteis e Restantes (Busca Global)
+  const matchDias = fullText.match(/DIAS\s*ÚTEIS[:\s]*(\d+)/i);
+  if (matchDias) result.geral.diasUteis = matchDias[1];
+  
+  const matchRest = fullText.match(/DIAS\s*REST[\.:\s]*(\d+)/i);
+  if (matchRest) result.geral.diasRestantes = matchRest[1];
+
+  // 2. Captura da Tabela de Resumo (A lógica que o Python usou, agora no JS)
+  // Padrão: Nome do Depto + 5 blocos de números
+  const summaryPattern = /(GERAL|MED|HB \(N-MED\)|CLINIC)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d,%\-]+)\s+([\d.]+)/g;
+  let match;
+  while ((match = summaryPattern.exec(fullText)) !== null) {
+    result.departamentos.push({
+      id: 'SUMMARY',
+      departamento: match[1],
+      vdaEft: match[2],
+      metaDia: match[3],
+      projecao: match[4],
+      desvioPerc: match[5],
+      vlrDesvio: match[6]
+    });
+  }
+
+  // 3. Captura de Meses (Topo do Dashboard) - Mantendo a lógica de linhas que já funcionava
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i].map(cell => (cell || '').toString().trim());
-    const joined = row.join(' ').toUpperCase();
-    
-    // 1. Detectar Dias Úteis e Restantes
-    const matchDias = joined.match(/DIAS\s*ÚTEIS[:\s]*(\d+)/i);
-    if (matchDias) result.geral.diasUteis = matchDias[1];
-    
-    const matchRest = joined.match(/DIAS\s*REST[\.:\s]*(\d+)/i);
-    if (matchRest) result.geral.diasRestantes = matchRest[1];
-
-    // 2. Troca de Seção (Apenas para organização interna)
-    if (joined.includes('INDICADORES GERAIS')) currentSection = 'GERAL';
-    else if (joined.includes('RESUMO DE FILIAIS')) currentSection = 'FILIAIS';
-
-    // 3. CAPTURA DE MEDICAMENTOS (Busca por palavra-chave na linha)
-    if (joined.includes('MED') && !joined.includes('INDICADORES')) {
-      const numbers = joined.match(/[\d]{1,3}(?:\.[\d]{3})*(?:,[\d]+)?|[\d]+(?:,[\d]+)?/g) || [];
-      // Se achou pelo menos 4 números e a linha parece ser do resumo
-      if (numbers.length >= 4 && numbers.length < 10) {
-        let valid = [...numbers];
-        if (parseInt(valid[0]) < 10) valid.shift(); // Remove o índice (1, 2, 3...)
-
-        result.departamentos.push({
-          id: 'SUMMARY',
-          departamento: 'MED',
-          vdaEft: valid[0],
-          metaDia: valid[1],
-          projecao: valid[2],
-          desvioPerc: valid[3],
-          vlrDesvio: valid[4] || '0'
-        });
-      }
-    }
-
-    // 4. Captura de Meses (Para o topo do dashboard)
     const firstCell = (row[0] || '').toUpperCase();
-    const isMonthRow = monthKeywords.some(m => firstCell.includes(m));
     
-    if (isMonthRow) {
+    if (monthKeywords.some(m => firstCell.includes(m))) {
       const numericCols = row.filter(cell => {
         const clean = cell.replace(/[R$\s.%]/g, '').replace(/\./g, '').replace(',', '.');
         return !isNaN(parseFloat(clean)) && /\d/.test(cell);
