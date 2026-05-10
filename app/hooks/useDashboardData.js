@@ -168,31 +168,41 @@ export function useDashboardData(user, referenceDate) {
       rtRep: indicadoresGeraisRow?.rtRep || '0,0%'
     };
 
-    // 3. Departamentos do Coordenador (Busca qualquer dado de MEDICAMENTOS)
-    console.log("DEBUG - Todos os Deptos encontrados:", data.departamentos);
-    
+    // 3. Departamentos do Coordenador (Busca simplificada por MED)
     const regionalDepts = (data.departamentos || []).filter(d => {
-      return d.id === 'SUMMARY' && d.departamento === 'MED';
+      return (d.departamento || '').toUpperCase() === 'MED';
     }).map(d => {
       const vdaNum = parseNum(d.vdaEft);
       const alvoNum = parseNum(d.metaDia);
-      
       const valorRestante = Math.max(0, alvoNum - vdaNum);
-      const diasParaCalculo = parseInt(data.geral?.diasRestantes) || diasRestantes;
+      const diasParaCalculo = parseInt(data.geral?.diasRestantes) || 24;
       const metaRestanteDia = diasParaCalculo > 0 ? valorRestante / diasParaCalculo : 0;
       
       return {
         ...d,
         departamento: 'MEDICAMENTOS',
-        metaRestanteDia: 'R$ ' + metaRestanteDia.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        vdaEft: d.vdaEft || '0',
+        metaDia: d.metaDia || '0',
+        projecao: d.projecao || '0',
+        desvioPerc: d.desvioPerc || '0%',
+        vlrDesvio: d.vlrDesvio || '0',
+        metaRestanteDia: 'R$ ' + metaRestanteDia.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
       };
     });
-    
-    console.log("DEBUG - Deptos filtrados para tela:", regionalDepts);
 
-    const departamentos = data.departamentos || [];
+    const totalMeta = regionalDepts.reduce((acc, d) => acc + parseNum(d.metaDia), 0);
+    const totalVenda = regionalDepts.reduce((acc, d) => acc + parseNum(d.vdaEft), 0);
+    const performanceAcumulada = totalMeta > 0 ? (totalVenda / totalMeta) * 100 : 0;
 
-    return { filiais, regional, regionalDepts, departamentos };
+    return { 
+      filiais, 
+      regional, 
+      regionalDepts, 
+      departamentos: data.departamentos || [],
+      totalVenda,
+      totalMeta,
+      performanceAcumulada
+    };
   }, [data, referenceDate]);
 
   return { enrichedData, loading, uploadStatus, error, updatedAt, handleFileUpload, handleClearData };
