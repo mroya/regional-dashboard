@@ -50,35 +50,56 @@ export function RegionalHeader({ regional, shareWhatsApp }) {
 
 export function DepartmentGrid({ regionalDepts }) {
   return (
-    <div className="glass-panel depts-box" style={{padding: '1.5rem'}}>
-      <h4 style={{marginBottom: '1rem'}}>Alvo por Departamento (Restante do Mês)</h4>
-      <div className="table-wrapper">
-        <table className="modern-table" style={{fontSize: '0.85rem'}}>
-          <thead>
-            <tr>
-              <th style={{textAlign: 'left'}}>Departamento</th>
-              <th>Alvo</th>
-              <th>Projeç.</th>
-              <th>% Desv</th>
-              <th>Vlr Desv</th>
-              <th style={{color: 'var(--accent-primary)'}}>Meta/Dia Rest.</th>
-            </tr>
-          </thead>
-          <tbody>
-            {regionalDepts.map(d => (
-              <tr key={d.departamento}>
-                <td style={{textAlign: 'left', fontWeight: 700}}>{d.departamento.replace('_GERAL','')}</td>
-                <td>{d.metaDia || 'R$ 0'}</td>
-                <td>{d.projecao || 'R$ 0'}</td>
-                <td style={{color: parseNum(d.desvioPerc) >= 0 ? 'var(--success)' : 'var(--danger)'}}>{d.desvioPerc}</td>
-                <td style={{color: parseNum(d.vlrDesvio) >= 0 ? 'var(--success)' : 'var(--danger)'}}>{d.vlrDesvio || 'R$ 0'}</td>
-                <td style={{fontWeight: 800, background: 'rgba(59,130,246,0.05)', color: 'var(--accent-primary)'}}>
-                  {d.metaRestanteDia || 'R$ 0'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="depts-section" style={{marginTop: '2rem'}}>
+      <h4 style={{marginBottom: '1.2rem', opacity: 0.8, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px'}}>
+        Alvos por Departamento (Foco Restante)
+      </h4>
+      <div className="stats-main-grid" style={{
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+        gap: '1.5rem'
+      }}>
+        {regionalDepts.map((d, idx) => {
+          const colors = ['#3b82f6', '#8b5cf6', '#06b6d4', '#f59e0b', '#10b981'];
+          const color = colors[idx % colors.length];
+          const isPos = parseNum(d.desvioPerc) >= 0;
+
+          return (
+            <div key={d.departamento} className="glass-panel stat-card" style={{borderTop: `3px solid ${color}`, padding: '1.5rem'}}>
+              <div className="stat-label" style={{fontSize: '0.9rem', fontWeight: 800, color: '#fff', marginBottom: '1rem'}}>
+                {d.departamento.replace('_GERAL', '').replace('MEDICAMENTO', 'MED.')}
+              </div>
+              
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem'}}>
+                <div>
+                  <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Alvo</p>
+                  <p style={{fontWeight: 700, fontSize: '1rem'}}>{d.metaDia || 'R$ 0'}</p>
+                </div>
+                <div>
+                  <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Projeção</p>
+                  <p style={{fontWeight: 700, fontSize: '1rem'}}>{d.projecao || 'R$ 0'}</p>
+                </div>
+              </div>
+
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.8rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', marginBottom: '1rem'}}>
+                <div>
+                  <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Desvio</p>
+                  <p style={{fontWeight: 800, color: isPos ? '#10b981' : '#ef4444', fontSize: '1.1rem'}}>{d.desvioPerc}</p>
+                </div>
+                <div style={{textAlign: 'right'}}>
+                  <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase'}}>Valor</p>
+                  <p style={{fontWeight: 600, color: isPos ? '#10b981' : '#ef4444', fontSize: '0.9rem'}}>{d.vlrDesvio || 'R$ 0'}</p>
+                </div>
+              </div>
+
+              <div style={{borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem'}}>
+                <p style={{fontSize: '0.65rem', color: color, fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.3rem'}}>Meta Diária Necessária</p>
+                <p style={{fontSize: '1.4rem', fontWeight: 900, color: '#fff'}}>{d.metaRestanteDia || 'R$ 0'}</p>
+                <p style={{fontSize: '0.65rem', color: 'var(--text-secondary)'}}>Para os próximos dias</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
