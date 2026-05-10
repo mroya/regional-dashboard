@@ -2,7 +2,7 @@ import React from 'react';
 import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { parseNum } from '../utils/formatters';
 
-export default function RankingTable({ filiais, filterMeta, setFilterMeta, sortConfig, setSortConfig }) {
+export default function RankingTable({ filiais, filterMeta, setFilterMeta, sortConfig, setSortConfig, setSelectedFilial }) {
   const filtered = filiais.filter(f => {
     if (filterMeta === 'NA_META') return f.dentroMeta;
     if (filterMeta === 'ABAIXO') return !f.dentroMeta;
@@ -24,7 +24,7 @@ export default function RankingTable({ filiais, filterMeta, setFilterMeta, sortC
   return (
     <div className="glass-panel" style={{marginTop:'2rem'}}>
       <div className="table-header">
-        <h3>Ranking Regional</h3>
+        <h3>Ranking por Filial</h3>
         <div className="filter-group">
           <button className={`filter-btn ${filterMeta === 'ALL' ? 'active' : ''}`} onClick={() => setFilterMeta('ALL')}>Todas</button>
           <button className={`filter-btn ${filterMeta === 'ABAIXO' ? 'active' : ''}`} onClick={() => setFilterMeta('ABAIXO')}>Abaixo</button>
@@ -36,15 +36,21 @@ export default function RankingTable({ filiais, filterMeta, setFilterMeta, sortC
           <thead>
             <tr>
               <th onClick={() => handleSort('id')}>Filial</th>
-              <th onClick={() => handleSort('vdaEft')}>Vda Eft</th>
-              <th onClick={() => handleSort('metaDia')}>Meta Dia</th>
-              <th onClick={() => handleSort('percProj')}>% Proj.</th>
+              <th onClick={() => handleSort('vdaEft')}>Venda</th>
+              <th onClick={() => handleSort('metaDia')}>Meta</th>
+              <th onClick={() => handleSort('percProj')}>% Perf.</th>
               <th onClick={() => handleSort('desvioPerc')}>Desvio</th>
             </tr>
           </thead>
           <tbody>
             {sorted.map(f => (
-              <tr key={f.id} className={f.dentroMeta ? 'row-success' : 'row-danger'}>
+              <tr 
+                key={f.id} 
+                className={f.dentroMeta ? 'row-success' : 'row-danger'}
+                onClick={() => setSelectedFilial(f.id)}
+                style={{ cursor: 'pointer' }}
+                title="Clique para ver detalhes"
+              >
                 <td>
                   <div style={{display:'flex', alignItems:'center', gap:'0.8rem'}}>
                     <div className={`status-dot ${f.dentroMeta ? 'active' : 'inactive'}`}></div>
@@ -54,7 +60,7 @@ export default function RankingTable({ filiais, filterMeta, setFilterMeta, sortC
                 <td>{f.vdaEft}</td>
                 <td>{f.metaDia}</td>
                 <td>
-                  <div style={{display:'flex', alignItems:'center', gap:'0.5rem'}}>
+                  <div style={{display:'flex', alignItems:'center', gap:'0.5rem', justifyContent: 'flex-end'}}>
                     {f.percProj.toFixed(1)}%
                     {f.dentroMeta ? <TrendingUp size={14} color="#10b981"/> : <TrendingDown size={14} color="#ef4444"/>}
                   </div>

@@ -141,7 +141,8 @@ export default function Dashboard() {
                         filterMeta,
                         setFilterMeta,
                         sortConfig,
-                        setSortConfig
+                        setSortConfig,
+                        setSelectedFilial // Adiciona esta linha
                       }}
                     />
                   </div>
