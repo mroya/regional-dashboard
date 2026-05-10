@@ -46,13 +46,19 @@ export const parseRawRows = (rows) => {
       // Seção GERAL ou se a linha parece ser de um mês (como na imagem do usuário)
       const isMonthLine = monthKeywords.some(m => row.join(' ').toUpperCase().includes(m));
 
-      if ((currentSection === 'GERAL' || isMonthLine) && numericCols.length >= 2) {
+      if ((currentSection === 'GERAL' || isMonthLine) && numericCols.length >= 8) {
+        // Agora mapeamos exatamente como na imagem enviada
         result.filiais.push({
-          id: filialId,
+          id: filialId || row[0], // Pode ser "Mai 2026"
           vdaEft: numericCols[0] || '0',
-          metaDia: numericCols[1] || '0',
-          desvioPerc: numericCols[2] || '0%',
-          evolucaoPerc: numericCols[numericCols.length - 1] || '0%'
+          mediaDia: numericCols[1] || '0',
+          cupons: numericCols[2] || '0',
+          tktMed: numericCols[3] || '0',
+          descPerc: numericCols[4] || '0%',
+          rentPerc: numericCols[5] || '0%',
+          aptVerba: numericCols[6] || '0',
+          rtRep: numericCols[7] || '0%',
+          evolucaoPerc: numericCols[8] || '0%'
         });
       }
       // Seções de Departamentos

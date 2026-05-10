@@ -139,7 +139,17 @@ export function useDashboardData(user, referenceDate) {
       };
     });
 
-    // 2. Dados do Coordenador (Geral)
+    // 2. Dados do Coordenador (Geral e Indicadores Gerais)
+    const monthNamesShort = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    const selectedMonthName = monthNamesShort[refDateObj.getMonth()];
+    const selectedYear = refDateObj.getFullYear();
+    const monthKey = `${selectedMonthName} ${selectedYear}`;
+
+    // Busca a linha dos Indicadores Gerais que bate com o mês (ex: "Mai 2026")
+    const indicadoresGeraisRow = (data.filiais || []).find(f => 
+      f.id.toUpperCase().includes(selectedMonthName) && f.id.includes(selectedYear.toString())
+    );
+
     const coordinatorRaw = (data.departamentos || []).find(d => d.id === 'REGIONAL') || {
       vdaEft: '0',
       metaDia: '0',
@@ -154,8 +164,8 @@ export function useDashboardData(user, referenceDate) {
       currentElapsed,
       totalDays,
       diasRestantes,
-      mediaDia: coordinatorRaw.mediaDia || 'R$ 0',
-      rtRep: coordinatorRaw.rtRep || '0,0%'
+      mediaDia: indicadoresGeraisRow?.mediaDia || 'R$ 0',
+      rtRep: indicadoresGeraisRow?.rtRep || '0,0%'
     };
 
     // 3. Departamentos do Coordenador (Apenas os 4 Principais)
