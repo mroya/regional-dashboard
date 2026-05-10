@@ -18,19 +18,31 @@ export const parseRawRows = (rows) => {
       currentSection = 'GERAL';
       continue; 
     }
+    else if (joined.includes('DIAS ÚTEIS')) {
+      currentSection = 'SUMMARY';
+      // Tenta pegar o Dias Restantes também
+      const matchRest = joined.match(/DIAS REST\.:?\s*(\d+)/);
+      if (matchRest) result.geral.diasRestantes = matchRest[1];
+      continue;
+    }
     else if (joined.includes('RESUMO DE FILIAIS')) currentSection = 'FILIAIS';
     else if (joined.includes('MEDICAMENTO GERAL')) currentSection = 'MEDICAMENTO_GERAL';
     else if (joined.includes('GENÉRICO')) currentSection = 'GENERICO';
     else if (joined.includes('HB (NÃO MEDICAMENTO)')) currentSection = 'HB';
     else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
 
-    // 3. Identificar linha de filial ou de mês
+    // 3. Identificar linha de filial, de mês ou de resumo (Med, HB, etc)
     const monthKeywords = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    const summaryKeywords = ['GERAL', 'MED', 'HB (N-MED)', 'CLINIC'];
     let filialId = null;
     
+    // Na seção SUMMARY, o ID é o nome do depto (Med, HB, etc) na primeira coluna
+    const isSummaryRow = summaryKeywords.some(k => row[0].toUpperCase() === k);
+    if (currentSection === 'SUMMARY' && isSummaryRow) {
+      filialId = row[0].trim();
+    } 
     // Na seção GERAL, o ID é o nome do mês (ex: Mai 2026) na primeira coluna
-    const isMonthRow = monthKeywords.some(m => row[0].toUpperCase().includes(m));
-    if (currentSection === 'GERAL' && isMonthRow) {
+    else if (currentSection === 'GERAL' && monthKeywords.some(m => row[0].toUpperCase().includes(m))) {
       filialId = row[0].trim();
     } else {
       for (let colIdx = 0; colIdx < Math.min(row.length, 3); colIdx++) {
@@ -68,7 +80,19 @@ export const parseRawRows = (rows) => {
           evolucaoPerc: numericCols[8] || '0%'
         });
       }
-      // Seções de Departamentos
+      // Seção de Resumo (Geral, Med, HB, Clinic)
+      else if (currentSection === 'SUMMARY' && numericCols.length >= 4) {
+        result.departamentos.push({
+          id: 'SUMMARY',
+          departamento: filialId, // Ex: "Med"
+          vdaEft: numericCols[0] || '0',
+          metaDia: numericCols[1] || '0', // Alvo
+          projecao: numericCols[2] || '0',
+          desvioPerc: numericCols[3] || '0%',
+          vlrDesvio: numericCols[4] || 'R$ 0'
+        });
+      }
+      // Seções de Departamentos Detalhados
       else if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'].includes(currentSection) && numericCols.length >= 2) {
         result.departamentos.push({ 
           id: filialId, 
