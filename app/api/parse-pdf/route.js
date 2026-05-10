@@ -16,11 +16,13 @@ export async function POST(req) {
     const pdf = await loadingTask.promise;
 
     const allRows = [];
+    let fullText = '';
 
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
       const page = await pdf.getPage(pageNumber);
       const textContent = await page.getTextContent();
       const rowsMap = new Map();
+      fullText += textContent.items.map((item) => item.str).join(' ') + '\n';
 
       textContent.items.forEach((item) => {
         const [, , , , x, y] = item.transform;
@@ -72,6 +74,7 @@ export async function POST(req) {
       },
       trocoAmigo: [],
       rawRows: allRows,
+      text: fullText,
     };
 
     return new Response(JSON.stringify(extractData), {

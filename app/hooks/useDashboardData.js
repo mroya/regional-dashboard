@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { db } from '../lib/firebase';
-import { doc, getDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { doc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { parseNum } from '../utils/formatters';
 
 export function useDashboardData(user, referenceDate) {
@@ -31,50 +31,51 @@ export function useDashboardData(user, referenceDate) {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     try {
       setLoading(true);
-      setUploadStatus('Extraindo texto do relatório...');
+      setUploadStatus('Extraindo texto do relatorio...');
       setError(null);
 
-      // 1. Extrai texto localmente via CDN para compatibilidade mobile
-      const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
-      
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      
-      let fullText = '';
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const parseResponse = await fetch('/api/parse-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!parseResponse.ok) {
+        const errData = await parseResponse.json();
+        throw new Error(errData.error || 'Erro ao extrair texto do PDF');
       }
 
+      const { text: fullText } = await parseResponse.json();
+
       setUploadStatus('Gemini analisando dados (IA)...');
-      
-      // 2. Envia para nossa API interna (onde está a Gemini API Key segura)
+
       const response = await fetch('/api/analyze-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: fullText,
-          referenceDate: referenceDate
-        })
+          referenceDate,
+        }),
       });
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.error || 'Erro na análise da IA');
+        throw new Error(errData.error || 'Erro na analise da IA');
       }
 
-      setUploadStatus('Concluído!');
+      setUploadStatus('Concluido!');
     } catch (err) {
       console.error('Erro no upload:', err);
       setError('Erro: ' + err.message);
     } finally {
       setLoading(false);
       setUploadStatus('');
+      e.target.value = '';
     }
   };
 
@@ -98,33 +99,32 @@ export function useDashboardData(user, referenceDate) {
     const totalDays = parseInt(data.geral?.diasUteis || '31');
     const diasRestantes = Math.max(0, totalDays - currentElapsed);
 
-    const filiais = (data.filiais || []).map(f => {
+    const filiais = (data.filiais || []).map((f) => {
       const vdaNum = parseNum(f.vdaEft);
       const mediaDiaNum = parseNum(f.mediaDia);
       const alvoTotal = mediaDiaNum * totalDays;
       const valorRestante = Math.max(0, alvoTotal - vdaNum);
       const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
-      
+
       return {
         ...f,
         valorRestante,
         metaRestanteDia,
-        desvioPerc: f.desvioPerc || '0%'
+        desvioPerc: f.desvioPerc || '0%',
       };
     });
 
-    const departamentos = (data.departamentos || []).map(d => {
+    const departamentos = (data.departamentos || []).map((d) => {
       const vdaNum = parseNum(d.vdaEft);
-      const projNum = parseNum(d.projecao);
-      const metaMesNum = parseNum(d.metaDia) || (vdaNum + parseNum(d.vlrDesvio)); // Fallback
+      const metaMesNum = parseNum(d.metaDia) || (vdaNum + parseNum(d.vlrDesvio));
       const valorRestante = Math.max(0, metaMesNum - vdaNum);
       const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
-      
+
       return {
         ...d,
         metaMesNum,
         valorRestante,
-        metaRestanteDia
+        metaRestanteDia,
       };
     });
 
@@ -134,10 +134,10 @@ export function useDashboardData(user, referenceDate) {
         ...data.geral,
         diasUteis: totalDays,
         diasDecorridos: currentElapsed,
-        diasRestantes
+        diasRestantes,
       },
       filiais,
-      departamentos
+      departamentos,
     };
   }, [data, referenceDate]);
 
