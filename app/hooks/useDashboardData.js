@@ -60,6 +60,15 @@ export function useDashboardData(user, referenceDate) {
         allRows = [...allRows, ...sortedRows];
       }
 
+      // ===== DEBUG: mostra as primeiras 80 linhas e candidatas a filial =====
+      console.log('[PDF] Primeiras 80 rows:');
+      allRows.slice(0, 80).forEach((r, idx) => console.log(`  [${idx}]`, JSON.stringify(r)));
+      console.log('[PDF] Rows cujo [0] parece número de filial (2-3 dígitos):');
+      allRows.forEach((r, idx) => {
+        if (r[0] && /^\d{2,3}$/.test(r[0].trim())) console.log(`  [${idx}]`, JSON.stringify(r));
+      });
+      // ===== FIM DEBUG =====
+
       const parsed = parseRawRows(allRows);
       console.log('[PDF] Total rows extraídas:', allRows.length);
       console.log('[PDF] Filiais encontradas:', parsed.filiais.length, parsed.filiais.map(f => f.id));
