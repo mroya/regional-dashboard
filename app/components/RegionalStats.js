@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Target, DollarSign, Activity, PieChart } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, DollarSign, Activity } from 'lucide-react';
 import { formatCurrency, parseNum } from '../utils/formatters';
 
 export function RegionalHeader({ regional, shareWhatsApp }) {
@@ -56,10 +56,7 @@ export function DepartmentGrid({ regionalDepts }) {
           return (
             <div key={d.departamento} className="dept-card" style={{borderTop: `2px solid ${isPos ? '#10b981' : '#ef4444'}`, padding: '0.6rem'}}>
               <div className="dept-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{fontWeight: 700, fontSize: '0.7rem', opacity: 0.8}}>{d.departamento}</span>
-                <span style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                  <PieChart size={9} /> PART. {d.share}
-                </span>
+                <span style={{fontWeight: 700, fontSize: '0.7rem', opacity: 0.8}}>{d.departamento.replace('_GERAL','').replace('MEDICAMENTO','MED.')}</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>

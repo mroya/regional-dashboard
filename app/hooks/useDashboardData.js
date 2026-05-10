@@ -40,7 +40,8 @@ export function useDashboardData(user, referenceDate) {
       setLoading(true);
       setError(null);
       const pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+      // Usa worker local (copiado de node_modules para /public) — sem dependência de CDN externo
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let allRows = [];
@@ -60,6 +61,10 @@ export function useDashboardData(user, referenceDate) {
       }
 
       const parsed = parseRawRows(allRows);
+      console.log('[PDF] Total rows extraídas:', allRows.length);
+      console.log('[PDF] Filiais encontradas:', parsed.filiais.length, parsed.filiais.map(f => f.id));
+      console.log('[PDF] Departamentos encontrados:', parsed.departamentos.length);
+      console.log('[PDF] Dias úteis:', parsed.geral?.diasUteis);
       const now = new Date();
       const nowStr = now.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
       
@@ -107,34 +112,38 @@ export function useDashboardData(user, referenceDate) {
     const filiais = (data.filiais || []).map(f => {
       const vdaEftNum = parseNum(f.vdaEft);
       const metaDiaNum = parseNum(f.metaDia);
-      const projecaoFinal = (vdaEftNum / currentElapsed) * totalDays;
-      const alvoMensalEst = (metaDiaNum / currentElapsed) * totalDays;
+      // projecaoFinal: extrapola o ritmo atual para o mês inteiro
+      const projecaoFinal = currentElapsed > 0 ? (vdaEftNum / currentElapsed) * totalDays : 0;
+      // alvoMensalEst: metaDia é a meta DIÁRIA — multiplica pelo total de dias úteis
+      const alvoMensalEst = metaDiaNum * totalDays;
       const percProj = alvoMensalEst > 0 ? (projecaoFinal / alvoMensalEst) * 100 : 0;
       
       return { 
         ...f, 
         vdaEftNum, metaDiaNum, projecaoFinal, alvoMensalEst, percProj,
         dentroMeta: percProj >= 100,
-        mediaReal: vdaEftNum / currentElapsed,
+        mediaReal: currentElapsed > 0 ? vdaEftNum / currentElapsed : 0,
         mediaAlvoNec: (totalDays - currentElapsed) > 0 ? (alvoMensalEst - vdaEftNum) / (totalDays - currentElapsed) : 0
       };
     });
 
     const regionalVda = filiais.reduce((acc, f) => acc + f.vdaEftNum, 0);
-    const regionalMeta = filiais.reduce((acc, f) => acc + f.metaDiaNum, 0);
-    const regionalProj = (regionalVda / currentElapsed) * totalDays;
-    const regionalAlvo = (regionalMeta / currentElapsed) * totalDays;
+    const regionalMetaDia = filiais.reduce((acc, f) => acc + f.metaDiaNum, 0);
+    // Projeção regional: extrapola ritmo atual para o mês
+    const regionalProj = currentElapsed > 0 ? (regionalVda / currentElapsed) * totalDays : 0;
+    // Meta mensal regional: soma das metas diárias × dias úteis
+    const regionalAlvo = regionalMetaDia * totalDays;
 
     const regional = {
       vdaEft: regionalVda,
-      metaDia: regionalMeta,
+      metaDia: regionalMetaDia,
       projecaoFinal: regionalProj,
       alvoMensalEst: regionalAlvo,
       percProj: regionalAlvo > 0 ? (regionalProj / regionalAlvo) * 100 : 0,
-      mediaReal: regionalVda / currentElapsed,
-      mediaAlvo: regionalAlvo / totalDays,
+      mediaReal: currentElapsed > 0 ? regionalVda / currentElapsed : 0,
+      mediaAlvo: regionalAlvo > 0 ? regionalAlvo / totalDays : 0,
       currentElapsed, totalDays,
-      dentroMeta: (regionalProj / regionalAlvo) * 100 >= 100
+      dentroMeta: regionalAlvo > 0 && (regionalProj / regionalAlvo) * 100 >= 100
     };
 
     const deptKeys = ['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'];

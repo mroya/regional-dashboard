@@ -6,13 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "node -e \"const fs=require('fs');const src='node_modules/pdfjs-dist/build/pdf.worker.min.mjs';const dst='public/pdf.worker.min.mjs';if(fs.existsSync(src)){fs.copyFileSync(src,dst);console.log('PDF worker copied to /public');}else{console.warn('PDF worker not found, skipping copy');}\""
   },
   "dependencies": {
     "firebase": "^12.12.1",
     "lucide-react": "^1.14.0",
     "next": "16.2.4",
     "pdf2json": "^4.0.3",
+    "pdfjs-dist": "^4.10.38",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.8.1"
