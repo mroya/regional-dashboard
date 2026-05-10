@@ -14,25 +14,32 @@ export const parseRawRows = (rows) => {
     if (matchDias) result.geral.diasUteis = matchDias[1];
     
     // 2. Troca de Seção (Case Insensitive)
-    if (joined.includes('INDICADORES GERAIS')) currentSection = 'GERAL';
-    else if (joined.includes('MEDICAMENTO TOTAL')) currentSection = 'MEDICAMENTO_GERAL';
-    else if (joined.includes('MEDICAMENTO - BIO')) currentSection = 'MEDICAMENTO_BIO';
+    if (joined.includes('INDICADORES GERAIS')) {
+      currentSection = 'GERAL';
+      continue; 
+    }
+    else if (joined.includes('RESUMO DE FILIAIS')) currentSection = 'FILIAIS';
+    else if (joined.includes('MEDICAMENTO GERAL')) currentSection = 'MEDICAMENTO_GERAL';
     else if (joined.includes('GENÉRICO')) currentSection = 'GENERICO';
     else if (joined.includes('HB (NÃO MEDICAMENTO)')) currentSection = 'HB';
     else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
-    else if (joined.includes('CUPOM BEM PANVEL')) currentSection = 'CUPOM';
-    else if (joined.includes('TROCO AMIGO')) currentSection = 'TROCO';
 
-    // 3. Identificar linha de filial (Procura o ID nas primeiras 3 colunas)
+    // 3. Identificar linha de filial ou de mês
     const monthKeywords = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
     let filialId = null;
-    for (let colIdx = 0; colIdx < Math.min(row.length, 3); colIdx++) {
-      const cellClean = row[colIdx].trim().replace(/\D/g, ''); 
-      // Ignora se for apenas um nome de mês (ex: "ABR 2026")
-      const isMonth = monthKeywords.some(m => row[colIdx].toUpperCase().includes(m));
-      if (branchIds.includes(cellClean) && !isMonth) {
-        filialId = cellClean;
-        break;
+    
+    // Na seção GERAL, o ID é o nome do mês (ex: Mai 2026) na primeira coluna
+    const isMonthRow = monthKeywords.some(m => row[0].toUpperCase().includes(m));
+    if (currentSection === 'GERAL' && isMonthRow) {
+      filialId = row[0].trim();
+    } else {
+      for (let colIdx = 0; colIdx < Math.min(row.length, 3); colIdx++) {
+        const cellClean = row[colIdx].trim().replace(/\D/g, ''); 
+        const isMonth = monthKeywords.some(m => row[colIdx].toUpperCase().includes(m));
+        if (branchIds.includes(cellClean) && !isMonth) {
+          filialId = cellClean;
+          break;
+        }
       }
     }
 
@@ -62,12 +69,12 @@ export const parseRawRows = (rows) => {
         });
       }
       // Seções de Departamentos
-      else if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL', 'MEDICAMENTO_BIO'].includes(currentSection) && numericCols.length >= 2) {
+      else if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'].includes(currentSection) && numericCols.length >= 2) {
         result.departamentos.push({ 
           id: filialId, 
           departamento: currentSection, 
-          vdaEft: numericCols[0] || '0',
-          metaDia: numericCols[1] || '0', 
+          vdaEft: numericCols[0] || '0',  // 1ª coluna numérica (Vda Eft)
+          metaDia: numericCols[1] || '0', // 2ª coluna numérica (Alvo)
           desvioPerc: numericCols[2] || '0%',
           vlrDesvio: numericCols[3] || 'R$ 0',
           evolucaoPerc: numericCols[numericCols.length - 1] || '0%' 
