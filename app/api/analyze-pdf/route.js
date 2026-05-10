@@ -3,17 +3,25 @@ import { db } from '@/app/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+export const runtime = 'nodejs';
 
 export async function POST(request) {
   try {
     const { text, referenceDate } = await request.json();
+    const geminiApiKey = process.env.GEMINI_API_KEY;
 
     if (!text || !referenceDate) {
       return NextResponse.json({ error: 'Dados incompletos' }, { status: 400 });
     }
 
+    if (!geminiApiKey) {
+      return NextResponse.json({
+        error: 'GEMINI_API_KEY nao configurada no ambiente do servidor',
+      }, { status: 500 });
+    }
+
     // Configura o modelo
+    const genAI = new GoogleGenerativeAI(geminiApiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
