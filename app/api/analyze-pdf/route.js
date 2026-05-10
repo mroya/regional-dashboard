@@ -17,8 +17,8 @@ IMPORTANTE:
 - Existe uma tabela de resumo por area de negocio com as linhas "Geral", "Med", "HB (N-Med)", "Clinic". Voce DEVE colocar esses dados no array "departamentos".
 - Mapeie sempre para os nomes padroes: "MED", "HB (N-MED)", "CLINIC" e "GERAL".
 - Para os departamentos: a coluna "%Desv 1" vai para "desvioPerc". A coluna "VlrDesv" vai para "vlrDesvio".
-- Procure a tabela "% Participacao Venda Efetiva sobre a Venda nos utimos 3 meses e mesmo mes do ano anterior".
-- Na secao "participacao", preencha os percentuais da linha do mes principal (ex: Mai 2026) para as colunas "Med", "HB (N-Med)", "Gen" e "PP".
+- Procure a tabela de "% Participacao" (que tem as colunas Med, HB, Clinic, Marca, Gen, RX, OTC, BIO, PP, Lifar).
+- Extraia os valores percentuais da linha referente ao mes principal (ex: Mai 2026) e coloque na secao "participacao" (para "med", "hb", "gen" e "pp").
 - Mantenha valores monetarios e percentuais como texto original (ex: "3.427.863", "67,34%").
 
 TEXTO:

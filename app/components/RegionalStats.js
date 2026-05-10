@@ -86,9 +86,9 @@ export default function RegionalStats({ data }) {
     <div className="regional-stats-container">
       <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem', minWidth: 0 }}>
         <h2 className="section-title">Performance Acumulada (Mes)</h2>
-        <div style={{ width: '100%', height: '300px', minWidth: 0, minHeight: '300px' }}>
+        <div style={{ width: '100%', height: '300px', position: 'relative' }}>
           {isMounted && (
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
+            <ResponsiveContainer width="99%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorVda" x1="0" y1="0" x2="0" y2="1">

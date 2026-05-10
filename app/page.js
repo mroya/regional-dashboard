@@ -244,10 +244,6 @@ export default function Dashboard() {
                   setSelectedFilial={setSelectedFilial}
                 />
               )}
-
-              <div className="charts-section">
-                <RegionalStats data={enrichedData} />
-              </div>
             </div>
           ) : (
             <BranchDetail 
