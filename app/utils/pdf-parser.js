@@ -31,33 +31,39 @@ export const parseRawRows = (rows) => {
     else if (joined.includes('HB (NÃO MEDICAMENTO)')) currentSection = 'HB';
     else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
 
-    // BUSCA INTELIGENTE: Separa texto de número grudado e remove o índice (1, 2, 3...)
-    const splitJoined = joined.replace(/([A-Z])([\d])/g, '$1 $2').replace(/([\d])([A-Z])/g, '$1 $2');
-    const cleanJoined = splitJoined.replace(/\s+/g, ' '); 
-    
-    // Se a linha tem "MED", "HB" ou "CLINIC"
-    const deptMatch = cleanJoined.match(/\b(MED|HB|CLINIC)\b/);
-    if (deptMatch) {
-      const rawNumbers = cleanJoined.match(/[\d]{1,3}(?:\.[\d]{3})*(?:,[\d]+)?|[\d]+(?:,[\d]+)?/g) || [];
-      
-      // Se o primeiro número for pequeno (índice 1, 2, 3, 4) e tivermos muitos números, removemos ele
-      let validNumbers = [...rawNumbers];
-      if (validNumbers.length >= 5 && parseInt(validNumbers[0]) < 10) {
-        validNumbers.shift();
-      }
+    // BUSCA POR COLUNA LATERAL: O 'Med' pode estar no meio da linha (2ª coluna do PDF)
+    const summaryKeys = [
+      { key: 'MED', label: 'MED' },
+      { key: 'HB (N-MED)', label: 'HB' },
+      { key: 'CLINIC', label: 'CLINIC' },
+      { key: 'GERAL', label: 'GERAL' }
+    ];
 
-      if (validNumbers.length >= 4) {
-        result.departamentos.push({
-          id: 'SUMMARY',
-          departamento: deptMatch[1],
-          vdaEft: validNumbers[0],
-          metaDia: validNumbers[1], // Alvo
-          projecao: validNumbers[2],
-          desvioPerc: validNumbers[3],
-          vlrDesvio: validNumbers[4] || '0',
-          allValues: validNumbers
-        });
-        continue;
+    for (const item of summaryKeys) {
+      if (cleanJoined.includes(item.key)) {
+        // Pega o texto que vem DEPOIS da palavra-chave
+        const afterKey = cleanJoined.split(item.key)[1];
+        const rawNumbers = afterKey.match(/[\d]{1,3}(?:\.[\d]{3})*(?:,[\d]+)?|[\d]+(?:,[\d]+)?/g) || [];
+        
+        // Remove o índice (1, 2, 3...) se ele estiver lá
+        let validNumbers = [...rawNumbers];
+        if (validNumbers.length >= 5 && parseInt(validNumbers[0]) < 10) {
+          validNumbers.shift();
+        }
+
+        if (validNumbers.length >= 4) {
+          result.departamentos.push({
+            id: 'SUMMARY',
+            departamento: item.label,
+            vdaEft: validNumbers[0],
+            metaDia: validNumbers[1],
+            projecao: validNumbers[2],
+            desvioPerc: validNumbers[3],
+            vlrDesvio: validNumbers[4] || '0',
+            allValues: validNumbers
+          });
+          // Não damos 'continue' aqui porque pode ter mais de um depto na mesma linha
+        }
       }
     }
 
