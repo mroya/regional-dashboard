@@ -48,6 +48,13 @@ export default function Dashboard() {
   const defaultDate = getYesterdayStr();
   const [referenceDate, setReferenceDate] = useState(defaultDate);
 
+  const getMonthName = (dateStr) => {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+  };
+
+  const currentMonthYear = getMonthName(referenceDate);
+
   const { enrichedData, loading, uploadStatus, error, updatedAt, handleFileUpload, handleClearData } = useDashboardData(user, referenceDate);
   const { clock, weather, weatherIcon } = useWeather();
 
@@ -73,12 +80,12 @@ export default function Dashboard() {
   const shareWhatsApp = () => {
     if (!enrichedData) return;
     const { regional } = enrichedData;
-    const msg = `📊 *RESUMO COORDENADOR AREA 02*\n📅 Data: ${new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR')}\n📈 Performance: ${regional.desvioPerc}\n💰 Venda: ${regional.vdaEft}\n🎯 Meta: ${regional.metaDia}`;
+    const msg = `📊 *RESUMO COORDENADOR - ${currentMonthYear.toUpperCase()}*\n📅 Ref: ${new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR')}\n📈 Performance: ${regional.desvioPerc}\n💰 Venda: ${regional.vdaEft}\n🎯 Meta: ${regional.metaDia}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const shareFilialWhatsApp = (f) => {
-    const msg = `🏪 *FILIAL ${f.id}*\n📅 Data: ${new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR')}\n📈 Performance: ${f.desvioPerc}\n💰 Venda: ${f.vdaEft}\n🎯 Meta: ${f.metaDia}`;
+    const msg = `🏪 *FILIAL ${f.id} - ${currentMonthYear.toUpperCase()}*\n📅 Ref: ${new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR')}\n📈 Performance: ${f.desvioPerc}\n💰 Venda: ${f.vdaEft}\n🎯 Meta: ${f.metaDia}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -123,6 +130,7 @@ export default function Dashboard() {
                     <RegionalHeader
                       regional={enrichedData.regional}
                       shareWhatsApp={shareWhatsApp}
+                      monthYear={currentMonthYear}
                     />
 
                     <DepartmentGrid

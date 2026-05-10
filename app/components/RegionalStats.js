@@ -2,7 +2,7 @@ import React from 'react';
 import { TrendingUp, TrendingDown, Target, DollarSign, Activity } from 'lucide-react';
 import { formatCurrency, parseNum } from '../utils/formatters';
 
-export function RegionalHeader({ regional, shareWhatsApp }) {
+export function RegionalHeader({ regional, shareWhatsApp, monthYear }) {
   return (
     <div className="detail-grid" style={{ marginBottom: '2rem' }}>
       <div className="header-status-card" style={{
@@ -16,11 +16,13 @@ export function RegionalHeader({ regional, shareWhatsApp }) {
             <p className={`status-badge ${regional.dentroMeta ? 'success' : 'danger'}`}>
               {regional.dentroMeta ? '✅ Na Meta' : '⚠️ Abaixo da Meta'}
             </p>
-            <h2 style={{fontSize:'1.8rem', marginTop:'0.5rem'}}>Visão do Coordenador</h2>
+            <h2 style={{fontSize:'1.8rem', marginTop:'0.5rem', textTransform: 'capitalize'}}>
+              Visão do Coordenador - {monthYear}
+            </h2>
             <p style={{fontSize:'0.8rem', opacity: 0.7}}>Área 02 Sul POA</p>
           </div>
           <div style={{textAlign:'right'}}>
-            <p style={{fontSize:'0.75rem', color:'var(--text-secondary)'}}>Performance Coordenador</p>
+            <p style={{fontSize:'0.75rem', color:'var(--text-secondary)'}}>Performance Acumulada</p>
             <h2 style={{fontSize:'2.2rem', color: regional.dentroMeta ? '#10b981' : '#ef4444'}}>{regional.desvioPerc}</h2>
           </div>
         </div>
