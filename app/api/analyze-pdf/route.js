@@ -16,8 +16,8 @@ IMPORTANTE:
 - A tabela principal de filiais vai em "filiais".
 - Existe uma tabela de resumo por area de negocio com as linhas "Geral", "Med", "HB (N-Med)", "Clinic". Voce DEVE colocar esses dados no array "departamentos".
 - Mapeie sempre para os nomes padroes: "MED", "HB (N-MED)", "CLINIC" e "GERAL".
-- A coluna "%Desv 1" vai para "desvioPerc". A coluna "VlrDesv" vai para "vlrDesvio".
-- Mantenha valores monetarios e percentuais como texto, no formato encontrado no relatorio (ex: "3.427.863").
+- Para os departamentos: a coluna "%Desv 1" vai para "desvioPerc". A coluna "VlrDesv" vai para "vlrDesvio".
+- Mantenha valores monetarios e percentuais como texto original (ex: "3.427.863").
 
 TEXTO:
 ${text}
@@ -25,7 +25,7 @@ ${text}
 FORMATO JSON:
 {
   "geral": { "diasUteis": "31", "diasRestantes": "24", "performanceGeral": "..." },
-  "filiais": [ { "id": "...", "vdaEft": "...", "mediaDia": "...", "rtRep": "..." } ],
+  "filiais": [ { "id": "Mes", "vdaEft": "...", "mediaDia": "...", "rtRep": "..." } ],
   "departamentos": [
     { "departamento": "MED", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
     { "departamento": "HB (N-MED)", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
@@ -124,10 +124,12 @@ export async function POST(request) {
     let parsedData;
 
     try {
+      require('fs').writeFileSync('debug-gemini.json', rawText);
       parsedData = extractJson(rawText);
     } catch (parseError) {
       console.warn('[Gemini] JSON invalido, tentando reparar:', parseError.message);
       parsedData = await repairJsonWithGemini(successfulModel, rawText);
+      require('fs').writeFileSync('debug-gemini-repaired.json', JSON.stringify(parsedData, null, 2));
     }
 
     // Removido o salvamento do Firestore daqui (movido para o client-side)
