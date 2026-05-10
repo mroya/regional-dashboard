@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { db } from '../lib/firebase';
-import { doc, setDoc, getDoc, deleteDoc, serverTimestamp, collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { parseRawRows } from '../utils/pdf-parser';
+import { doc, setDoc, getDoc, deleteDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { parseNum } from '../utils/formatters';
 
 export function useDashboardData(user, referenceDate) {
@@ -11,9 +10,6 @@ export function useDashboardData(user, referenceDate) {
   const [error, setError] = useState(null);
   const [updatedAt, setUpdatedAt] = useState(null);
 
-  // FIX: A query agora filtra pelo referenceDate selecionado no dashboard.
-  // Antes buscava sempre o doc mais recente, ignorando a data — causava dados errados.
-  // O documento é salvo com ID = referenceDate (ex: "2025-05-08"), então buscamos por esse ID.
   useEffect(() => {
     if (!user || !referenceDate) return;
 
@@ -25,84 +21,41 @@ export function useDashboardData(user, referenceDate) {
         setUpdatedAt(docData.updatedAtStr);
         setError(null);
       } else {
-        // Nenhum dado para esta data — mostra estado vazio em vez de dados de outra data
         setData(null);
         setUpdatedAt(null);
       }
     }, (err) => setError(err.message));
 
     return () => unsubscribe();
-  }, [user, referenceDate]); // Re-executa quando a data muda
+  }, [user, referenceDate]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    
+    const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/jwaloiiwvyzvahbo2ddmux9mxa1r2erc';
+
     try {
       setLoading(true);
-      setUploadStatus('Lendo arquivo PDF...');
+      setUploadStatus('IA Processando o PDF...');
       setError(null);
       
-      const startTime = Date.now();
-      const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
-      
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      
-      setUploadStatus(`Processando ${pdf.numPages} páginas...`);
-      let fullText = '';
-      let allRows = [];
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('referenceDate', referenceDate);
 
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        
-        // Extração de texto bruto para a lógica global
-        fullText += textContent.items.map(item => item.str).join(' ') + '\n';
-
-        // Organização em linhas para a lógica de filiais
-        const lines = {};
-        textContent.items.forEach(item => {
-          const y = Math.round(item.transform[5] / 2) * 2; // Agrupamento mais agressivo
-          if (!lines[y]) lines[y] = [];
-          lines[y].push({ x: item.transform[4], text: item.str });
-        });
-        const pageRows = Object.keys(lines).sort((a, b) => b - a).map(y => 
-          lines[y].sort((a, b) => a.x - b.x).map(i => i.text)
-        );
-        allRows = [...allRows, ...pageRows];
-      }
-
-      console.log("[PDF] Texto extraído:", fullText.substring(0, 500));
-      const parsed = parseRawRows(allRows);
-
-      
-      setUploadStatus('Salvando no banco de dados...');
-      const now = new Date();
-      const nowStr = now.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-      
-      const refDateObj = new Date(referenceDate + 'T12:00:00');
-      const currentElapsed = refDateObj.getDate() || 1;
-
-      await setDoc(doc(db, 'reports', referenceDate), {
-        ...parsed,
-        timestamp: serverTimestamp(),
-        updatedAtStr: nowStr,
-        referenceDate: referenceDate,
-        elapsedDays: currentElapsed
+      const response = await fetch(MAKE_WEBHOOK_URL, {
+        method: 'POST',
+        body: formData
       });
-      
-      // Atualiza o estado local IMEDIATAMENTE para garantir que os cards apareçam
-      setData(parsed);
-      setUpdatedAt(nowStr);
-      
-      // Garante que a animação dure pelo menos 1.5s para feedback visual
-      const duration = Date.now() - startTime;
-      if (duration < 1500) await new Promise(r => setTimeout(r, 1500 - duration));
-      
+
+      if (!response.ok) throw new Error('Erro ao enviar para o servidor de IA');
+
+      setUploadStatus('Finalizando extração...');
+      await new Promise(r => setTimeout(r, 5000));
       setUploadStatus('Concluído!');
     } catch (err) {
-      setError('Erro ao processar PDF: ' + err.message);
+      setError('Erro no processamento: ' + err.message);
     } finally {
       setLoading(false);
       setUploadStatus('');
@@ -113,7 +66,6 @@ export function useDashboardData(user, referenceDate) {
     if (!confirm('Tem certeza que deseja limpar os dados desta data?')) return;
     try {
       setLoading(true);
-      // FIX: Apaga apenas o documento da data selecionada, não um 'latest' genérico
       await deleteDoc(doc(db, 'reports', referenceDate));
       setData(null);
     } catch (err) {
@@ -131,87 +83,57 @@ export function useDashboardData(user, referenceDate) {
     const diasRestantes = Math.max(0, totalDays - currentElapsed);
 
     const filiais = (data.filiais || []).map(f => {
-      const desvNum = parseNum(f.desvioPerc);
       const vdaNum = parseNum(f.vdaEft);
-      const alvoNum = parseNum(f.metaDia);
+      const alvoNum = parseNum(f.mediaDia) * totalDays;
       const valorRestante = Math.max(0, alvoNum - vdaNum);
-      const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
-
-      return { 
-        ...f, 
-        percProj: desvNum,
-        dentroMeta: desvNum >= 0,
-        metaRestanteDia: 'R$ ' + metaRestanteDia.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-        vdaNum,
-        alvoNum
+      return {
+        ...f,
+        valorRestante,
+        metaRestanteDia: diasRestantes > 0 ? valorRestante / diasRestantes : 0
       };
     });
 
-    // 2. Dados do Coordenador (Geral e Indicadores Gerais)
-    const monthNamesShort = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-    const selectedMonthName = monthNamesShort[refDateObj.getMonth()];
-    const selectedYear = refDateObj.getFullYear();
-    const monthKey = `${selectedMonthName} ${selectedYear}`;
-
-    // Busca a linha dos Indicadores Gerais que bate com o mês (ex: "Mai 2026")
-    const indicadoresGeraisRow = (data.filiais || []).find(f => 
-      f.id.toUpperCase().includes(selectedMonthName) && f.id.includes(selectedYear.toString())
-    );
-
-    const coordinatorRaw = (data.departamentos || []).find(d => d.id === 'REGIONAL') || {
-      vdaEft: '0',
-      metaDia: '0',
-      desvioPerc: '0%',
-      evolucaoPerc: '0%'
-    };
-
-    // 3. Departamentos do Coordenador (Busca simplificada por MED)
-    const regionalDepts = (data.departamentos || []).filter(d => {
-      return (d.departamento || '').toUpperCase() === 'MED';
-    }).map(d => {
+    const regionalDepts = (data.departamentos || []).filter(d => 
+      ['MED', 'HB (N-MED)', 'CLINIC', 'GERAL'].includes(d.departamento)
+    ).map(d => {
       const vdaNum = parseNum(d.vdaEft);
-      const alvoNum = parseNum(d.metaDia);
-      const valorRestante = Math.max(0, alvoNum - vdaNum);
-      const diasParaCalculo = parseInt(data.geral?.diasRestantes) || 24;
-      const metaRestanteDia = diasParaCalculo > 0 ? valorRestante / diasParaCalculo : 0;
+      const projNum = parseNum(d.projecao);
+      const metaMesNum = projNum / (parseNum(d.desvioPerc) / 100 + 1);
+      const valorRestante = Math.max(0, metaMesNum - vdaNum);
       
       return {
         ...d,
-        departamento: 'MEDICAMENTOS',
-        vdaEft: d.vdaEft || '0',
-        metaDia: d.metaDia || '0',
-        projecao: d.projecao || '0',
-        desvioPerc: d.desvioPerc || '0%',
-        vlrDesvio: d.vlrDesvio || '0',
-        metaRestanteDia: 'R$ ' + metaRestanteDia.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+        vdaEftNum: vdaNum,
+        projecaoNum: projNum,
+        metaMesNum,
+        valorRestante,
+        metaRestanteDia: diasRestantes > 0 ? valorRestante / diasRestantes : 0
       };
     });
 
-    const totalMeta = regionalDepts.reduce((acc, d) => acc + parseNum(d.metaDia), 0);
-    const totalVenda = regionalDepts.reduce((acc, d) => acc + parseNum(d.vdaEft), 0);
-    const performanceAcumulada = totalMeta > 0 ? (totalVenda / totalMeta) * 100 : 0;
+    const performanceGeral = regionalDepts.find(d => d.departamento === 'GERAL')?.desvioPerc || '0%';
 
-    const regional = {
-      id: coordinatorRaw.departamento || 'Área 02 Sul POA',
-      vdaEft: indicadoresGeraisRow?.vdaEft || coordinatorRaw.vdaEft || '0',
-      mediaDia: indicadoresGeraisRow?.mediaDia || 'R$ 0',
-      desvioPerc: indicadoresGeraisRow?.rtRep || coordinatorRaw.desvioPerc || '0%',
-      currentElapsed,
-      totalDays,
-      diasRestantes,
-      dentroMeta: parseNum(coordinatorRaw.desvioPerc) >= 0
-    };
-
-    return { 
-      filiais, 
-      regional, 
-      regionalDepts, 
-      departamentos: data.departamentos || [],
-      totalVenda,
-      totalMeta,
-      performanceAcumulada
+    return {
+      ...data,
+      geral: {
+        ...data.geral,
+        performanceGeral,
+        diasUteis: totalDays,
+        diasDecorridos: currentElapsed,
+        diasRestantes
+      },
+      filiais,
+      departamentos: regionalDepts
     };
   }, [data, referenceDate]);
 
-  return { enrichedData, loading, uploadStatus, error, updatedAt, handleFileUpload, handleClearData };
+  return {
+    data: enrichedData,
+    loading,
+    uploadStatus,
+    error,
+    updatedAt,
+    handleFileUpload,
+    handleClearData
+  };
 }
