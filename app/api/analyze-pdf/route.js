@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 import { sanitizeFirestoreData } from '@/app/utils/firestore';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const MAX_INPUT_CHARS = 30000;
 
