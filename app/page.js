@@ -13,10 +13,7 @@ import RankingTable from './components/RankingTable';
 import dynamic from 'next/dynamic';
 import { Brain, CheckCircle2, FileText, Loader2 } from 'lucide-react';
 
-const PerformanceChart = dynamic(() => import('./components/PerformanceChart'), {
-  ssr: false,
-  loading: () => <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>A carregar gráfico...</div>
-});
+
 
 function getProcessingStep(status) {
   const text = (status || '').toLowerCase();
@@ -211,8 +208,30 @@ export default function Dashboard() {
                 );
               })()}
 
-              {enrichedData.filiais.length > 1 && (
-                <PerformanceChart data={enrichedData.filiais} />
+              {enrichedData.participacao && (
+                <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '2rem' }}>
+                  <h3 style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>
+                    % Participação Venda Efetiva sobre a Venda
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+                    <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Med</p>
+                      <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-primary)' }}>{enrichedData.participacao.med || '0%'}</p>
+                    </div>
+                    <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>HB (N-Med)</p>
+                      <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-primary)' }}>{enrichedData.participacao.hb || '0%'}</p>
+                    </div>
+                    <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Gen</p>
+                      <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-primary)' }}>{enrichedData.participacao.gen || '0%'}</p>
+                    </div>
+                    <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>PP</p>
+                      <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-primary)' }}>{enrichedData.participacao.pp || '0%'}</p>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {enrichedData.filiais.length > 1 && (
