@@ -12,7 +12,6 @@ export function useDashboardData(user, referenceDate) {
 
   useEffect(() => {
     if (!user || !referenceDate) return;
-
     const docRef = doc(db, 'reports', referenceDate);
     const unsubscribe = onSnapshot(docRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -25,7 +24,6 @@ export function useDashboardData(user, referenceDate) {
         setUpdatedAt(null);
       }
     }, (err) => setError(err.message));
-
     return () => unsubscribe();
   }, [user, referenceDate]);
 
@@ -37,22 +35,39 @@ export function useDashboardData(user, referenceDate) {
 
     try {
       setLoading(true);
-      setUploadStatus('IA Processando o PDF...');
+      setUploadStatus('Lendo texto do PDF...');
       setError(null);
-      
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('referenceDate', referenceDate);
 
+      // Extração de texto local (rápida)
+      const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
+      
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+      }
+
+      setUploadStatus('Enviando texto para IA...');
+      
       const response = await fetch(MAKE_WEBHOOK_URL, {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: fullText,
+          referenceDate: referenceDate,
+          fileName: file.name
+        })
       });
 
-      if (!response.ok) throw new Error('Erro ao enviar para o servidor de IA');
+      if (!response.ok) throw new Error('Erro ao enviar para o Make');
 
-      setUploadStatus('Finalizando extração...');
-      await new Promise(r => setTimeout(r, 5000));
+      setUploadStatus('IA Processando...');
+      await new Promise(r => setTimeout(r, 8000));
       setUploadStatus('Concluído!');
     } catch (err) {
       setError('Erro no processamento: ' + err.message);
@@ -82,23 +97,17 @@ export function useDashboardData(user, referenceDate) {
     const totalDays = parseInt(data.geral?.diasUteis || '31');
     const diasRestantes = Math.max(0, totalDays - currentElapsed);
 
-    const filiais = (data.filiais || []).map(f => {
-      const vdaNum = parseNum(f.vdaEft);
-      const alvoNum = parseNum(f.mediaDia) * totalDays;
-      const valorRestante = Math.max(0, alvoNum - vdaNum);
-      return {
-        ...f,
-        valorRestante,
-        metaRestanteDia: diasRestantes > 0 ? valorRestante / diasRestantes : 0
-      };
-    });
+    const filiais = (data.filiais || []).map(f => ({
+      ...f,
+      valorRestante: Math.max(0, (parseNum(f.mediaDia) * totalDays) - parseNum(f.vdaEft)),
+      metaRestanteDia: diasRestantes > 0 ? Math.max(0, (parseNum(f.mediaDia) * totalDays) - parseNum(f.vdaEft)) / diasRestantes : 0
+    }));
 
-    const regionalDepts = (data.departamentos || []).filter(d => 
-      ['MED', 'HB (N-MED)', 'CLINIC', 'GERAL'].includes(d.departamento)
-    ).map(d => {
+    const regionalDepts = (data.departamentos || []).map(d => {
       const vdaNum = parseNum(d.vdaEft);
       const projNum = parseNum(d.projecao);
-      const metaMesNum = projNum / (parseNum(d.desvioPerc) / 100 + 1);
+      const desvio = parseNum(d.desvioPerc) / 100;
+      const metaMesNum = projNum / (desvio + 1);
       const valorRestante = Math.max(0, metaMesNum - vdaNum);
       
       return {
@@ -111,13 +120,10 @@ export function useDashboardData(user, referenceDate) {
       };
     });
 
-    const performanceGeral = regionalDepts.find(d => d.departamento === 'GERAL')?.desvioPerc || '0%';
-
     return {
       ...data,
       geral: {
         ...data.geral,
-        performanceGeral,
         diasUteis: totalDays,
         diasDecorridos: currentElapsed,
         diasRestantes
@@ -127,13 +133,5 @@ export function useDashboardData(user, referenceDate) {
     };
   }, [data, referenceDate]);
 
-  return {
-    data: enrichedData,
-    loading,
-    uploadStatus,
-    error,
-    updatedAt,
-    handleFileUpload,
-    handleClearData
-  };
+  return { data: enrichedData, loading, uploadStatus, error, updatedAt, handleFileUpload, handleClearData };
 }
