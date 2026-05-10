@@ -80,18 +80,31 @@ async function callOpenAI(prompt) {
 
 async function callGemini(prompt) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
-    generationConfig: {
-      temperature: 0,
-      maxOutputTokens: 2048,
-      responseMimeType: 'application/json',
-    },
-  });
+  const fallbackModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+  let lastError;
 
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  return extractJson(response.text());
+  for (const modelName of fallbackModels) {
+    try {
+      console.log(`[Gemini] Tentando modelo: ${modelName}...`);
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          temperature: 0,
+          maxOutputTokens: 2048,
+          responseMimeType: 'application/json',
+        },
+      });
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return extractJson(response.text());
+    } catch (error) {
+      console.warn(`[Gemini] Erro no modelo ${modelName}:`, error.message);
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("Todos os modelos de fallback do Gemini falharam.");
 }
 
 export async function POST(request) {
