@@ -168,20 +168,24 @@ export function useDashboardData(user, referenceDate) {
       rtRep: indicadoresGeraisRow?.rtRep || '0,0%'
     };
 
-    // 3. Departamentos do Coordenador (Apenas Med por enquanto, como solicitado)
+    // 3. Departamentos do Coordenador (Apenas Med por enquanto)
     const regionalDepts = (data.departamentos || []).filter(d => {
-      const deptName = d.departamento.toUpperCase();
-      return d.id === 'SUMMARY' && deptName === 'MED';
+      const deptName = (d.departamento || '').trim().toUpperCase();
+      return d.id === 'SUMMARY' && (deptName === 'MED' || deptName === 'MEDICAMENTOS');
     }).map(d => {
       const vdaNum = parseNum(d.vdaEft);
       const alvoNum = parseNum(d.metaDia); // Este é o Alvo total
       
       const valorRestante = Math.max(0, alvoNum - vdaNum);
-      const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
+      // Usa os dias restantes capturados do PDF (diasRestantes)
+      const diasParaCalculo = parseInt(data.geral?.diasRestantes) || diasRestantes;
+      const metaRestanteDia = diasParaCalculo > 0 ? valorRestante / diasParaCalculo : 0;
       
       return {
         ...d,
         departamento: 'MEDICAMENTOS',
+        projecao: d.projecao || 'R$ 0',
+        vlrDesvio: d.vlrDesvio || 'R$ 0',
         metaRestanteDia: 'R$ ' + metaRestanteDia.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       };
     });

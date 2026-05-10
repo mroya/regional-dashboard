@@ -37,13 +37,15 @@ export const parseRawRows = (rows) => {
     let filialId = null;
     
     // Na seção SUMMARY, o ID é o nome do depto (Med, HB, etc) na primeira coluna
-    const isSummaryRow = summaryKeywords.some(k => row[0].toUpperCase() === k);
+    const firstCell = (row[0] || '').trim().toUpperCase();
+    const isSummaryRow = summaryKeywords.some(k => firstCell.includes(k));
+    
     if (currentSection === 'SUMMARY' && isSummaryRow) {
-      filialId = row[0].trim();
+      filialId = firstCell;
     } 
     // Na seção GERAL, o ID é o nome do mês (ex: Mai 2026) na primeira coluna
-    else if (currentSection === 'GERAL' && monthKeywords.some(m => row[0].toUpperCase().includes(m))) {
-      filialId = row[0].trim();
+    else if (currentSection === 'GERAL' && monthKeywords.some(m => firstCell.includes(m))) {
+      filialId = firstCell;
     } else {
       for (let colIdx = 0; colIdx < Math.min(row.length, 3); colIdx++) {
         const cellClean = row[colIdx].trim().replace(/\D/g, ''); 
@@ -107,7 +109,6 @@ export const parseRawRows = (rows) => {
     }
 
     // 4. Totais Regionais (Linhas que começam com o nome do depto)
-    const firstCell = (row[0] || '').toUpperCase();
     if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'].includes(firstCell) || joined.startsWith(firstCell)) {
       if (firstCell.length > 3) {
         result.departamentos.push({
