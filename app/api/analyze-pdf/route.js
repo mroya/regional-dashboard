@@ -82,9 +82,9 @@ export async function POST(request) {
 
     const genAI = new GoogleGenerativeAI(geminiApiKey);
     const modelNames = [
-      'gemini-1.5-flash',
-      'gemini-1.5-pro',
-      'gemini-1.0-pro'
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-flash-latest'
     ].filter((model, index, models) => model && models.indexOf(model) === index);
 
     const limitedText = text.length > MAX_INPUT_CHARS ? text.slice(0, MAX_INPUT_CHARS) : text;
