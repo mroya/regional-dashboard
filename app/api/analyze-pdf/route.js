@@ -12,17 +12,20 @@ Voce e um analista financeiro. Analise o texto extraido de um PDF e extraia os i
 Responda somente com JSON valido, minificado, sem markdown e sem explicacoes.
 
 IMPORTANTE:
-- Procure por variacoes de nomes: "MED" ou "Medicamentos", "HB" ou "HB (N-Med)", "Clinic" ou "Clinica".
+- Na parte "geral", preencha diasUteis, diasRestantes e performanceGeral (Performance Acumulada do Mes).
+- A tabela principal de filiais vai em "filiais".
+- Existe uma tabela de resumo por area de negocio com as linhas "Geral", "Med", "HB (N-Med)", "Clinic". Voce DEVE colocar esses dados no array "departamentos".
 - Mapeie sempre para os nomes padroes: "MED", "HB (N-MED)", "CLINIC" e "GERAL".
-- Mantenha valores monetarios e percentuais como texto, no formato encontrado no relatorio.
+- A coluna "%Desv 1" vai para "desvioPerc". A coluna "VlrDesv" vai para "vlrDesvio".
+- Mantenha valores monetarios e percentuais como texto, no formato encontrado no relatorio (ex: "3.427.863").
 
 TEXTO:
 ${text}
 
 FORMATO JSON:
 {
-  "geral": { "diasUteis": "31", "diasRestantes": "..." },
-  "filiais": [ { "id": "Mes", "vdaEft": "...", "mediaDia": "...", "rtRep": "..." } ],
+  "geral": { "diasUteis": "31", "diasRestantes": "24", "performanceGeral": "..." },
+  "filiais": [ { "id": "...", "vdaEft": "...", "mediaDia": "...", "rtRep": "..." } ],
   "departamentos": [
     { "departamento": "MED", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
     { "departamento": "HB (N-MED)", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
