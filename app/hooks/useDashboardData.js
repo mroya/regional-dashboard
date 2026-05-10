@@ -174,7 +174,6 @@ export function useDashboardData(user, referenceDate) {
     const regionalDepts = (data.departamentos || []).filter(d => {
       return d.id === 'SUMMARY' && d.departamento === 'MED';
     }).map(d => {
-      // Na busca por Regex: [0]=VdaEft, [1]=Alvo, [2]=Proj, [3]=%Desv, [4]=VlrDesv
       const vdaNum = parseNum(d.vdaEft);
       const alvoNum = parseNum(d.metaDia);
       
