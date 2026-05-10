@@ -12,21 +12,30 @@ export const parseRawRows = (rows) => {
   const matchRest = fullText.match(/DIAS\s*REST[\.:\s]*(\d+)/i);
   if (matchRest) result.geral.diasRestantes = matchRest[1];
 
-  // 2. Captura da Tabela de Resumo (A lógica que o Python usou, agora no JS)
-  // Padrão: Nome do Depto + 5 blocos de números
-  const summaryPattern = /(GERAL|MED|HB \(N-MED\)|CLINIC)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d,%\-]+)\s+([\d.]+)/g;
-  let match;
-  while ((match = summaryPattern.exec(fullText)) !== null) {
-    result.departamentos.push({
-      id: 'SUMMARY',
-      departamento: match[1],
-      vdaEft: match[2],
-      metaDia: match[3],
-      projecao: match[4],
-      desvioPerc: match[5],
-      vlrDesvio: match[6]
-    });
-  }
+  // 2. Captura da Tabela de Resumo (Busca Flexível)
+  const keywords = ['GERAL', 'MED', 'HB (N-MED)', 'CLINIC'];
+  
+  keywords.forEach(key => {
+    const regex = new RegExp(`${key.replace('(', '\\(').replace(')', '\\)')}\\s+([\\d\\s.,%\\-]+)`, 'g');
+    let m;
+    while ((match = regex.exec(fullText)) !== null) {
+      // Pega o blocão de números e limpa
+      const numBlock = match[1].trim();
+      const numbers = numBlock.match(/[\d]{1,3}(?:\.[\d]{3})*(?:,[\d]+)?|[\d]+(?:,[\d]+)?/g) || [];
+      
+      if (numbers.length >= 4) {
+        result.departamentos.push({
+          id: 'SUMMARY',
+          departamento: key,
+          vdaEft: numbers[0],
+          metaDia: numbers[1],
+          projecao: numbers[2],
+          desvioPerc: numbers[3],
+          vlrDesvio: numbers[4] || '0'
+        });
+      }
+    }
+  });
 
   // 3. Captura de Meses (Topo do Dashboard) - Mantendo a lógica de linhas que já funcionava
   for (let i = 0; i < rows.length; i++) {
