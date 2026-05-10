@@ -31,44 +31,60 @@ export const parseRawRows = (rows) => {
     else if (joined.includes('HB (NÃO MEDICAMENTO)')) currentSection = 'HB';
     else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
 
-    // CAPTURA TOTAL: Se a linha tem números, a gente guarda para analisar depois
-    const numericCols = row.filter((cell, idx) => {
-      const clean = cell.replace(/[R$\s.%]/g, '').replace(/\./g, '').replace(',', '.');
-      return !isNaN(parseFloat(clean)) && /\d/.test(cell);
-    });
+    // BUSCA POR REGEX: Se a linha começa com Med, HB ou Clinic, extraímos tudo
+    const isMed = joined.startsWith('MED ') || joined === 'MED';
+    const isHB = joined.includes('HB (N-MED)');
+    const isClinic = joined.startsWith('CLINIC');
+    const isSummaryGeral = joined.startsWith('GERAL') && currentSection === 'SUMMARY';
 
-    if (numericCols.length >= 3) {
-      result.departamentos.push({
-        id: 'RAW',
-        departamento: row[0] || 'LINHA',
-        vdaEft: numericCols[0] || '0',
-        metaDia: numericCols[1] || '0',
-        projecao: numericCols[2] || '0',
-        desvioPerc: numericCols[3] || '0%',
-        vlrDesvio: numericCols[4] || 'R$ 0',
-        allValues: numericCols
-      });
-    }
+    if (isMed || isHB || isClinic || isSummaryGeral) {
+      // Extrai todos os números formatados (ex: 1.234.567 ou 12,34%)
+      const numbers = joined.match(/[\d.,%]+/g) || [];
+      // Filtra para garantir que são números reais (mínimo 2 dígitos ou ponto/vírgula)
+      const validNumbers = numbers.filter(n => n.length >= 2 || n.includes(',') || n.includes('.'));
 
-    // Mantém a detecção de Dias Úteis e Meses para o topo (que já funciona)
-    if (currentSection === 'GERAL' && monthKeywords.some(m => firstCell.includes(m))) {
-      result.filiais.push({
-        id: firstCell,
-        vdaEft: numericCols[0] || '0',
-        mediaDia: numericCols[1] || '0',
-        rtRep: numericCols[7] || '0%'
-      });
-    }
-
-    // 4. Totais Regionais (Linhas que começam com o nome do depto)
-    if (['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'].includes(firstCell) || joined.startsWith(firstCell)) {
-      if (firstCell.length > 3) {
+      if (validNumbers.length >= 4) {
         result.departamentos.push({
-          id: 'REGIONAL',
-          departamento: firstCell.replace(' TOTAL', ''),
-          vdaEft: row[1] || '0',
-          desvioPerc: row[4] || '0%',
-          evolucaoPerc: row[row.length - 1] || '0%'
+          id: 'SUMMARY',
+          departamento: isMed ? 'MED' : isHB ? 'HB' : isClinic ? 'CLINIC' : 'GERAL',
+          vdaEft: validNumbers[0],
+          metaDia: validNumbers[1], // Alvo
+          projecao: validNumbers[2],
+          desvioPerc: validNumbers[3],
+          vlrDesvio: validNumbers[4] || 'R$ 0',
+          allValues: validNumbers
+        });
+        continue;
+      }
+    }
+
+    let filialId = null;
+    const firstCell = (row[0] || '').trim().toUpperCase();
+    const monthKeywords = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+
+    // 4. Identificação de Filiais (Para outras tabelas que não a de resumo)
+    for (let colIdx = 0; colIdx < Math.min(row.length, 3); colIdx++) {
+      const cellClean = row[colIdx].trim().replace(/\D/g, ''); 
+      if (branchIds.includes(cellClean)) {
+        filialId = cellClean;
+        break;
+      }
+    }
+
+    if (filialId) {
+      const numericCols = row.filter((cell, idx) => {
+        const clean = cell.replace(/[R$\s.%]/g, '').replace(/\./g, '').replace(',', '.');
+        return idx > 0 && !isNaN(parseFloat(clean)) && /\d/.test(cell);
+      });
+
+      // Apenas para tabelas detalhadas de filiais
+      if (currentSection !== 'SUMMARY' && numericCols.length >= 2) {
+        result.filiais.push({
+          id: filialId,
+          vdaEft: numericCols[0] || '0',
+          metaDia: numericCols[1] || '0',
+          desvioPerc: numericCols[2] || '0%',
+          evolucaoPerc: numericCols[numericCols.length - 1] || '0%'
         });
       }
     }

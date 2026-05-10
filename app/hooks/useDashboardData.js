@@ -172,12 +172,11 @@ export function useDashboardData(user, referenceDate) {
     console.log("DEBUG - Todos os Deptos encontrados:", data.departamentos);
     
     const regionalDepts = (data.departamentos || []).filter(d => {
-      const deptName = (d.departamento || '').trim().toUpperCase();
-      return deptName === 'MED' || (deptName.includes('MED') && d.allValues?.length < 10);
+      return d.id === 'SUMMARY' && d.departamento === 'MED';
     }).map(d => {
-      // Na tabela de resumo: [0]=VdaEft, [1]=Alvo, [2]=Proj, [3]=%Desv, [4]=VlrDesv
-      const vdaNum = parseNum(d.allValues[0]);
-      const alvoNum = parseNum(d.allValues[1]);
+      // Na busca por Regex: [0]=VdaEft, [1]=Alvo, [2]=Proj, [3]=%Desv, [4]=VlrDesv
+      const vdaNum = parseNum(d.vdaEft);
+      const alvoNum = parseNum(d.metaDia);
       
       const valorRestante = Math.max(0, alvoNum - vdaNum);
       const diasParaCalculo = parseInt(data.geral?.diasRestantes) || diasRestantes;
@@ -186,11 +185,6 @@ export function useDashboardData(user, referenceDate) {
       return {
         ...d,
         departamento: 'MEDICAMENTOS',
-        vdaEft: d.allValues[0],
-        metaDia: d.allValues[1],
-        projecao: d.allValues[2],
-        desvioPerc: d.allValues[3],
-        vlrDesvio: d.allValues[4],
         metaRestanteDia: 'R$ ' + metaRestanteDia.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       };
     });
