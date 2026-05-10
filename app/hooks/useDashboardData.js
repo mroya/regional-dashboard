@@ -194,6 +194,16 @@ export function useDashboardData(user, referenceDate) {
     const totalVenda = regionalDepts.reduce((acc, d) => acc + parseNum(d.vdaEft), 0);
     const performanceAcumulada = totalMeta > 0 ? (totalVenda / totalMeta) * 100 : 0;
 
+    const regional = {
+      id: 'Área 02 Sul POA',
+      vdaEft: indicadoresGeraisRow?.vdaEft || '0',
+      mediaDia: indicadoresGeraisRow?.mediaDia || '0',
+      desvioPerc: indicadoresGeraisRow?.rtRep || '0%',
+      currentElapsed,
+      totalDays,
+      diasRestantes
+    };
+
     return { 
       filiais, 
       regional, 
