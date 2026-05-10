@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { db } from '../lib/firebase';
-import { doc, setDoc, getDoc, deleteDoc, serverTimestamp, collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc, serverTimestamp, collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { parseRawRows } from '../utils/pdf-parser';
 import { parseNum } from '../utils/formatters';
 
@@ -10,30 +10,37 @@ export function useDashboardData(user, referenceDate) {
   const [error, setError] = useState(null);
   const [updatedAt, setUpdatedAt] = useState(null);
 
-  // Sync with Firestore
+  // FIX: A query agora filtra pelo referenceDate selecionado no dashboard.
+  // Antes buscava sempre o doc mais recente, ignorando a data — causava dados errados.
+  // O documento é salvo com ID = referenceDate (ex: "2025-05-08"), então buscamos por esse ID.
   useEffect(() => {
-    if (!user) return;
-    const q = query(collection(db, 'reports'), orderBy('timestamp', 'desc'), limit(1));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        const docData = snapshot.docs[0].data();
+    if (!user || !referenceDate) return;
+
+    const docRef = doc(db, 'reports', referenceDate);
+    const unsubscribe = onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const docData = snapshot.data();
         setData(docData);
         setUpdatedAt(docData.updatedAtStr);
+        setError(null);
       } else {
+        // Nenhum dado para esta data — mostra estado vazio em vez de dados de outra data
         setData(null);
         setUpdatedAt(null);
       }
     }, (err) => setError(err.message));
+
     return () => unsubscribe();
-  }, [user]);
+  }, [user, referenceDate]); // Re-executa quando a data muda
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     try {
       setLoading(true);
+      setError(null);
       const pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let allRows = [];
@@ -59,7 +66,10 @@ export function useDashboardData(user, referenceDate) {
       const refDateObj = new Date(referenceDate + 'T12:00:00');
       const currentElapsed = refDateObj.getDate() || 1;
 
-      await setDoc(doc(db, 'reports', 'latest'), {
+      // FIX: Salva o documento usando referenceDate como ID (ex: "2025-05-08")
+      // em vez de sempre sobrescrever 'latest'.
+      // Assim cada data tem seus próprios dados e a query por data funciona corretamente.
+      await setDoc(doc(db, 'reports', referenceDate), {
         ...parsed,
         timestamp: serverTimestamp(),
         updatedAtStr: nowStr,
@@ -75,10 +85,11 @@ export function useDashboardData(user, referenceDate) {
   };
 
   const handleClearData = async () => {
-    if (!confirm('Tem certeza que deseja limpar todos os dados do dashboard?')) return;
+    if (!confirm('Tem certeza que deseja limpar os dados desta data?')) return;
     try {
       setLoading(true);
-      await deleteDoc(doc(db, 'reports', 'latest'));
+      // FIX: Apaga apenas o documento da data selecionada, não um 'latest' genérico
+      await deleteDoc(doc(db, 'reports', referenceDate));
       setData(null);
     } catch (err) {
       setError('Erro ao limpar dados: ' + err.message);
@@ -91,9 +102,9 @@ export function useDashboardData(user, referenceDate) {
     if (!data) return null;
     const refDateObj = new Date(referenceDate + 'T12:00:00');
     const currentElapsed = refDateObj.getDate() || 1;
-    const totalDays = parseInt(data.geral.diasUteis || '31');
+    const totalDays = parseInt(data.geral?.diasUteis || '31');
 
-    const filiais = data.filiais.map(f => {
+    const filiais = (data.filiais || []).map(f => {
       const vdaEftNum = parseNum(f.vdaEft);
       const metaDiaNum = parseNum(f.metaDia);
       const projecaoFinal = (vdaEftNum / currentElapsed) * totalDays;
@@ -128,7 +139,7 @@ export function useDashboardData(user, referenceDate) {
 
     const deptKeys = ['MEDICAMENTO_GERAL', 'GENERICO', 'HB', 'PANVEL'];
     const regionalDepts = deptKeys.map(k => {
-      const dItems = data.departamentos.filter(d => d.departamento === k);
+      const dItems = (data.departamentos || []).filter(d => d.departamento === k);
       if (dItems.length === 0) return null;
       const totalVda = dItems.reduce((acc, d) => acc + parseNum(d.vdaEft), 0);
       const avgDesv = dItems.reduce((acc, d) => acc + parseNum(d.desvioPerc), 0) / dItems.length;
@@ -140,7 +151,7 @@ export function useDashboardData(user, referenceDate) {
       };
     }).filter(Boolean);
 
-    const departamentos = data.departamentos.map(d => {
+    const departamentos = (data.departamentos || []).map(d => {
       const branch = filiais.find(f => f.id === d.id);
       const branchTotal = branch ? branch.vdaEftNum : 0;
       const share = branchTotal > 0 ? (parseNum(d.vdaEft) / branchTotal) * 100 : 0;

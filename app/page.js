@@ -14,12 +14,19 @@ import Sidebar from './components/Sidebar';
 import { RegionalHeader, DepartmentGrid } from './components/RegionalStats';
 import RankingTable from './components/RankingTable';
 import BranchDetail from './components/BranchDetail';
-import PerformanceChart from './components/PerformanceChart';
+
+import dynamic from 'next/dynamic';
+
+// Importação dinâmica para impedir que o gráfico renderize no servidor
+const PerformanceChart = dynamic(() => import('./components/PerformanceChart'), {
+  ssr: false,
+  loading: () => <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>A carregar gráfico...</div>
+});
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [authMode, setAuthMode] = useState('LOGIN'); 
+  const [authMode, setAuthMode] = useState('LOGIN');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [authError, setAuthError] = useState('');
@@ -34,8 +41,10 @@ export default function Dashboard() {
   const getYesterdayStr = () => {
     const d = new Date();
     d.setDate(d.getDate() - 1);
-    return d.toISOString().split('T')[0];
+    // Compensa o fuso horário local antes de converter para ISO
+    return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
   };
+
   const defaultDate = getYesterdayStr();
   const [referenceDate, setReferenceDate] = useState(defaultDate);
 
@@ -80,28 +89,50 @@ export default function Dashboard() {
     <>
       {loading && <div className="pdf-loader">Processando PDF...</div>}
       <div className={`dashboard-container ${darkMode ? 'dark' : 'light'}`}>
-        <Sidebar {...{ 
+        <Sidebar {...{
           user, sidebarOpen, setSidebarOpen, darkMode, setDarkMode, clock, weather, weatherIcon,
-          referenceDate, setReferenceDate, defaultDate, 
+          referenceDate, setReferenceDate, defaultDate,
           elapsedDays: enrichedData?.regional.currentElapsed || 1,
           selectedFilial, setSelectedFilial, enrichedData, updatedAt, handleFileUpload, handleClearData, handleLogout
         }} />
 
         <main className="main-content">
           {error && <div className="error-banner">{error}</div>}
-          
+
           {enrichedData && (
             <div className="animate-fade-in">
               {selectedFilial === 'REGIONAL' ? (
                 <>
-                  <RegionalHeader regional={enrichedData.regional} shareWhatsApp={shareWhatsApp} />
-                  <DepartmentGrid regionalDepts={enrichedData.regionalDepts} />
-                  <PerformanceChart data={enrichedData.filiais} />
-                  <RankingTable {...{ filiais: enrichedData.filiais, filterMeta, setFilterMeta, sortConfig, setSortConfig }} />
+                  <div className="animate-fade-in">
+                    <RegionalHeader
+                      regional={enrichedData.regional}
+                      shareWhatsApp={shareWhatsApp}
+                    />
+
+                    <DepartmentGrid
+                      regionalDepts={enrichedData.regionalDepts}
+                    />
+                  </div>
+
+                  <PerformanceChart
+                    data={enrichedData.filiais}
+                  />
+
+                  <div className="animate-fade-in">
+                    <RankingTable
+                      {...{
+                        filiais: enrichedData.filiais,
+                        filterMeta,
+                        setFilterMeta,
+                        sortConfig,
+                        setSortConfig
+                      }}
+                    />
+                  </div>
                 </>
               ) : (
-                <BranchDetail 
-                  f={enrichedData.filiais.find(f => f.id === selectedFilial)} 
+                <BranchDetail
+                  f={enrichedData.filiais.find(f => f.id === selectedFilial)}
                   depts={enrichedData.departamentos}
                   setSelectedFilial={setSelectedFilial}
                   shareFilialWhatsApp={shareFilialWhatsApp}
