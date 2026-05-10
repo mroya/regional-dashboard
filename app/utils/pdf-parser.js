@@ -32,6 +32,9 @@ export const parseRawRows = (rows) => {
     else if (joined.includes('PRODUTOS PANVEL')) currentSection = 'PANVEL';
 
     // BUSCA POR COLUNA LATERAL: O 'Med' pode estar no meio da linha (2ª coluna do PDF)
+    const splitJoined = joined.replace(/([A-Z])([\d])/g, '$1 $2').replace(/([\d])([A-Z])/g, '$1 $2');
+    const cleanJoined = splitJoined.replace(/\s+/g, ' '); 
+    
     const summaryKeys = [
       { key: 'MED', label: 'MED' },
       { key: 'HB (N-MED)', label: 'HB' },
