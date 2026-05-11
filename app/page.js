@@ -11,7 +11,7 @@ import RegionalStats from './components/RegionalStats';
 import BranchDetail from './components/BranchDetail';
 import FiliaisDailyTable from './components/FiliaisDailyTable';
 import dynamic from 'next/dynamic';
-import { Brain, CheckCircle2, FileText, Loader2, Receipt, TrendingUp, TrendingDown, Pill, Package, ShoppingBag, Tag, Ticket, PieChart } from 'lucide-react';
+import { Brain, CheckCircle2, FileText, Loader2, Receipt, TrendingUp, TrendingDown, Pill, Package, ShoppingBag, Tag, Ticket, PieChart, Heart } from 'lucide-react';
 
 
 
@@ -415,6 +415,36 @@ export default function Dashboard() {
                         <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                           {enrichedData.geral?.pbmRepr || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>%Repr 80/20</span>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
+                        <Heart size={24} color="#ec4899" />
+                      </div>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Troco Amigo (Total Regional)</h3>
+                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {enrichedData.geral?.taVlr || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>Vlr T.Amigo</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Valor Ontem</p>
+                      <div style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '6px',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        color: 'var(--text-primary)',
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        fontWeight: '700',
+                        fontSize: '1.1rem'
+                      }}>
+                        {enrichedData.geral?.taVlrOntem || '-'}
                       </div>
                     </div>
                   </div>
