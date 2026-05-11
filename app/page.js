@@ -11,7 +11,7 @@ import RegionalStats from './components/RegionalStats';
 import BranchDetail from './components/BranchDetail';
 import FiliaisDailyTable from './components/FiliaisDailyTable';
 import dynamic from 'next/dynamic';
-import { Brain, CheckCircle2, FileText, Loader2, Receipt, TrendingUp, TrendingDown, Pill, Package, ShoppingBag, Tag } from 'lucide-react';
+import { Brain, CheckCircle2, FileText, Loader2, Receipt, TrendingUp, TrendingDown, Pill, Package, ShoppingBag, Tag, Ticket, PieChart } from 'lucide-react';
 
 
 
@@ -387,6 +387,34 @@ export default function Dashboard() {
                       }}>
                         {parseNum(enrichedData.geral?.ppEvlVda || '0') >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
                         {enrichedData.geral?.ppEvlVda || '0%'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
+                        <Ticket size={24} color="#10b981" />
+                      </div>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Cupom Bem Panvel (Total Regional)</h3>
+                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {enrichedData.geral?.cupomSVda || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>%S/Vda</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
+                        <PieChart size={24} color="#0ea5e9" />
+                      </div>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>PBM (Total Regional)</h3>
+                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {enrichedData.geral?.pbmRepr || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>%Repr 80/20</span>
+                        </div>
                       </div>
                     </div>
                   </div>
