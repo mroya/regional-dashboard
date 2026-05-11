@@ -267,185 +267,94 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
-                        <Pill size={24} color="#3b82f6" />
-                      </div>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Medicamento Total (Total Regional)</h3>
-                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                          {enrichedData.geral?.medDesv || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>Desvio</span>
+                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem' }}>
+                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>
+                      Desempenho por Departamento (Total Regional)
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
+                      
+                      {/* Medicamento Total */}
+                      <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                          <Pill size={16} color="#3b82f6" />
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>Medicamento</p>
+                        </div>
+                        <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{enrichedData.geral?.medDesv || '-'} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Desv</span></p>
+                        <div style={{ fontSize: '0.85rem', color: parseNum(enrichedData.geral?.medEvlVda || '0') >= 0 ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', fontWeight: 600 }}>
+                          {parseNum(enrichedData.geral?.medEvlVda || '0') >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                          {enrichedData.geral?.medEvlVda || '0%'} Evol
                         </div>
                       </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Evolução de Vendas</p>
-                      <div style={{ 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '6px',
-                        background: parseNum(enrichedData.geral?.medEvlVda || '0') >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                        color: parseNum(enrichedData.geral?.medEvlVda || '0') >= 0 ? '#10b981' : '#ef4444',
-                        padding: '6px 12px',
-                        borderRadius: '20px',
-                        fontWeight: '700',
-                        fontSize: '1.1rem'
-                      }}>
-                        {parseNum(enrichedData.geral?.medEvlVda || '0') >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                        {enrichedData.geral?.medEvlVda || '0%'}
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
-                        <Package size={24} color="#8b5cf6" />
-                      </div>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Genérico (Total Regional)</h3>
-                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                          {enrichedData.geral?.genDesv || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>Desvio</span>
+                      {/* Genérico */}
+                      <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                          <Package size={16} color="#8b5cf6" />
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>Genérico</p>
+                        </div>
+                        <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{enrichedData.geral?.genDesv || '-'} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Desv</span></p>
+                        <div style={{ fontSize: '0.85rem', color: parseNum(enrichedData.geral?.genEvlVda || '0') >= 0 ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', fontWeight: 600 }}>
+                          {parseNum(enrichedData.geral?.genEvlVda || '0') >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                          {enrichedData.geral?.genEvlVda || '0%'} Evol
                         </div>
                       </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Evolução de Vendas</p>
-                      <div style={{ 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '6px',
-                        background: parseNum(enrichedData.geral?.genEvlVda || '0') >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                        color: parseNum(enrichedData.geral?.genEvlVda || '0') >= 0 ? '#10b981' : '#ef4444',
-                        padding: '6px 12px',
-                        borderRadius: '20px',
-                        fontWeight: '700',
-                        fontSize: '1.1rem'
-                      }}>
-                        {parseNum(enrichedData.geral?.genEvlVda || '0') >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                        {enrichedData.geral?.genEvlVda || '0%'}
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
-                        <ShoppingBag size={24} color="#f43f5e" />
-                      </div>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>HB / Não Medicamento (Total Regional)</h3>
-                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                          {enrichedData.geral?.hbDesv || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>Desvio</span>
+                      {/* HB */}
+                      <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                          <ShoppingBag size={16} color="#f43f5e" />
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>HB (Não Med)</p>
+                        </div>
+                        <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{enrichedData.geral?.hbDesv || '-'} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Desv</span></p>
+                        <div style={{ fontSize: '0.85rem', color: parseNum(enrichedData.geral?.hbEvlVda || '0') >= 0 ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', fontWeight: 600 }}>
+                          {parseNum(enrichedData.geral?.hbEvlVda || '0') >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                          {enrichedData.geral?.hbEvlVda || '0%'} Evol
                         </div>
                       </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Evolução de Vendas</p>
-                      <div style={{ 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '6px',
-                        background: parseNum(enrichedData.geral?.hbEvlVda || '0') >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                        color: parseNum(enrichedData.geral?.hbEvlVda || '0') >= 0 ? '#10b981' : '#ef4444',
-                        padding: '6px 12px',
-                        borderRadius: '20px',
-                        fontWeight: '700',
-                        fontSize: '1.1rem'
-                      }}>
-                        {parseNum(enrichedData.geral?.hbEvlVda || '0') >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                        {enrichedData.geral?.hbEvlVda || '0%'}
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
-                        <Tag size={24} color="#f59e0b" />
-                      </div>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Produtos Panvel (Total Regional)</h3>
-                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                          {enrichedData.geral?.ppDesv || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>Desvio</span>
+                      {/* Produtos Panvel */}
+                      <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                          <Tag size={16} color="#f59e0b" />
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>Prod Panvel</p>
+                        </div>
+                        <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{enrichedData.geral?.ppDesv || '-'} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Desv</span></p>
+                        <div style={{ fontSize: '0.85rem', color: parseNum(enrichedData.geral?.ppEvlVda || '0') >= 0 ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', fontWeight: 600 }}>
+                          {parseNum(enrichedData.geral?.ppEvlVda || '0') >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                          {enrichedData.geral?.ppEvlVda || '0%'} Evol
                         </div>
                       </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Evolução de Vendas</p>
-                      <div style={{ 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '6px',
-                        background: parseNum(enrichedData.geral?.ppEvlVda || '0') >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                        color: parseNum(enrichedData.geral?.ppEvlVda || '0') >= 0 ? '#10b981' : '#ef4444',
-                        padding: '6px 12px',
-                        borderRadius: '20px',
-                        fontWeight: '700',
-                        fontSize: '1.1rem'
-                      }}>
-                        {parseNum(enrichedData.geral?.ppEvlVda || '0') >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                        {enrichedData.geral?.ppEvlVda || '0%'}
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
-                        <Ticket size={24} color="#10b981" />
-                      </div>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Cupom Bem Panvel (Total Regional)</h3>
-                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                          {enrichedData.geral?.cupomSVda || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>%S/Vda</span>
+                      {/* Cupom Bem Panvel */}
+                      <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                          <Ticket size={16} color="#10b981" />
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>Cupom Bem</p>
                         </div>
+                        <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{enrichedData.geral?.cupomSVda || '-'} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>%S/Vda</span></p>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
-                        <PieChart size={24} color="#0ea5e9" />
-                      </div>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>PBM (Total Regional)</h3>
-                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                          {enrichedData.geral?.pbmRepr || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>%Repr 80/20</span>
+                      {/* PBM */}
+                      <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                          <PieChart size={16} color="#0ea5e9" />
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>PBM</p>
                         </div>
+                        <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{enrichedData.geral?.pbmRepr || '-'} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>%Repr 80/20</span></p>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
-                        <Heart size={24} color="#ec4899" />
-                      </div>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Troco Amigo (Total Regional)</h3>
-                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                          {enrichedData.geral?.taVlr || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>Vlr T.Amigo</span>
+                      {/* Troco Amigo */}
+                      <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                          <Heart size={16} color="#ec4899" />
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>Troco Amigo</p>
+                        </div>
+                        <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{enrichedData.geral?.taVlr || '-'} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Vlr</span></p>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', fontWeight: 600 }}>
+                          Ontem: {enrichedData.geral?.taVlrOntem || '-'}
                         </div>
                       </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Valor Ontem</p>
-                      <div style={{ 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '6px',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        color: 'var(--text-primary)',
-                        padding: '6px 12px',
-                        borderRadius: '20px',
-                        fontWeight: '700',
-                        fontSize: '1.1rem'
-                      }}>
-                        {enrichedData.geral?.taVlrOntem || '-'}
-                      </div>
+
                     </div>
                   </div>
 
