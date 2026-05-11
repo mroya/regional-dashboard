@@ -25,6 +25,7 @@ IMPORTANTE:
 - Para os departamentos: a coluna "%Desv 1" vai para "desvioPerc". A coluna "VlrDesv" vai para "vlrDesvio".
 - Procure a tabela de "% Participacao" (que tem as colunas Med, HB, Clinic, Marca, Gen, RX, OTC, BIO, PP, Lifar).
 - Extraia os valores percentuais da linha referente ao mes principal e coloque na secao "participacao" (para "med", "hb", "gen" e "pp").
+- Na tabela principal de filiais (REGIONAL), você DEVE extrair as colunas: "Vda Eft" (vdaEft), "Vda Ont" (vdaOnt), "Alvo" (alvo), "%Desv" (desvioPerc) e "%Evl Vda" (evlVda).
 - Mantenha valores monetarios e percentuais como texto original (ex: "3.427.863", "67,34%").
 
 TEXTO:
@@ -33,7 +34,7 @@ ${text}
 FORMATO JSON:
 {
   "geral": { "diasUteis": "31", "diasRestantes": "24", "performanceGeral": "..." },
-  "filiais": [ { "id": "Mes", "vdaEft": "...", "mediaDia": "...", "rtRep": "..." } ],
+  "filiais": [ { "id": "123", "vdaEft": "...", "vdaOnt": "...", "alvo": "...", "desvioPerc": "...", "evlVda": "...", "mediaDia": "...", "rtRep": "..." } ],
   "participacao": { "med": "...", "hb": "...", "gen": "...", "pp": "..." },
   "departamentos": [
     { "departamento": "MED", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },

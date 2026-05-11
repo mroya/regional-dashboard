@@ -10,6 +10,7 @@ import Sidebar from './components/Sidebar';
 import RegionalStats from './components/RegionalStats';
 import BranchDetail from './components/BranchDetail';
 import RankingTable from './components/RankingTable';
+import FiliaisDailyTable from './components/FiliaisDailyTable';
 import dynamic from 'next/dynamic';
 import { Brain, CheckCircle2, FileText, Loader2 } from 'lucide-react';
 
@@ -235,14 +236,17 @@ export default function Dashboard() {
               )}
 
               {enrichedData.filiais.length > 1 && (
-                <RankingTable
-                  filiais={enrichedData.filiais}
-                  filterMeta={filterMeta}
-                  setFilterMeta={setFilterMeta}
-                  sortConfig={sortConfig}
-                  setSortConfig={setSortConfig}
-                  setSelectedFilial={setSelectedFilial}
-                />
+                <>
+                  <RankingTable
+                    filiais={enrichedData.filiais}
+                    filterMeta={filterMeta}
+                    setFilterMeta={setFilterMeta}
+                    sortConfig={sortConfig}
+                    setSortConfig={setSortConfig}
+                    setSelectedFilial={setSelectedFilial}
+                  />
+                  <FiliaisDailyTable filiais={enrichedData.filiais} />
+                </>
               )}
             </div>
           ) : (
