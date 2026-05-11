@@ -6,7 +6,7 @@ import crypto from 'crypto';
 export const runtime = 'nodejs';
 export const maxDuration = 300;
 
-const MAX_INPUT_CHARS = 30000;
+const MAX_INPUT_CHARS = 150000;
 
 // Cache em memoria inteligente (hash do texto -> resultado)
 // Isso evita reprocessar o mesmo PDF (ex: multiplos envios sem querer), economizando API
@@ -27,6 +27,7 @@ IMPORTANTE:
 - Extraia os valores percentuais da linha referente ao mes principal e coloque na secao "participacao" (para "med", "hb", "gen" e "pp").
 - Na tabela principal de filiais (REGIONAL), você DEVE extrair as colunas: "Vda Eft" (vdaEft), "Vda Ont" (vdaOnt), "Alvo" (alvo), "%Desv" (desvioPerc) e "%Evl Vda" (evlVda). Não extraia tktMed por filial.
 - Mantenha valores monetarios e percentuais como texto original (ex: "3.427.863", "67,34%").
+- IMPORTANTE: NUNCA retorne os "..." literais do formato JSON. Substitua-os pelos valores reais que encontrar. Se não houver valor ou tabela, retorne "-".
 
 TEXTO:
 ${text}
@@ -131,8 +132,8 @@ export async function POST(request) {
     const limitedText = text.length > MAX_INPUT_CHARS ? text.slice(0, MAX_INPUT_CHARS) : text;
     
     // Cache Inteligente
-    // Adicionado "v11" para invalidar o cache antigo e forçar a extração de Troco Amigo
-    const textHash = crypto.createHash('sha256').update(limitedText + "v11").digest('hex');
+    // Adicionado "v12" para invalidar o cache antigo e processar o texto completo sem cortes
+    const textHash = crypto.createHash('sha256').update(limitedText + "v12").digest('hex');
     if (analysisCache.has(textHash)) {
       console.log('[Cache] Dados carregados do cache em memoria');
       return NextResponse.json({ success: true, data: analysisCache.get(textHash), fromCache: true });
