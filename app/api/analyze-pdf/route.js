@@ -66,21 +66,26 @@ async function callOpenAI(prompt) {
   });
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini", // Model mais rápido e barato
+    model: "gpt-4o-mini",
     messages: [
       { role: "system", content: "Você é um assistente especializado em extrair dados financeiros e retornar apenas JSON." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" },
     temperature: 0,
+    max_tokens: 4096, // Aumentado para garantir que o JSON não seja cortado na metade
   });
 
-  return JSON.parse(response.choices[0].message.content);
+  const rawText = response.choices[0].message.content;
+  try {
+    return JSON.parse(rawText);
+  } catch (err) {
+    throw new Error("OpenAI gerou um JSON incompleto/invalido: " + rawText.slice(0, 300));
+  }
 }
 
 async function callGemini(prompt) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  // Modelos disponíveis e atualizados
   const fallbackModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-2.5-pro'];
   let lastError;
 
@@ -91,14 +96,20 @@ async function callGemini(prompt) {
         model: modelName,
         generationConfig: {
           temperature: 0,
-          maxOutputTokens: 2048,
+          maxOutputTokens: 4096, // Aumentado para evitar cortes
           responseMimeType: 'application/json',
         },
       });
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
-      return extractJson(response.text());
+      const rawText = response.text();
+      
+      try {
+        return extractJson(rawText);
+      } catch (parseErr) {
+        throw new Error(`Parse failed no ${modelName}. Raw: ` + rawText.slice(0, 300));
+      }
     } catch (error) {
       console.warn(`[Gemini] Erro no modelo ${modelName}:`, error.message);
       lastError = error;
