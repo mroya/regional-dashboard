@@ -112,7 +112,7 @@ export default function FiliaisDailyTable({ filiais }) {
                 <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden' }}>
                   <div style={{ 
                     height: '100%', 
-                    width: \`\${progresso}%\`, 
+                    width: progresso + '%', 
                     background: isOnTarget ? '#10b981' : '#ef4444',
                     borderRadius: '10px',
                     transition: 'width 1s ease-out'
@@ -146,8 +146,7 @@ export default function FiliaisDailyTable({ filiais }) {
           );
         })}
       </div>
-      
-      <style jsx>{\`
+      <style jsx>{`
         .hover-lift {
           transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
@@ -155,7 +154,7 @@ export default function FiliaisDailyTable({ filiais }) {
           transform: translateY(-4px);
           box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
-      \`}</style>
+      `}</style>
     </div>
   );
 }
