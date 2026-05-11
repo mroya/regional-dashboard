@@ -25,7 +25,7 @@ IMPORTANTE:
 - Para os departamentos: a coluna "%Desv 1" vai para "desvioPerc". A coluna "VlrDesv" vai para "vlrDesvio".
 - Procure a tabela de "% Participacao" (que tem as colunas Med, HB, Clinic, Marca, Gen, RX, OTC, BIO, PP, Lifar).
 - Extraia os valores percentuais da linha referente ao mes principal e coloque na secao "participacao" (para "med", "hb", "gen" e "pp").
-- Na tabela principal de filiais (REGIONAL), você DEVE extrair as colunas: "Vda Eft" (vdaEft), "Vda Ont" (vdaOnt), "Alvo" (alvo), "%Desv" (desvioPerc), "%Evl Vda" (evlVda), "Tkt Méd" (tktMed) e "%Ev Tkt" (evTkt).
+- Na tabela principal de filiais (REGIONAL), você DEVE extrair as colunas: "Vda Eft" (vdaEft), "Vda Ont" (vdaOnt), "Alvo" (alvo), "%Desv" (desvioPerc) e "%Evl Vda" (evlVda). Não extraia tktMed por filial.
 - Mantenha valores monetarios e percentuais como texto original (ex: "3.427.863", "67,34%").
 
 TEXTO:
@@ -74,7 +74,7 @@ async function callOpenAI(prompt) {
     ],
     response_format: { type: "json_object" },
     temperature: 0,
-    max_tokens: 4096, // Aumentado para garantir que o JSON não seja cortado na metade
+    max_tokens: 8192, // Aumentado para garantir que o JSON não seja cortado na metade
   });
 
   const rawText = response.choices[0].message.content;
@@ -97,7 +97,7 @@ async function callGemini(prompt) {
         model: modelName,
         generationConfig: {
           temperature: 0,
-          maxOutputTokens: 4096, // Aumentado para evitar cortes
+          maxOutputTokens: 8192, // Aumentado para evitar cortes
           responseMimeType: 'application/json',
         },
       });
@@ -131,8 +131,8 @@ export async function POST(request) {
     const limitedText = text.length > MAX_INPUT_CHARS ? text.slice(0, MAX_INPUT_CHARS) : text;
     
     // Cache Inteligente
-    // Adicionado "v3" para invalidar o cache antigo e forçar a extração dos totais de Ticket
-    const textHash = crypto.createHash('sha256').update(limitedText + "v3").digest('hex');
+    // Adicionado "v4" para invalidar o cache antigo e forçar a nova estrutura limpa
+    const textHash = crypto.createHash('sha256').update(limitedText + "v4").digest('hex');
     if (analysisCache.has(textHash)) {
       console.log('[Cache] Dados carregados do cache em memoria');
       return NextResponse.json({ success: true, data: analysisCache.get(textHash), fromCache: true });
