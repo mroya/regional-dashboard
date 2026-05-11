@@ -10,9 +10,8 @@ import Sidebar from './components/Sidebar';
 import RegionalStats from './components/RegionalStats';
 import BranchDetail from './components/BranchDetail';
 import FiliaisDailyTable from './components/FiliaisDailyTable';
-import TicketsGrid from './components/TicketsGrid';
 import dynamic from 'next/dynamic';
-import { Brain, CheckCircle2, FileText, Loader2 } from 'lucide-react';
+import { Brain, CheckCircle2, FileText, Loader2, Receipt, TrendingUp, TrendingDown } from 'lucide-react';
 
 
 
@@ -237,7 +236,36 @@ export default function Dashboard() {
 
               {enrichedData.filiais.length > 1 && (
                 <>
-                  <TicketsGrid filiais={enrichedData.filiais} />
+                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
+                        <Receipt size={24} color="var(--accent-primary)" />
+                      </div>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Ticket Médio (Total Regional)</h3>
+                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {enrichedData.geral?.tktMed || '-'}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Evolução de Ticket</p>
+                      <div style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '6px',
+                        background: parseNum(enrichedData.geral?.evTkt || '0') >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        color: parseNum(enrichedData.geral?.evTkt || '0') >= 0 ? '#10b981' : '#ef4444',
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        fontWeight: '700',
+                        fontSize: '1.1rem'
+                      }}>
+                        {parseNum(enrichedData.geral?.evTkt || '0') >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+                        {enrichedData.geral?.evTkt || '0%'}
+                      </div>
+                    </div>
+                  </div>
                   <FiliaisDailyTable filiais={enrichedData.filiais} />
                 </>
               )}

@@ -18,7 +18,7 @@ Voce e um analista financeiro. Analise o texto extraido de um PDF e extraia os i
 Responda somente com JSON valido, minificado, sem markdown e sem explicacoes.
 
 IMPORTANTE:
-- Na parte "geral", preencha diasUteis, diasRestantes e performanceGeral (Performance Acumulada do Mes).
+- Na parte "geral", preencha diasUteis, diasRestantes, performanceGeral (Performance Acumulada do Mes). Procure também a linha "Total :" da tabela de filiais e extraia "Tkt Méd" (tktMed) e "%Ev Tkt" (evTkt).
 - A tabela principal de filiais vai em "filiais".
 - Existe uma tabela de resumo por area de negocio com as linhas "Geral", "Med", "HB (N-Med)", "Clinic". Voce DEVE colocar esses dados no array "departamentos".
 - Mapeie sempre para os nomes padroes: "MED", "HB (N-MED)", "CLINIC" e "GERAL".
@@ -33,8 +33,8 @@ ${text}
 
 FORMATO JSON:
 {
-  "geral": { "diasUteis": "31", "diasRestantes": "24", "performanceGeral": "..." },
-  "filiais": [ { "id": "123", "vdaEft": "...", "vdaOnt": "...", "alvo": "...", "desvioPerc": "...", "evlVda": "...", "tktMed": "...", "evTkt": "...", "mediaDia": "...", "rtRep": "..." } ],
+  "geral": { "diasUteis": "31", "diasRestantes": "24", "performanceGeral": "...", "tktMed": "...", "evTkt": "..." },
+  "filiais": [ { "id": "123", "vdaEft": "...", "vdaOnt": "...", "alvo": "...", "desvioPerc": "...", "evlVda": "...", "mediaDia": "...", "rtRep": "..." } ],
   "participacao": { "med": "...", "hb": "...", "gen": "...", "pp": "..." },
   "departamentos": [
     { "departamento": "MED", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
@@ -131,8 +131,8 @@ export async function POST(request) {
     const limitedText = text.length > MAX_INPUT_CHARS ? text.slice(0, MAX_INPUT_CHARS) : text;
     
     // Cache Inteligente
-    // Adicionado "v2" para invalidar o cache antigo e forçar a extração dos novos campos (Tkt)
-    const textHash = crypto.createHash('sha256').update(limitedText + "v2").digest('hex');
+    // Adicionado "v3" para invalidar o cache antigo e forçar a extração dos totais de Ticket
+    const textHash = crypto.createHash('sha256').update(limitedText + "v3").digest('hex');
     if (analysisCache.has(textHash)) {
       console.log('[Cache] Dados carregados do cache em memoria');
       return NextResponse.json({ success: true, data: analysisCache.get(textHash), fromCache: true });
