@@ -10,6 +10,7 @@ import Sidebar from './components/Sidebar';
 import RegionalStats from './components/RegionalStats';
 import BranchDetail from './components/BranchDetail';
 import FiliaisDailyTable from './components/FiliaisDailyTable';
+import TicketsGrid from './components/TicketsGrid';
 import dynamic from 'next/dynamic';
 import { Brain, CheckCircle2, FileText, Loader2 } from 'lucide-react';
 
@@ -235,7 +236,10 @@ export default function Dashboard() {
               )}
 
               {enrichedData.filiais.length > 1 && (
-                <FiliaisDailyTable filiais={enrichedData.filiais} />
+                <>
+                  <TicketsGrid filiais={enrichedData.filiais} />
+                  <FiliaisDailyTable filiais={enrichedData.filiais} />
+                </>
               )}
             </div>
           ) : (
