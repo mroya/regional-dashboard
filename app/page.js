@@ -11,7 +11,7 @@ import RegionalStats from './components/RegionalStats';
 import BranchDetail from './components/BranchDetail';
 import FiliaisDailyTable from './components/FiliaisDailyTable';
 import dynamic from 'next/dynamic';
-import { Brain, CheckCircle2, FileText, Loader2, Receipt, TrendingUp, TrendingDown, Pill } from 'lucide-react';
+import { Brain, CheckCircle2, FileText, Loader2, Receipt, TrendingUp, TrendingDown, Pill, Package } from 'lucide-react';
 
 
 
@@ -294,6 +294,37 @@ export default function Dashboard() {
                       }}>
                         {parseNum(enrichedData.geral?.medEvlVda || '0') >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
                         {enrichedData.geral?.medEvlVda || '0%'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem', borderRadius: '10px' }}>
+                        <Package size={24} color="#8b5cf6" />
+                      </div>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Genérico (Total Regional)</h3>
+                        <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {enrichedData.geral?.genDesv || '-'} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>Desvio</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Evolução de Vendas</p>
+                      <div style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '6px',
+                        background: parseNum(enrichedData.geral?.genEvlVda || '0') >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        color: parseNum(enrichedData.geral?.genEvlVda || '0') >= 0 ? '#10b981' : '#ef4444',
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        fontWeight: '700',
+                        fontSize: '1.1rem'
+                      }}>
+                        {parseNum(enrichedData.geral?.genEvlVda || '0') >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+                        {enrichedData.geral?.genEvlVda || '0%'}
                       </div>
                     </div>
                   </div>

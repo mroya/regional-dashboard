@@ -18,7 +18,7 @@ Voce e um analista financeiro. Analise o texto extraido de um PDF e extraia os i
 Responda somente com JSON valido, minificado, sem markdown e sem explicacoes.
 
 IMPORTANTE:
-- Na parte "geral", preencha diasUteis, diasRestantes, performanceGeral (Performance Acumulada do Mes). Procure a linha "Total :" da tabela REGIONAL e extraia "Tkt Méd" (tktMed) e "%Ev Tkt" (evTkt). Procure a linha "Total :" da tabela MEDICAMENTO TOTAL e extraia "%Desv" (medDesv) e "%Evl Vda" (medEvlVda).
+- Na parte "geral", preencha diasUteis, diasRestantes, performanceGeral (Performance Acumulada do Mes). Procure a linha "Total :" da tabela REGIONAL e extraia "Tkt Méd" (tktMed) e "%Ev Tkt" (evTkt). Procure a linha "Total :" da tabela MEDICAMENTO TOTAL e extraia "%Desv" (medDesv) e "%Evl Vda" (medEvlVda). Procure a linha "Total :" da tabela GENÉRICO e extraia "%Desv" (genDesv) e "%Evl Vda" (genEvlVda).
 - A tabela principal de filiais vai em "filiais".
 - Existe uma tabela de resumo por area de negocio com as linhas "Geral", "Med", "HB (N-Med)", "Clinic". Voce DEVE colocar esses dados no array "departamentos".
 - Mapeie sempre para os nomes padroes: "MED", "HB (N-MED)", "CLINIC" e "GERAL".
@@ -33,7 +33,7 @@ ${text}
 
 FORMATO JSON:
 {
-  "geral": { "diasUteis": "31", "diasRestantes": "24", "performanceGeral": "...", "tktMed": "...", "evTkt": "...", "medDesv": "...", "medEvlVda": "..." },
+  "geral": { "diasUteis": "31", "diasRestantes": "24", "performanceGeral": "...", "tktMed": "...", "evTkt": "...", "medDesv": "...", "medEvlVda": "...", "genDesv": "...", "genEvlVda": "..." },
   "filiais": [ { "id": "123", "vdaEft": "...", "vdaOnt": "...", "alvo": "...", "desvioPerc": "...", "evlVda": "...", "mediaDia": "...", "rtRep": "..." } ],
   "participacao": { "med": "...", "hb": "...", "gen": "...", "pp": "..." },
   "departamentos": [
@@ -131,8 +131,8 @@ export async function POST(request) {
     const limitedText = text.length > MAX_INPUT_CHARS ? text.slice(0, MAX_INPUT_CHARS) : text;
     
     // Cache Inteligente
-    // Adicionado "v5" para invalidar o cache antigo e forçar a extração de Medicamentos Total
-    const textHash = crypto.createHash('sha256').update(limitedText + "v5").digest('hex');
+    // Adicionado "v6" para invalidar o cache antigo e forçar a extração de Genérico
+    const textHash = crypto.createHash('sha256').update(limitedText + "v6").digest('hex');
     if (analysisCache.has(textHash)) {
       console.log('[Cache] Dados carregados do cache em memoria');
       return NextResponse.json({ success: true, data: analysisCache.get(textHash), fromCache: true });
