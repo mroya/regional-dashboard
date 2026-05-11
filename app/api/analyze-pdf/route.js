@@ -131,7 +131,8 @@ export async function POST(request) {
     const limitedText = text.length > MAX_INPUT_CHARS ? text.slice(0, MAX_INPUT_CHARS) : text;
     
     // Cache Inteligente
-    const textHash = crypto.createHash('sha256').update(limitedText).digest('hex');
+    // Adicionado "v2" para invalidar o cache antigo e forçar a extração dos novos campos (Tkt)
+    const textHash = crypto.createHash('sha256').update(limitedText + "v2").digest('hex');
     if (analysisCache.has(textHash)) {
       console.log('[Cache] Dados carregados do cache em memoria');
       return NextResponse.json({ success: true, data: analysisCache.get(textHash), fromCache: true });
