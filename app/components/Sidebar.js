@@ -82,7 +82,7 @@ export default function Sidebar({
         <input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ display: 'none' }} />
       </label>
 
-      <button className="sidebar-btn-danger" onClick={handleClearData}>
+      <button className="sidebar-btn-danger" onClick={handleClearData} disabled style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Função desabilitada temporariamente">
         <Trash2 size={18} /> Limpar Dados
       </button>
 
