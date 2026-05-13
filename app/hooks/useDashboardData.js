@@ -133,15 +133,14 @@ export function useDashboardData(user, referenceDate) {
 
     const filiais = (data.filiais || []).map((f) => {
       const vdaNum = parseNum(f.vdaEft);
-      const mediaDiaNum = parseNum(f.mediaDia);
-      const alvoTotal = mediaDiaNum * totalDays;
-      const valorRestante = Math.max(0, alvoTotal - vdaNum);
+      const alvoMensalEst = parseNum(f.alvo) || parseNum(f.metaDia) || 0; // f.alvo is the monthly target
+      const mediaDiaNum = alvoMensalEst / totalDays;
+      const valorRestante = Math.max(0, alvoMensalEst - vdaNum);
       const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
 
       // Derived fields for BranchDetail
       const mediaReal = currentElapsed > 0 ? vdaNum / currentElapsed : 0;
       const projecaoFinal = mediaReal * totalDays;
-      const alvoMensalEst = alvoTotal || mediaDiaNum * totalDays;
       const percProj = alvoMensalEst > 0 ? (projecaoFinal / alvoMensalEst) * 100 : 0;
       const dentroMeta = percProj >= 100;
       const mediaAlvoNec = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
@@ -156,6 +155,7 @@ export function useDashboardData(user, referenceDate) {
         percProj,
         dentroMeta,
         mediaAlvoNec,
+        metaDia: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(mediaDiaNum),
         desvioPerc: f.desvioPerc || '0%',
       };
     });
