@@ -53,6 +53,53 @@ export default function BranchDetail({ f, depts, setSelectedFilial, shareFilialW
         </div>
       </div>
 
+      <div className="glass-panel" style={{marginTop:'2rem', padding:'1.5rem'}}>
+        <h4 style={{marginBottom:'1rem', fontSize:'1.1rem'}}>Desempenho Acumulado (Até Ontem)</h4>
+        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(160px, 1fr))', gap:'1rem'}}>
+          
+          <div style={{background:'rgba(255,255,255,0.03)', padding:'1rem', borderRadius:'8px'}}>
+            <p style={{fontSize:'0.8rem', color:'var(--text-secondary)'}}>Venda Acumulada</p>
+            <p style={{fontSize:'1.4rem', fontWeight:800}}>{f.vdaEft || '-'}</p>
+          </div>
+          
+          <div style={{background:'rgba(255,255,255,0.03)', padding:'1rem', borderRadius:'8px'}}>
+            <p style={{fontSize:'0.8rem', color:'var(--text-secondary)'}}>Meta Acumulada</p>
+            <p style={{fontSize:'1.4rem', fontWeight:800}}>{f.alvo || '-'}</p>
+          </div>
+
+          <div style={{background:'rgba(255,255,255,0.03)', padding:'1rem', borderRadius:'8px'}}>
+            <p style={{fontSize:'0.8rem', color:'var(--text-secondary)'}}>% Desvio</p>
+            <p style={{fontSize:'1.4rem', fontWeight:800, color: parseNum(f.desvioPerc) >= 0 ? '#10b981' : '#ef4444'}}>{f.desvioPerc || '-'}</p>
+          </div>
+          
+          <div style={{background:'rgba(255,255,255,0.03)', padding:'1rem', borderRadius:'8px'}}>
+            <p style={{fontSize:'0.8rem', color:'var(--text-secondary)'}}>% Evolução</p>
+            <p style={{fontSize:'1.4rem', fontWeight:800, color: parseNum(f.evlVda) >= 0 ? '#10b981' : '#ef4444'}}>{f.evlVda || '-'}</p>
+          </div>
+
+          <div style={{background:'rgba(255,255,255,0.03)', padding:'1rem', borderRadius:'8px'}}>
+            <p style={{fontSize:'0.8rem', color:'var(--text-secondary)'}}>Venda Ontem</p>
+            <p style={{fontSize:'1.4rem', fontWeight:800}}>{f.vdaOnt || '-'}</p>
+          </div>
+        </div>
+        
+        <div style={{marginTop:'1.5rem'}}>
+          <div style={{display:'flex', justifyContent:'space-between', marginBottom:'0.5rem', fontSize:'0.85rem'}}>
+            <span style={{color:'var(--text-secondary)'}}>Progresso da Meta Acumulada</span>
+            <span><strong style={{color:'var(--text-primary)'}}>{f.vdaEft || 0}</strong> / {f.alvo || 0}</span>
+          </div>
+          <div style={{height:'8px', background:'rgba(255,255,255,0.1)', borderRadius:'10px', overflow:'hidden'}}>
+             <div style={{
+               height:'100%', 
+               width: `${Math.min(100, (parseNum(f.vdaEft) / (parseNum(f.alvo) || 1)) * 100)}%`,
+               background: parseNum(f.desvioPerc) >= 0 ? '#10b981' : '#ef4444',
+               borderRadius:'10px',
+               transition: 'width 1s ease-out'
+             }}></div>
+          </div>
+        </div>
+      </div>
+
       {depts.some(x => x.id === f.id) && (
         <div className="glass-panel depts-box" style={{marginTop:'2rem'}}>
           <h4>Departamentos</h4>
