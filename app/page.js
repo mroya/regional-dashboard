@@ -197,19 +197,19 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
 
                 return (
               <div className="metrics-grid">
-                <div className="glass-panel metric-card blue">
+                <div className="glass-panel metric-card blue has-tooltip" data-tooltip="Dias Úteis do Mês: Total de dias com operação de vendas no mês atual. Decorridos: Quantos dias já passaram.">
                   <span className="icon">📅</span>
                   <h3>Dias Úteis do Mês</h3>
                   <div className="big-value">{enrichedData.geral?.diasUteis}</div>
                   <p>Decorridos: {enrichedData.geral?.diasDecorridos}</p>
                 </div>
-                <div className="glass-panel metric-card orange">
+                <div className="glass-panel metric-card orange has-tooltip" data-tooltip="Dias Restantes: Quantidade de dias úteis que ainda faltam para o fechamento do mês e alcance da meta total.">
                   <span className="icon">⏳</span>
                   <h3>Dias Restantes</h3>
                   <div className="big-value">{enrichedData.geral?.diasRestantes}</div>
                   <p>Para bater a meta</p>
                 </div>
-                <div className="glass-panel metric-card purple">
+                <div className="glass-panel metric-card purple has-tooltip" data-tooltip={`Média Dia (Meta): Ritmo médio diário exigido pelo Alvo Global (${medAlvo}) dividido pelos Dias Úteis (${diasUteis}).\nRitmo vs Meta: Mostra se a venda média atual de vocês está acima (+) ou abaixo (-) do exigido.`}>
                   <span className="icon">💰</span>
                   <h3>Média Dia (Meta)</h3>
                   <div className="big-value">
@@ -217,7 +217,7 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   </div>
                   <p>Ritmo vs Meta: <span style={{ color: ritmoDiff >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}>{ritmoDiff >= 0 ? '+' : ''}{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(ritmoDiff)}</span></p>
                 </div>
-                <div className="glass-panel metric-card blue">
+                <div className="glass-panel metric-card blue has-tooltip" data-tooltip={`Vda Eft: Faturamento total acumulado até o momento.\nDiária: Média real de faturamento por dia decorrido (Venda Total / ${diasDecorridos} dias).`}>
                   <span className="icon">V</span>
                   <h3>Vda Eft</h3>
                   <div className="big-value">
@@ -225,7 +225,7 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   </div>
                   <p>Diária: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medVendaDiaria)}</p>
                 </div>
-                <div className="glass-panel metric-card blue">
+                <div className="glass-panel metric-card blue has-tooltip" data-tooltip={`Alvo: Meta total estabelecida para a regional no mês inteiro.\nNec/Dia Rest.: Venda exigida por dia útil restante para suprir exatamente a lacuna da meta (O que falta / ${diasRestantes} dias).`}>
                   <span className="icon">A</span>
                   <h3>Alvo (Meta do Mês)</h3>
                   <div className="big-value">
@@ -233,7 +233,7 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   </div>
                   <p>Nec/Dia Rest.: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medAlvoPorDiaRestante)}</p>
                 </div>
-                <div className="glass-panel metric-card orange">
+                <div className="glass-panel metric-card orange has-tooltip" data-tooltip="Desvio de Meta: Mostra o percentual e o valor financeiro (VlrDesv) da diferença entre a Venda Efetiva alcançada e o Alvo proporcional até ontem.">
                   <span className="icon">%</span>
                   <h3>% Desv</h3>
                   <div className="big-value">{medDept.desvioPerc || '0%'}</div>
