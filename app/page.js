@@ -210,13 +210,13 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   <div className="big-value">{enrichedData.geral?.diasRestantes}</div>
                   <p>Para bater a meta</p>
                 </div>
-                <div className="glass-panel metric-card purple" style={{ cursor: 'help' }} title={`Média Dia (Meta): Ritmo médio diário exigido pelo Alvo Global (${mainAlvo}) dividido pelos Dias Úteis (${diasUteis}).\nRitmo vs Meta: Mostra se a venda média atual de vocês está acima (+) ou abaixo (-) do exigido.`}>
+                <div className="glass-panel metric-card purple" style={{ cursor: 'help' }} title={`Média Dia: Valor faturado dividido pelos dias decorridos (${diasDecorridos}).\nMeta Diária: Ritmo médio exigido (${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mainMetaDiaria)}).`}>
                   <span className="icon">💰</span>
-                  <h3>Média Dia (Meta)</h3>
+                  <h3>Média Dia</h3>
                   <div className="big-value">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mainMetaDiaria)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mainVendaDiaria)}
                   </div>
-                  <p>Ritmo vs Meta: <span style={{ color: ritmoDiff >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}>{ritmoDiff >= 0 ? '+' : ''}{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(ritmoDiff)}</span></p>
+                  <p>Meta Diária: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mainMetaDiaria)} | <span style={{ color: ritmoDiff >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}>{ritmoDiff >= 0 ? '+' : ''}{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(ritmoDiff)}</span></p>
                 </div>
                 <div className="glass-panel metric-card blue" style={{ cursor: 'help' }} title={`Vda Eft: Faturamento total acumulado até o momento.\nDiária: Média real de faturamento por dia decorrido (Venda Total / ${diasDecorridos} dias).`}>
                   <span className="icon">V</span>
