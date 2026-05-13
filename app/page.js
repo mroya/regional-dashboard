@@ -65,26 +65,37 @@ export default function Dashboard() {
   const shareFilialWhatsApp = (f) => {
     if (!f) return;
     
-    const saudacao = `Olá, gerente da Filial ${f.id}! 👋`;
+    // Using Unicode escapes to avoid encoding issues on Windows
+    const e_wave = '\uD83D\uDC4B';
+    const e_green = '\uD83D\uDFE2';
+    const e_rocket = '\uD83D\uDE80';
+    const e_red = '\uD83D\uDD34';
+    const e_muscle = '\uD83D\uDCAA';
+    const e_bar = '\uD83D\uDCCA';
+    const e_target = '\uD83C\uDFAF';
+    const e_trophy = '\uD83C\uDFC6';
+    const bullet = '\u2022';
+
+    const saudacao = `Olá, gerente da Filial ${f.id}! ${e_wave}`;
     const statusMeta = f.dentroMeta 
-      ? `🟢 *ESTAMOS NA META!* Parabéns pelo resultado até aqui. Vamos manter a pegada! 🚀` 
-      : `🔴 *ATENÇÃO À META!* Precisamos de um esforço extra para buscar o resultado. Conto com a liderança de vocês! 💪`;
+      ? `${e_green} *ESTAMOS NA META!* Parabéns pelo resultado até aqui. Vamos manter a pegada! ${e_rocket}` 
+      : `${e_red} *ATENÇÃO À META!* Precisamos de um esforço extra para buscar o resultado. Conto com a liderança de vocês! ${e_muscle}`;
 
     const text = `${saudacao}
 Aqui está o nosso farol de desempenho atualizado:
 
-📊 *Resumo Acumulado*
-• Venda Atual: *${f.vdaEft || '0'}*
-• Meta Acumulada: *${f.alvo || '0'}*
-• Desvio: *${f.desvioPerc || '0%'}*
-• Venda Ontem: *${f.vdaOnt || '0'}*
+${e_bar} *Resumo Acumulado*
+${bullet} Venda Atual: *${f.vdaEft || '0'}*
+${bullet} Meta Acumulada: *${f.alvo || '0'}*
+${bullet} Desvio: *${f.desvioPerc || '0%'}*
+${bullet} Venda Ontem: *${f.vdaOnt || '0'}*
 
-🎯 *Projeção*
-• Projeção de Fechamento: *${f.percProj?.toFixed(1) || 0}%*
+${e_target} *Projeção*
+${bullet} Projeção de Fechamento: *${f.percProj?.toFixed(1) || 0}%*
 
 ${statusMeta}
 
-Vamos com tudo entregar esse resultado! 🏆`;
+Vamos com tudo entregar esse resultado! ${e_trophy}`;
 
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
