@@ -133,8 +133,10 @@ export function useDashboardData(user, referenceDate) {
 
     const filiais = (data.filiais || []).map((f) => {
       const vdaNum = parseNum(f.vdaEft);
-      const alvoMensalEst = parseNum(f.alvo) || parseNum(f.metaDia) || 0; // f.alvo is the monthly target
-      const mediaDiaNum = alvoMensalEst / totalDays;
+      const alvoAcumulado = parseNum(f.alvo) || 0; // f.alvo is the accumulated target up to currentElapsed
+      const mediaDiaNum = currentElapsed > 0 ? alvoAcumulado / currentElapsed : 0;
+      const alvoMensalEst = mediaDiaNum * totalDays;
+      
       const valorRestante = Math.max(0, alvoMensalEst - vdaNum);
       const metaRestanteDia = diasRestantes > 0 ? valorRestante / diasRestantes : 0;
 
