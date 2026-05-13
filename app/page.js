@@ -65,37 +65,37 @@ export default function Dashboard() {
   const shareFilialWhatsApp = (f) => {
     if (!f) return;
     
-    const textStr = `Olá, gerente da Filial ${f.id}! __WAVE__
+    // Build emojis securely from percent-encoded strings to avoid any source code or OS encoding mangling.
+    const e_wave = decodeURIComponent('%F0%9F%91%8B');
+    const e_green = decodeURIComponent('%F0%9F%9F%A2');
+    const e_rocket = decodeURIComponent('%F0%9F%9A%80');
+    const e_red = decodeURIComponent('%F0%9F%94%B4');
+    const e_muscle = decodeURIComponent('%F0%9F%92%AA');
+    const e_bar = decodeURIComponent('%F0%9F%93%8A');
+    const e_target = decodeURIComponent('%F0%9F%8E%AF');
+    const e_trophy = decodeURIComponent('%F0%9F%8F%86');
+
+    const textStr = `Olá, gerente da Filial ${f.id}! ${e_wave}
 Aqui está o nosso farol de desempenho atualizado:
 
-__BAR__ *Resumo Acumulado*
+${e_bar} *Resumo Acumulado*
 - Venda Atual: *${f.vdaEft || '0'}*
 - Meta Acumulada: *${f.alvo || '0'}*
 - Desvio: *${f.desvioPerc || '0%'}*
 - Venda Ontem: *${f.vdaOnt || '0'}*
 
-__TARGET__ *Projeção*
+${e_target} *Projeção*
 - Projeção de Fechamento: *${f.percProj?.toFixed(1) || 0}%*
 
 ${f.dentroMeta 
-  ? `__GREEN__ *ESTAMOS NA META!* Parabéns pelo resultado até aqui. Vamos manter a pegada! __ROCKET__`
-  : `__RED__ *ATENÇÃO À META!* Precisamos de um esforço extra para buscar o resultado. Conto com a liderança de vocês! __MUSCLE__`}
+  ? `${e_green} *ESTAMOS NA META!* Parabéns pelo resultado até aqui. Vamos manter a pegada! ${e_rocket}`
+  : `${e_red} *ATENÇÃO À META!* Precisamos de um esforço extra para buscar o resultado. Conto com a liderança de vocês! ${e_muscle}`}
 
-Vamos com tudo entregar esse resultado! __TROPHY__`;
+Vamos com tudo entregar esse resultado! ${e_trophy}`;
 
-    // Replace placeholders with literal percent-encoded UTF-8 bytes for each emoji
-    // This absolutely guarantees that NO compiler, minifier or file-encoding issue can corrupt the emojis.
-    const encodedText = encodeURIComponent(textStr)
-      .replace(/__WAVE__/g, '%F0%9F%91%8B')
-      .replace(/__GREEN__/g, '%F0%9F%9F%A2')
-      .replace(/__ROCKET__/g, '%F0%9F%9A%80')
-      .replace(/__RED__/g, '%F0%9F%94%B4')
-      .replace(/__MUSCLE__/g, '%F0%9F%92%AA')
-      .replace(/__BAR__/g, '%F0%9F%93%8A')
-      .replace(/__TARGET__/g, '%F0%9F%8E%AF')
-      .replace(/__TROPHY__/g, '%F0%9F%8F%86');
-
-    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+    // Use api.whatsapp.com which is more stable with complex encodings on Windows than wa.me
+    const finalUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(textStr)}`;
+    window.open(finalUrl, '_blank', 'noopener,noreferrer');
   };
 
   if (authLoading) return <div className="loading-screen">Carregando...</div>;
