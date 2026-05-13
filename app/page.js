@@ -190,6 +190,8 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                 const diasUteis = parseInt(enrichedData.geral?.diasUteis, 10) || 31;
                 const medMetaDiaria = diasUteis > 0 ? medAlvo / diasUteis : 0;
                 
+                const ritmoDiff = medVendaDiaria - medMetaDiaria;
+                
                 // Alvo / dias q falta: The remaining target divided by remaining days
                 const medAlvoPorDiaRestante = diasRestantes > 0 ? Math.max(0, medAlvo - medVdaEft) / diasRestantes : 0;
 
@@ -213,7 +215,7 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   <div className="big-value">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medMetaDiaria)}
                   </div>
-                  <p>Tkt Médio: {enrichedData.geral?.tktMed ? `R$ ${enrichedData.geral.tktMed}` : '-'} | {enrichedData.geral?.evTkt || '-'} Evol</p>
+                  <p>Ritmo vs Meta: <span style={{ color: ritmoDiff >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}>{ritmoDiff >= 0 ? '+' : ''}{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(ritmoDiff)}</span></p>
                 </div>
                 <div className="glass-panel metric-card blue">
                   <span className="icon">V</span>
