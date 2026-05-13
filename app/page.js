@@ -65,38 +65,41 @@ export default function Dashboard() {
   const shareFilialWhatsApp = (f) => {
     if (!f) return;
     
-    // Using Unicode escapes to avoid encoding issues on Windows
-    const e_wave = '\uD83D\uDC4B';
-    const e_green = '\uD83D\uDFE2';
-    const e_rocket = '\uD83D\uDE80';
-    const e_red = '\uD83D\uDD34';
-    const e_muscle = '\uD83D\uDCAA';
-    const e_bar = '\uD83D\uDCCA';
-    const e_target = '\uD83C\uDFAF';
-    const e_trophy = '\uD83C\uDFC6';
-    const bullet = '\u2022';
+    // Construct emojis dynamically to bypass any file encoding corruption
+    const e_wave = String.fromCodePoint(0x1F44B);
+    const e_green = String.fromCodePoint(0x1F7E2);
+    const e_rocket = String.fromCodePoint(0x1F680);
+    const e_red = String.fromCodePoint(0x1F534);
+    const e_muscle = String.fromCodePoint(0x1F4AA);
+    const e_bar = String.fromCodePoint(0x1F4CA);
+    const e_target = String.fromCodePoint(0x1F3AF);
+    const e_trophy = String.fromCodePoint(0x1F3C6);
+    const bullet = String.fromCodePoint(0x2022);
 
     const saudacao = `Olá, gerente da Filial ${f.id}! ${e_wave}`;
     const statusMeta = f.dentroMeta 
       ? `${e_green} *ESTAMOS NA META!* Parabéns pelo resultado até aqui. Vamos manter a pegada! ${e_rocket}` 
       : `${e_red} *ATENÇÃO À META!* Precisamos de um esforço extra para buscar o resultado. Conto com a liderança de vocês! ${e_muscle}`;
 
-    const text = `${saudacao}
-Aqui está o nosso farol de desempenho atualizado:
+    const lines = [
+      saudacao,
+      "Aqui está o nosso farol de desempenho atualizado:",
+      "",
+      `${e_bar} *Resumo Acumulado*`,
+      `${bullet} Venda Atual: *${f.vdaEft || '0'}*`,
+      `${bullet} Meta Acumulada: *${f.alvo || '0'}*`,
+      `${bullet} Desvio: *${f.desvioPerc || '0%'}*`,
+      `${bullet} Venda Ontem: *${f.vdaOnt || '0'}*`,
+      "",
+      `${e_target} *Projeção*`,
+      `${bullet} Projeção de Fechamento: *${f.percProj?.toFixed(1) || 0}%*`,
+      "",
+      statusMeta,
+      "",
+      `Vamos com tudo entregar esse resultado! ${e_trophy}`
+    ];
 
-${e_bar} *Resumo Acumulado*
-${bullet} Venda Atual: *${f.vdaEft || '0'}*
-${bullet} Meta Acumulada: *${f.alvo || '0'}*
-${bullet} Desvio: *${f.desvioPerc || '0%'}*
-${bullet} Venda Ontem: *${f.vdaOnt || '0'}*
-
-${e_target} *Projeção*
-${bullet} Projeção de Fechamento: *${f.percProj?.toFixed(1) || 0}%*
-
-${statusMeta}
-
-Vamos com tudo entregar esse resultado! ${e_trophy}`;
-
+    const text = lines.join('\n');
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
