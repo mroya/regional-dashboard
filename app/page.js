@@ -358,7 +358,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <FiliaisDailyTable filiais={enrichedData.filiais} />
+                  <FiliaisDailyTable filiais={enrichedData.filiais} onFilialClick={setSelectedFilial} />
                 </>
               )}
             </div>

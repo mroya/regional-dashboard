@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { parseNum } from '../utils/formatters';
 import { TrendingUp, TrendingDown, Store, Target, ArrowRight, Search, ArrowUp, ArrowDown } from 'lucide-react';
 
-export default function FiliaisDailyTable({ filiais }) {
+export default function FiliaisDailyTable({ filiais, onFilialClick }) {
   const [sortConfig, setSortConfig] = useState({ key: 'desvioPerc', direction: 'desc' });
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -121,7 +121,8 @@ export default function FiliaisDailyTable({ filiais }) {
             <div 
               key={f.id} 
               className="glass-panel branch-card hover-lift"
-              style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative', overflow: 'hidden' }}
+              style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}
+              onClick={() => onFilialClick && onFilialClick(String(f.id))}
             >
               {/* Background Glow */}
               <div style={{
