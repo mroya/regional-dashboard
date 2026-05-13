@@ -64,7 +64,28 @@ export default function Dashboard() {
 
   const shareFilialWhatsApp = (f) => {
     if (!f) return;
-    const text = `📊 Filial ${f.id}\n💰 Venda: ${f.vdaEft || 'N/A'}\n📈 Projeção: ${f.percProj?.toFixed(1) || 0}%\n${f.dentroMeta ? '✅ Na Meta' : '⚠️ Abaixo da Meta'}`;
+    
+    const saudacao = `Olá, gerente da Filial ${f.id}! 👋`;
+    const statusMeta = f.dentroMeta 
+      ? `🟢 *ESTAMOS NA META!* Parabéns pelo resultado até aqui. Vamos manter a pegada! 🚀` 
+      : `🔴 *ATENÇÃO À META!* Precisamos de um esforço extra para buscar o resultado. Conto com a liderança de vocês! 💪`;
+
+    const text = `${saudacao}
+Aqui está o nosso farol de desempenho atualizado:
+
+📊 *Resumo Acumulado*
+• Venda Atual: *${f.vdaEft || '0'}*
+• Meta Acumulada: *${f.alvo || '0'}*
+• Desvio: *${f.desvioPerc || '0%'}*
+• Venda Ontem: *${f.vdaOnt || '0'}*
+
+🎯 *Projeção*
+• Projeção de Fechamento: *${f.percProj?.toFixed(1) || 0}%*
+
+${statusMeta}
+
+Vamos com tudo entregar esse resultado! 🏆`;
+
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
