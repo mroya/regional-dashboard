@@ -187,6 +187,9 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                 const diasRestantes = enrichedData.geral?.diasRestantes || 1;
                 
                 const medVendaDiaria = diasDecorridos > 0 ? medVdaEft / diasDecorridos : 0;
+                const diasUteis = parseInt(enrichedData.geral?.diasUteis, 10) || 31;
+                const medMetaDiaria = diasUteis > 0 ? medAlvo / diasUteis : 0;
+                
                 // Alvo / dias q falta: The remaining target divided by remaining days
                 const medAlvoPorDiaRestante = diasRestantes > 0 ? Math.max(0, medAlvo - medVdaEft) / diasRestantes : 0;
 
@@ -208,9 +211,9 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   <span className="icon">💰</span>
                   <h3>Média Dia (Meta)</h3>
                   <div className="big-value">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(parseNum(enrichedData.filiais[0]?.mediaDia) || 0)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medMetaDiaria)}
                   </div>
-                  <p>%RT Rep: {enrichedData.filiais[0]?.rtRep || '0%'}</p>
+                  <p>%RT Rep: {enrichedData.geral?.rtRep || '-'}</p>
                 </div>
                 <div className="glass-panel metric-card blue">
                   <span className="icon">V</span>
