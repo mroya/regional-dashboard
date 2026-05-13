@@ -18,13 +18,13 @@ Voce e um analista financeiro. Analise o texto extraido de um PDF e extraia os i
 Responda somente com JSON valido, minificado, sem markdown e sem explicacoes.
 
 IMPORTANTE:
-- Na parte "geral", preencha diasUteis, diasRestantes, performanceGeral (Performance Acumulada do Mes). Procure a linha "Total :" da tabela REGIONAL e extraia "Tkt Méd" (tktMed) e "%Ev Tkt" (evTkt). Procure a linha "Total :" da tabela MEDICAMENTO TOTAL e extraia "%Desv" (medDesv) e "%Evl Vda" (medEvlVda). Procure a linha "Total :" da tabela GENÉRICO e extraia "%Desv" (genDesv) e "%Evl Vda" (genEvlVda). Procure a linha "Total :" da tabela HB (Não Medicamento) e extraia "%Desv" (hbDesv) e "%Evl Vda" (hbEvlVda). Procure a linha "Total :" da tabela PRODUTOS PANVEL e extraia "%Desv" (ppDesv) e "%Evl Vda" (ppEvlVda). Procure a linha "Total :" da tabela CUPOM BEM PANVEL e extraia "%S/Vda" (cupomSVda). Procure a linha "Total :" da tabela PBM e extraia "%Repr 80/20" (pbmRepr). Procure a linha "Total :" da tabela TROCO AMIGO e extraia "Vlr T.Amigo" (taVlr) e "Vlr Ontem" (taVlrOntem).
-- A tabela principal de filiais vai em "filiais".
+- Na parte "geral", preencha diasUteis, diasRestantes. 
+- Procure a tabela "Indicadores Gerais" (que tem colunas como Vda Eft, Média Dia, Cupons, Tkt Méd, %Evol). Use a linha do mês mais recente (ex: "Mai 2026") para preencher "performanceGeral" (use o valor de %Evol), "tktMed" (valor de Tkt Méd) e "evTkt" (valor de %Evol se for o único percentual de evolução ali).
+- Procure a linha "Total :" da tabela REGIONAL e extraia "Vda Eft" (vdaEft), "Vda Ont" (vdaOnt), "Alvo" (alvo), "%Desv" (desvioPerc) e "%Evl Vda" (evlVda).
 - Existe uma tabela de resumo por area de negocio com as linhas "Geral", "Med", "HB (N-Med)", "Clinic". Voce DEVE colocar esses dados no array "departamentos".
 - Mapeie sempre para os nomes padroes: "MED", "HB (N-MED)", "CLINIC" e "GERAL".
 - Para os departamentos: a coluna "%Desv 1" vai para "desvioPerc". A coluna "VlrDesv" vai para "vlrDesvio".
-- Procure a tabela de "% Participacao" (que tem as colunas Med, HB, Clinic, Marca, Gen, RX, OTC, BIO, PP, Lifar).
-- Extraia os valores percentuais da linha referente ao mes principal e coloque na secao "participacao" (para "med", "hb", "gen" e "pp").
+- Procure a tabela de "% Participacao" (que tem as colunas Med, HB, Clinic, Marca, Gen, RX, OTC, BIO, PP, Lifar). Extraia os valores percentuais da linha referente ao mes principal e coloque na secao "participacao" (para "med", "hb", "gen" e "pp").
 - Na tabela principal de filiais (REGIONAL), você DEVE extrair as colunas: "Vda Eft" (vdaEft), "Vda Ont" (vdaOnt), "Alvo" (alvo), "%Desv" (desvioPerc) e "%Evl Vda" (evlVda). Não extraia tktMed por filial.
 - Mantenha valores monetarios e percentuais como texto original (ex: "3.427.863", "67,34%").
 - IMPORTANTE: NUNCA retorne os "..." literais do formato JSON. Substitua-os pelos valores reais que encontrar. Se não houver valor ou tabela, retorne "-".

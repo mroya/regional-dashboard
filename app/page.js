@@ -180,20 +180,21 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
               </header>
 
               {(() => {
-                const medDept = enrichedData.departamentos?.find(d => d.departamento?.toUpperCase().includes('MED')) || {};
-                const medVdaEft = parseNum(medDept.vdaEft);
-                const medAlvo = parseNum(medDept.alvo) || parseNum(medDept.metaDia);
+                const mainDept = (enrichedData.departamentos || []).find(d => d.departamento?.toUpperCase() === 'GERAL') || 
+                                 (enrichedData.departamentos || []).find(d => d.departamento?.toUpperCase().includes('MED')) || {};
+                const mainVdaEft = parseNum(mainDept.vdaEft);
+                const mainAlvo = parseNum(mainDept.alvo) || parseNum(mainDept.metaDia);
                 const diasDecorridos = enrichedData.geral?.diasDecorridos || 1;
                 const diasRestantes = enrichedData.geral?.diasRestantes || 1;
                 
-                const medVendaDiaria = diasDecorridos > 0 ? medVdaEft / diasDecorridos : 0;
+                const mainVendaDiaria = diasDecorridos > 0 ? mainVdaEft / diasDecorridos : 0;
                 const diasUteis = parseInt(enrichedData.geral?.diasUteis, 10) || 31;
-                const medMetaDiaria = diasUteis > 0 ? medAlvo / diasUteis : 0;
+                const mainMetaDiaria = diasUteis > 0 ? mainAlvo / diasUteis : 0;
                 
-                const ritmoDiff = medVendaDiaria - medMetaDiaria;
+                const ritmoDiff = mainVendaDiaria - mainMetaDiaria;
                 
                 // Alvo / dias q falta: The remaining target divided by remaining days
-                const medAlvoPorDiaRestante = diasRestantes > 0 ? Math.max(0, medAlvo - medVdaEft) / diasRestantes : 0;
+                const mainAlvoPorDiaRestante = diasRestantes > 0 ? Math.max(0, mainAlvo - mainVdaEft) / diasRestantes : 0;
 
                 return (
               <div className="metrics-grid">
@@ -209,11 +210,11 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   <div className="big-value">{enrichedData.geral?.diasRestantes}</div>
                   <p>Para bater a meta</p>
                 </div>
-                <div className="glass-panel metric-card purple" style={{ cursor: 'help' }} title={`Média Dia (Meta): Ritmo médio diário exigido pelo Alvo Global (${medAlvo}) dividido pelos Dias Úteis (${diasUteis}).\nRitmo vs Meta: Mostra se a venda média atual de vocês está acima (+) ou abaixo (-) do exigido.`}>
+                <div className="glass-panel metric-card purple" style={{ cursor: 'help' }} title={`Média Dia (Meta): Ritmo médio diário exigido pelo Alvo Global (${mainAlvo}) dividido pelos Dias Úteis (${diasUteis}).\nRitmo vs Meta: Mostra se a venda média atual de vocês está acima (+) ou abaixo (-) do exigido.`}>
                   <span className="icon">💰</span>
                   <h3>Média Dia (Meta)</h3>
                   <div className="big-value">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medMetaDiaria)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mainMetaDiaria)}
                   </div>
                   <p>Ritmo vs Meta: <span style={{ color: ritmoDiff >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}>{ritmoDiff >= 0 ? '+' : ''}{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(ritmoDiff)}</span></p>
                 </div>
@@ -221,23 +222,23 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   <span className="icon">V</span>
                   <h3>Vda Eft</h3>
                   <div className="big-value">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medVdaEft)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mainVdaEft)}
                   </div>
-                  <p>Diária: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medVendaDiaria)}</p>
+                  <p>Diária: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mainVendaDiaria)}</p>
                 </div>
                 <div className="glass-panel metric-card blue" style={{ cursor: 'help' }} title={`Alvo: Meta total estabelecida para a regional no mês inteiro.\nNec/Dia Rest.: Venda exigida por dia útil restante para suprir exatamente a lacuna da meta (O que falta / ${diasRestantes} dias).`}>
                   <span className="icon">A</span>
                   <h3>Alvo (Meta do Mês)</h3>
                   <div className="big-value">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medAlvo)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mainAlvo)}
                   </div>
-                  <p>Nec/Dia Rest.: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medAlvoPorDiaRestante)}</p>
+                  <p>Nec/Dia Rest.: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mainAlvoPorDiaRestante)}</p>
                 </div>
                 <div className="glass-panel metric-card orange" style={{ cursor: 'help' }} title="Desvio de Meta: Mostra o percentual e o valor financeiro (VlrDesv) da diferença entre a Venda Efetiva alcançada e o Alvo proporcional até ontem.">
                   <span className="icon">%</span>
                   <h3>% Desv</h3>
-                  <div className="big-value">{medDept.desvioPerc || '0%'}</div>
-                  <p>VlrDesv: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(parseNum(medDept.vlrDesvio || medDept.vlrDesv || '0'))}</p>
+                  <div className="big-value">{mainDept.desvioPerc || '0%'}</div>
+                  <p>VlrDesv: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(parseNum(mainDept.vlrDesvio || mainDept.vlrDesv || '0'))}</p>
                 </div>
               </div>
                 );
