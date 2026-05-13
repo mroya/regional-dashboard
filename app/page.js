@@ -213,7 +213,7 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   <div className="big-value">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(medMetaDiaria)}
                   </div>
-                  <p>%RT Rep: {enrichedData.geral?.rtRep || '-'}</p>
+                  <p>Tkt Médio: {enrichedData.geral?.tktMed ? `R$ ${enrichedData.geral.tktMed}` : '-'} | {enrichedData.geral?.evTkt || '-'} Evol</p>
                 </div>
                 <div className="glass-panel metric-card blue">
                   <span className="icon">V</span>
