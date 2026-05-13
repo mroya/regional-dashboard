@@ -1,5 +1,11 @@
-
-
+const fs = require('fs');
+let content = fs.readFileSync('app/globals.css', 'utf16le');
+if (content.includes('has-tooltip')) {
+    // Attempting to read as utf8 since it was mixed
+    content = fs.readFileSync('app/globals.css', 'utf8');
+    const goodPart = content.substring(0, content.indexOf('/* Tooltips */')).trim();
+    
+    const correctCss = `\n
 /* Tooltips */
 .has-tooltip {
   position: relative;
@@ -33,4 +39,9 @@
 @keyframes tooltipFadeIn {
   from { opacity: 0; transform: translate(-50%, 4px); }
   to { opacity: 1; transform: translate(-50%, 0); }
+}
+`;
+    
+    fs.writeFileSync('app/globals.css', goodPart + correctCss, 'utf8');
+    console.log("Fixed globals.css");
 }
