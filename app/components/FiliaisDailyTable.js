@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { parseNum } from '../utils/formatters';
-import { TrendingUp, TrendingDown, Store, Target, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Store, Target, ArrowRight, Search, ArrowUp, ArrowDown } from 'lucide-react';
 
 export default function FiliaisDailyTable({ filiais }) {
   const [sortConfig, setSortConfig] = useState({ key: 'desvioPerc', direction: 'desc' });
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleSort = (key) => {
     let direction = 'asc';
@@ -13,7 +14,11 @@ export default function FiliaisDailyTable({ filiais }) {
     setSortConfig({ key, direction });
   };
 
-  const sortedFiliais = [...filiais].sort((a, b) => {
+  const filteredFiliais = filiais.filter(f => 
+    f.id.toString().includes(searchTerm)
+  );
+
+  const sortedFiliais = [...filteredFiliais].sort((a, b) => {
     let aV = a[sortConfig.key];
     let bV = b[sortConfig.key];
 
@@ -31,16 +36,70 @@ export default function FiliaisDailyTable({ filiais }) {
     return sortConfig.direction === 'asc' ? aV - bV : bV - aV;
   });
 
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === 'asc' ? <ArrowUp size={14} style={{ marginLeft: '4px' }} /> : <ArrowDown size={14} style={{ marginLeft: '4px' }} />;
+  };
+
   return (
     <div style={{ marginTop: '2rem' }}>
-      <div className="table-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="table-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h3>Desempenho Diário por Filial</h3>
         
-        {/* Sort Controls */}
-        <div className="filter-group">
-          <button className={`filter-btn ${sortConfig.key === 'id' ? 'active' : ''}`} onClick={() => handleSort('id')}>Filial</button>
-          <button className={`filter-btn ${sortConfig.key === 'desvioPerc' ? 'active' : ''}`} onClick={() => handleSort('desvioPerc')}>% Desvio</button>
-          <button className={`filter-btn ${sortConfig.key === 'vdaEft' ? 'active' : ''}`} onClick={() => handleSort('vdaEft')}>Venda Eft</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          {/* Search Input */}
+          <div style={{ 
+            position: 'relative', 
+            display: 'flex', 
+            alignItems: 'center' 
+          }}>
+            <Search size={16} color="var(--text-secondary)" style={{ position: 'absolute', left: '12px' }} />
+            <input 
+              type="text" 
+              placeholder="Buscar Filial..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                padding: '0.5rem 1rem 0.5rem 2.2rem',
+                borderRadius: '8px',
+                color: 'var(--text-primary)',
+                outline: 'none',
+                width: '100%',
+                maxWidth: '200px',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+            />
+          </div>
+
+          {/* Sort Controls */}
+          <div className="filter-group" style={{ display: 'flex', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.25rem', borderRadius: '10px' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'center' }}>Ordenar:</span>
+            <button 
+              className={`filter-btn ${sortConfig.key === 'id' ? 'active' : ''}`} 
+              onClick={() => handleSort('id')}
+              style={{ display: 'flex', alignItems: 'center' }}
+            >
+              Filial {getSortIcon('id')}
+            </button>
+            <button 
+              className={`filter-btn ${sortConfig.key === 'desvioPerc' ? 'active' : ''}`} 
+              onClick={() => handleSort('desvioPerc')}
+              style={{ display: 'flex', alignItems: 'center' }}
+            >
+              % Desvio {getSortIcon('desvioPerc')}
+            </button>
+            <button 
+              className={`filter-btn ${sortConfig.key === 'vdaEft' ? 'active' : ''}`} 
+              onClick={() => handleSort('vdaEft')}
+              style={{ display: 'flex', alignItems: 'center' }}
+            >
+              Venda {getSortIcon('vdaEft')}
+            </button>
+          </div>
         </div>
       </div>
       
