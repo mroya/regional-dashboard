@@ -42,7 +42,7 @@ export default function Dashboard() {
   };
 
   const [referenceDate, setReferenceDate] = useState(getYesterdayStr());
-  const { data: enrichedData, loading, uploadStatus, error, updatedAt, handleFileUpload, handleClearData } = useDashboardData(user, referenceDate);
+  const { data: enrichedData, loading, uploadStatus, error, updatedAt, handleFileUpload, handleClearData } = useDashboardData(user, referenceDate, setReferenceDate);
   const { clock, weather, weatherIcon } = useWeather();
   const processingStep = getProcessingStep(uploadStatus);
 
@@ -445,5 +445,7 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
 
 function parseNum(str) {
   if (!str) return 0;
-  return parseFloat(str.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+  if (typeof str === 'number') return str;
+  const s = String(str);
+  return parseFloat(s.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
 }

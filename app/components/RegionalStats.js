@@ -75,10 +75,12 @@ export default function RegionalStats({ data }) {
 
   if (!data || !data.filiais) return null;
 
-  const chartData = data.filiais.map((f) => ({
-    name: (f.id || '').substring(0, 3),
-    venda: parseFloat((f.vdaEft || '0').replace(/[R$\s.]/g, '').replace(',', '.')) || 0,
-  })).reverse();
+  const chartData = data.filiais.map((f) => {
+    const name = String(f.id || '').substring(0, 3);
+    const vdaStr = String(f.vdaEft || '0');
+    const venda = parseFloat(vdaStr.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+    return { name, venda };
+  }).reverse();
 
   const filteredDepts = (data.departamentos || []).filter(d => !d.id || d.id === 'SUMMARY');
 

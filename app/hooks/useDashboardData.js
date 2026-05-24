@@ -15,7 +15,7 @@ async function readErrorMessage(response, fallback) {
   }
 }
 
-export function useDashboardData(user, referenceDate) {
+export function useDashboardData(user, referenceDate, setReferenceDate) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
@@ -64,6 +64,18 @@ export function useDashboardData(user, referenceDate) {
 
       const parsedData = await parseResponse.json();
 
+      // Extract reference date from PDF text if present
+      let targetDate = referenceDate;
+      const dateMatch = (parsedData.text || '').match(/Dt\.\s*Refer(?:e|ê)ncia[:\s]*(\d{2})\/(\d{2})\/(\d{4})/i);
+      if (dateMatch) {
+        const [, d, m, y] = dateMatch;
+        targetDate = `${y}-${m}-${d}`;
+        if (setReferenceDate) {
+          console.log(`[Upload] Detectada data de referencia no PDF: ${targetDate}`);
+          setReferenceDate(targetDate);
+        }
+      }
+
       // Step 2: Send extracted text to Gemini for intelligent analysis
       setUploadStatus('Analisando com IA Gemini...');
 
@@ -72,7 +84,7 @@ export function useDashboardData(user, referenceDate) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: parsedData.text,
-          referenceDate,
+          referenceDate: targetDate,
         }),
       });
 
@@ -86,7 +98,7 @@ export function useDashboardData(user, referenceDate) {
       setUploadStatus('Salvando painel...');
       const analyzeResult = await analyzeResponse.json();
       
-      const docRef = doc(db, 'reports', referenceDate);
+      const docRef = doc(db, 'reports', targetDate);
       const { setDoc, serverTimestamp } = await import('firebase/firestore');
       await setDoc(docRef, {
         ...analyzeResult.data,
@@ -97,7 +109,7 @@ export function useDashboardData(user, referenceDate) {
           minute: '2-digit',
         }),
         timestamp: serverTimestamp(),
-        referenceDate,
+        referenceDate: targetDate,
       }, { merge: true });
 
       setUploadStatus('Concluido!');
