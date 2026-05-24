@@ -80,7 +80,7 @@ export default function RegionalStats({ data }) {
     venda: parseFloat((f.vdaEft || '0').replace(/[R$\s.]/g, '').replace(',', '.')) || 0,
   })).reverse();
 
-  const filteredDepts = data.departamentos || [];
+  const filteredDepts = (data.departamentos || []).filter(d => !d.id || d.id === 'SUMMARY');
 
   return (
     <div className="regional-stats-container">

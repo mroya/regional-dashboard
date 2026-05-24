@@ -12,37 +12,53 @@ const MAX_INPUT_CHARS = 150000;
 // Isso evita reprocessar o mesmo PDF (ex: multiplos envios sem querer), economizando API
 const analysisCache = new Map();
 
-function buildPrompt(text) {
-  return `
-Voce e um analista financeiro. Analise o texto extraido de um PDF e extraia os indicadores financeiros no formato JSON.
+function buildPrompt(text, filialId = null) {
+  // If filialId is provided, we generate a concise prompt that extracts ONLY the department data for that filial.
+  if (filialId) {
+    return `
+Voce e um analista financeiro. Analise o texto extraido de um PDF e extraia, para a filial ${filialId}, os indicadores de departamentos no formato JSON.
 Responda somente com JSON valido, minificado, sem markdown e sem explicacoes.
 
 IMPORTANTE:
-- Na parte "geral", preencha diasUteis, diasRestantes. 
-- Procure a tabela "Indicadores Gerais" (que tem colunas como Vda Eft, Média Dia, Cupons, Tkt Méd, %Evol). Use a linha do mês mais recente (ex: "Mai 2026") para preencher "performanceGeral" (use o valor de %Evol), "tktMed" (valor de Tkt Méd) e "evTkt" (valor de %Evol se for o único percentual de evolução ali).
-- Procure a linha "Total :" da tabela REGIONAL e extraia "Vda Eft" (vdaEft), "Vda Ont" (vdaOnt), "Alvo" (alvo), "%Desv" (desvioPerc) e "%Evl Vda" (evlVda).
-- Existe uma tabela de resumo por area de negocio com as linhas "Geral", "Med", "HB (N-Med)", "Clinic". Voce DEVE colocar esses dados no array "departamentos".
-- Mapeie sempre para os nomes padroes: "MED", "HB (N-MED)", "CLINIC" e "GERAL".
-- Para os departamentos: a coluna "%Desv 1" vai para "desvioPerc". A coluna "VlrDesv" vai para "vlrDesvio".
-- Procure a tabela de "% Participacao" (que tem as colunas Med, HB, Clinic, Marca, Gen, RX, OTC, BIO, PP, Lifar). Extraia os valores percentuais da linha referente ao mes principal e coloque na secao "participacao" (para "med", "hb", "gen" e "pp").
-- Na tabela principal de filiais (REGIONAL), você DEVE extrair as colunas: "Vda Eft" (vdaEft), "Vda Ont" (vdaOnt), "Alvo" (alvo), "%Desv" (desvioPerc) e "%Evl Vda" (evlVda). Não extraia tktMed por filial.
-- Mantenha valores monetarios e percentuais como texto original (ex: "3.427.863", "67,34%").
-- IMPORTANTE: NUNCA retorne os "..." literais do formato JSON. Substitua-os pelos valores reais que encontrar. Se não houver valor ou tabela, retorne "-".
+- Extraia as colunas Vda Eft, Alvo, %Desv, %Evl Vda para os departamentos MEDICAMENTO_GERAL, GENERICO, HB e PANVEL conforme especificado no requisito original.
+- Calcule o share conforme descrito.
+- Mantenha os valores como strings originais.
+- Nunca retorne "..." literal; use "-" se ausente.
 
 TEXTO:
 ${text}
 
 FORMATO JSON:
 {
-  "geral": { "diasUteis": "31", "diasRestantes": "24", "performanceGeral": "...", "tktMed": "...", "evTkt": "...", "medDesv": "...", "medEvlVda": "...", "genDesv": "...", "genEvlVda": "...", "hbDesv": "...", "hbEvlVda": "...", "ppDesv": "...", "ppEvlVda": "...", "cupomSVda": "...", "pbmRepr": "...", "taVlr": "...", "taVlrOntem": "..." },
-  "filiais": [ { "id": "123", "vdaEft": "...", "vdaOnt": "...", "alvo": "...", "desvioPerc": "...", "evlVda": "...", "mediaDia": "...", "rtRep": "..." } ],
-  "participacao": { "med": "...", "hb": "...", "gen": "...", "pp": "..." },
   "departamentos": [
-    { "departamento": "MED", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
-    { "departamento": "HB (N-MED)", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
-    { "departamento": "CLINIC", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
-    { "departamento": "GERAL", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." }
+    { "id": "${filialId}", "departamento": "MEDICAMENTO_GERAL", "vdaEft": "...", "alvo": "...", "desvioPerc": "...", "evolucaoPerc": "...", "share": "..." },
+    { "id": "${filialId}", "departamento": "GENERICO", "vdaEft": "...", "alvo": "...", "desvioPerc": "...", "evolucaoPerc": "...", "share": "..." },
+    { "id": "${filialId}", "departamento": "HB", "vdaEft": "...", "alvo": "...", "desvioPerc": "...", "evolucaoPerc": "...", "share": "..." },
+    { "id": "${filialId}", "departamento": "PANVEL", "vdaEft": "...", "alvo": "...", "desvioPerc": "...", "evolucaoPerc": "...", "share": "..." }
   ]
+}
+`;
+  }
+  // Full prompt
+  return `
+Voce e um analista financeiro. Analise o texto extraido de um PDF e extraia os indicadores financeiros no formato JSON.
+Responda somente com JSON valido, minificado, sem markdown e sem explicacoes.
+
+IMPORTANTE:
+- Preencha "geral" com diasUteis e diasRestantes.
+- Extraia indicadores gerais e tabela REGIONAL como antes.
+- Inclua resumo por area usando id "SUMMARY".
+- Não inclua detalhes de cada filial aqui (serão processados separadamente).
+
+TEXTO:
+${text}
+
+FORMATO JSON:
+{
+  "geral": {"diasUteis": "31", "diasRestantes": "24", "performanceGeral": "...", "tktMed": "...", "evTkt": "..."},
+  "filiais": [],
+  "participacao": {},
+  "departamentos": []
 }
 `;
 }
@@ -131,38 +147,55 @@ export async function POST(request) {
 
     const limitedText = text.length > MAX_INPUT_CHARS ? text.slice(0, MAX_INPUT_CHARS) : text;
     
-    // Cache Inteligente
-    // Adicionado "v12" para invalidar o cache antigo e processar o texto completo sem cortes
-    const textHash = crypto.createHash('sha256').update(limitedText + "v12").digest('hex');
+    // Cache Inteligente – inclui versão
+    const textHash = crypto.createHash('sha256').update(limitedText + "v13").digest('hex');
     if (analysisCache.has(textHash)) {
       console.log('[Cache] Dados carregados do cache em memoria');
       return NextResponse.json({ success: true, data: analysisCache.get(textHash), fromCache: true });
     }
 
-    const prompt = buildPrompt(limitedText);
-    let parsedData;
-
+    // 1️⃣ Process summary (global data) – single call
+    const summaryPrompt = buildPrompt(limitedText);
+    let summaryData;
     try {
-      if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY nao configurada no ambiente");
-      console.log('[IA] Tentando processar com OpenAI...');
-      parsedData = await callOpenAI(prompt);
-      console.log('[IA] Sucesso com OpenAI');
-    } catch (openaiError) {
-      console.warn('[IA] Falha na OpenAI, acionando fallback Gemini:', openaiError.message);
-      
-      if (!process.env.GEMINI_API_KEY) {
-        throw new Error('Nenhuma API Key (OpenAI ou Gemini) configurada ou ambas falharam.');
-      }
-      
-      console.log('[IA] Processando com Gemini...');
-      parsedData = await callGemini(prompt);
-      console.log('[IA] Sucesso com Gemini');
+      if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY nao configurada");
+      summaryData = await callOpenAI(summaryPrompt);
+    } catch (e) {
+      if (!process.env.GEMINI_API_KEY) throw new Error('Chave Gemini ausente');
+      summaryData = await callGemini(summaryPrompt);
     }
 
-    // Salvar no cache para evitar processamento duplicado
-    analysisCache.set(textHash, parsedData);
+    // 2️⃣ Detect filial IDs in the text (simple regex for numbers that look like IDs)
+    const filialIds = Array.from(limitedText.matchAll(/\bFilial\s*(\d{2,})\b/gi)).map(m => m[1]);
+    const uniqueFilialIds = [...new Set(filialIds)];
+    console.log('[Process] Filiais encontradas:', uniqueFilialIds);
 
-    return NextResponse.json({ success: true, data: parsedData });
+    // 3️⃣ Process each filial separately (concise prompt to stay under token limit)
+    const departmentResults = [];
+    for (const fid of uniqueFilialIds) {
+      const filialPrompt = buildPrompt(limitedText, fid);
+      try {
+        const res = await callOpenAI(filialPrompt);
+        if (res && res.departamentos) departmentResults.push(...res.departamentos);
+      } catch (e) {
+        // fallback to Gemini for this filial if OpenAI fails
+        if (process.env.GEMINI_API_KEY) {
+          const res = await callGemini(filialPrompt);
+          if (res && res.departamentos) departmentResults.push(...res.departamentos);
+        }
+      }
+    }
+
+    // Merge results
+    const finalData = {
+      ...summaryData,
+      departamentos: [...(summaryData.departamentos || []), ...departmentResults]
+    };
+
+    // Store in cache
+    analysisCache.set(textHash, finalData);
+
+    return NextResponse.json({ success: true, data: finalData });
   } catch (error) {
     console.error('Erro geral no processamento de IA:', error);
     return NextResponse.json({ error: 'Falha na IA: ' + error.message }, { status: 500 });

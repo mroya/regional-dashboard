@@ -187,8 +187,8 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
               </header>
 
               {(() => {
-                const mainDept = (enrichedData.departamentos || []).find(d => d.departamento?.toUpperCase() === 'GERAL') || 
-                                 (enrichedData.departamentos || []).find(d => d.departamento?.toUpperCase().includes('MED')) || {};
+                const mainDept = (enrichedData.departamentos || []).find(d => d.departamento?.toUpperCase() === 'GERAL' && (!d.id || d.id === 'SUMMARY')) || 
+                                 (enrichedData.departamentos || []).find(d => d.departamento?.toUpperCase().includes('MED') && (!d.id || d.id === 'SUMMARY')) || {};
                 const mainVdaEft = parseNum(mainDept.vdaEft);
                 const mainAlvo = parseNum(mainDept.alvo) || parseNum(mainDept.metaDia);
                 const diasDecorridos = enrichedData.geral?.diasDecorridos || 1;
