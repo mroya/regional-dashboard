@@ -1276,3 +1276,19 @@ input[type="date"] {
     padding: 2rem 1rem;
   }
 }
+
+/* Sidebar backdrop overlay for closing sidebar on click */
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 950;
+  }
+}

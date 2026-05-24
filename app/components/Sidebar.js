@@ -54,7 +54,7 @@ export default function Sidebar({
           </label>
           <div style={{position: 'relative', width: '100%', marginBottom: '0.4rem'}}>
             <div className="date-display">{formatDateBR(referenceDate)} <Calendar size={12}/></div>
-            <input type="date" value={referenceDate} max={defaultDate} onChange={(e) => setReferenceDate(e.target.value)} className="hidden-date-input" />
+            <input type="date" value={referenceDate} max={defaultDate} onChange={(e) => { setReferenceDate(e.target.value); setSidebarOpen(false); }} className="hidden-date-input" />
           </div>
           <p style={{fontSize:'0.72rem', color:'var(--text-secondary)'}}>
             📅 {elapsedDays} dia{elapsedDays !== 1 ? 's' : ''} decorrido{elapsedDays !== 1 ? 's' : ''}
@@ -82,13 +82,14 @@ export default function Sidebar({
         target="_blank" 
         rel="noopener noreferrer" 
         className="qlik-btn"
+        onClick={() => setSidebarOpen(false)}
       >
         <ExternalLink size={20} /> <span>Abrir Qlik Panvel</span>
       </a>
 
       <label className="upload-btn" style={{ marginTop: '0.5rem' }}>
         <UploadCloud size={20} /> <span>Carregar PDF</span>
-        <input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ display: 'none' }} />
+        <input type="file" accept="application/pdf" onChange={(e) => { handleFileUpload(e); setSidebarOpen(false); }} style={{ display: 'none' }} />
       </label>
 
       <button className="sidebar-btn-danger" onClick={handleClearData} disabled style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Função desabilitada temporariamente">

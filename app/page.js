@@ -146,6 +146,13 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
         </div>
       )}
 
+      {sidebarOpen && (
+        <div 
+          onClick={() => setSidebarOpen(false)} 
+          className="sidebar-backdrop"
+        />
+      )}
+
       <Sidebar 
         {...{ 
           user, sidebarOpen, setSidebarOpen, darkMode, setDarkMode, clock, weather, weatherIcon,
