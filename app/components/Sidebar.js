@@ -1,5 +1,5 @@
 import React from 'react';
-import { UploadCloud, LogOut, User, Calendar, X, Trash2, FileText } from 'lucide-react';
+import { UploadCloud, LogOut, User, Calendar, X, Trash2, FileText, ExternalLink } from 'lucide-react';
 import { formatDateBR } from '../utils/formatters';
 
 export default function Sidebar({ 
@@ -77,7 +77,16 @@ export default function Sidebar({
         )}
       </div>
 
-      <label className="upload-btn">
+      <a 
+        href="https://panveldash.us.qlikcloud.com/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="qlik-btn"
+      >
+        <ExternalLink size={20} /> <span>Abrir Qlik Panvel</span>
+      </a>
+
+      <label className="upload-btn" style={{ marginTop: '0.5rem' }}>
         <UploadCloud size={20} /> <span>Carregar PDF</span>
         <input type="file" accept="application/pdf" onChange={handleFileUpload} style={{ display: 'none' }} />
       </label>
