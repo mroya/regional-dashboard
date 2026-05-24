@@ -553,10 +553,12 @@ body {
   border-right: 1px solid var(--surface-border);
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(10px);
   z-index: 1000;

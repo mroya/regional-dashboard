@@ -105,7 +105,7 @@ export default function Sidebar({
         <ExternalLink size={20} /> <span>Abrir Qlik Panvel</span>
       </a>
 
-      <label style={{
+      <label htmlFor="pdf-upload-input" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -124,14 +124,21 @@ export default function Sidebar({
         transition: 'all 0.2s',
       }}>
         <UploadCloud size={20} /> <span>Carregar PDF</span>
-        <input type="file" accept="application/pdf" onChange={(e) => { handleFileUpload(e); setSidebarOpen(false); }} style={{ display: 'none' }} />
       </label>
+      {/* Input fora do label para compatibilidade com Safari/iOS */}
+      <input
+        id="pdf-upload-input"
+        type="file"
+        accept="application/pdf"
+        onChange={(e) => { handleFileUpload(e); setSidebarOpen(false); }}
+        style={{ display: 'none' }}
+      />
 
       <button className="sidebar-btn-danger" onClick={handleClearData} disabled style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Função desabilitada temporariamente">
         <Trash2 size={18} /> Limpar Dados
       </button>
 
-      <button onClick={handleLogout} className="btn outline-btn" style={{marginTop:'auto', color:'var(--danger)'}}>
+      <button onClick={handleLogout} className="btn outline-btn" style={{ color: 'var(--danger)' }}>
         <LogOut size={18} /> Sair
       </button>
     </aside>
