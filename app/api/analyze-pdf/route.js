@@ -46,20 +46,35 @@ Voce e um analista financeiro. Analise o texto extraido de um PDF e extraia os i
 Responda somente com JSON valido, minificado, sem markdown e sem explicacoes.
 
 IMPORTANTE:
-- Preencha "geral" com diasUteis e diasRestantes.
-- Extraia indicadores gerais e tabela REGIONAL como antes.
-- Inclua resumo por area usando id "SUMMARY".
-- Não inclua detalhes de cada filial aqui (serão processados separadamente).
+- Extraia TODOS os campos de "geral" (diasUteis, diasRestantes, performanceGeral, tktMed, evTkt, medDesv, medEvlVda, genDesv, genEvlVda, hbDesv, hbEvlVda, ppDesv, ppEvlVda, cupomSVda, pbmRepr, taVlr, taVlrOntem).
+- Extraia TODAS as filiais encontradas no texto com seus indicadores.
+- Extraia os resumos por área (id "SUMMARY") e os departamentos por filial.
+- Extraia a participação percentual (med, hb, gen, pp).
+- Mantenha os valores como strings originais (ex: "3.427.863", "67,34%").
+- Se não encontrar um valor, retorne "-".
+- Nunca retorne "..." literal.
 
 TEXTO:
 ${text}
 
 FORMATO JSON:
 {
-  "geral": {"diasUteis": "31", "diasRestantes": "24", "performanceGeral": "...", "tktMed": "...", "evTkt": "..."},
-  "filiais": [],
-  "participacao": {},
-  "departamentos": []
+  "geral": {
+    "diasUteis": "31", "diasRestantes": "24", "performanceGeral": "...", "tktMed": "...", "evTkt": "...",
+    "medDesv": "...", "medEvlVda": "...", "genDesv": "...", "genEvlVda": "...",
+    "hbDesv": "...", "hbEvlVda": "...", "ppDesv": "...", "ppEvlVda": "...",
+    "cupomSVda": "...", "pbmRepr": "...", "taVlr": "...", "taVlrOntem": "..."
+  },
+  "filiais": [
+    { "id": "123", "vdaEft": "...", "vdaOnt": "...", "alvo": "...", "desvioPerc": "...", "evlVda": "...", "mediaDia": "...", "rtRep": "..." }
+  ],
+  "participacao": { "med": "...", "hb": "...", "gen": "...", "pp": "..." },
+  "departamentos": [
+    { "id": "SUMMARY", "departamento": "MED", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
+    { "id": "SUMMARY", "departamento": "HB (N-MED)", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
+    { "id": "SUMMARY", "departamento": "CLINIC", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
+    { "id": "SUMMARY", "departamento": "GERAL", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." }
+  ]
 }
 `;
 }
@@ -190,7 +205,7 @@ export async function POST(request) {
     const limitedText = inputText.length > MAX_INPUT_CHARS ? inputText.slice(0, MAX_INPUT_CHARS) : inputText;
     
     // Cache Inteligente – inclui versão
-    const textHash = crypto.createHash('sha256').update(limitedText + "v13").digest('hex');
+    const textHash = crypto.createHash('sha256').update(limitedText + "v14").digest('hex');
     if (analysisCache.has(textHash)) {
       console.log('[Cache] Dados carregados do cache em memoria');
       return NextResponse.json({ success: true, data: analysisCache.get(textHash), fromCache: true });
