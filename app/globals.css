@@ -1217,37 +1217,49 @@ input[type="date"] {
     font-size: 2rem;
   }
 
-  /* Horizontal scroll sliders for mobile grids */
-  .metrics-grid, .participacao-grid, .depts-grid-scroll, .branch-stats-grid {
-    display: flex !important;
-    overflow-x: auto !important;
-    scroll-snap-type: x mandatory !important;
-    scroll-behavior: smooth !important;
-    gap: 0.75rem !important;
-    padding-bottom: 0.5rem !important;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  /* Mobile grid wrapping layouts (blocks side-by-side that go to new lines) */
+  .metrics-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
   }
-  
-  .metrics-grid::-webkit-scrollbar, 
-  .participacao-grid::-webkit-scrollbar, 
-  .depts-grid-scroll::-webkit-scrollbar, 
-  .branch-stats-grid::-webkit-scrollbar {
-    display: none;
+
+  .participacao-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  .depts-grid-scroll, .branch-stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+    gap: 0.5rem !important;
   }
 
   .metrics-grid .metric-card {
-    flex: 0 0 75vw !important;
-    scroll-snap-align: center !important;
-    padding: 1rem !important;
+    padding: 0.85rem !important;
+    border-radius: 12px !important;
+  }
+
+  .metrics-grid .big-value {
+    font-size: 1.15rem !important;
+  }
+
+  .metrics-grid .metric-card h3 {
+    font-size: 0.65rem !important;
+  }
+
+  .metrics-grid .metric-card p {
+    font-size: 0.65rem !important;
+    margin-top: 0.25rem !important;
+    line-height: 1.2 !important;
   }
 
   .participacao-grid .stats-mini-card,
   .depts-grid-scroll .stats-mini-card,
   .branch-stats-grid > div {
-    flex: 0 0 50vw !important;
-    scroll-snap-align: center !important;
-    padding: 1rem !important;
+    padding: 0.75rem !important;
+    border-radius: 10px !important;
     box-sizing: border-box;
   }
 
