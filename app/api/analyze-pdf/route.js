@@ -7,12 +7,6 @@ import fs from 'fs';
 export const runtime = 'nodejs';
 export const maxDuration = 300;
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 const MAX_INPUT_CHARS = 150000;
 
 // Cache em memoria inteligente (hash do texto -> resultado)
@@ -98,7 +92,7 @@ async function callOpenAI(prompt) {
     ],
     response_format: { type: "json_object" },
     temperature: 0,
-    max_tokens: 8192, // Aumentado para garantir que o JSON não seja cortado na metade
+    max_tokens: 8192,
   });
 
   const rawText = response.choices[0].message.content;
@@ -121,7 +115,7 @@ async function callGemini(prompt) {
         model: modelName,
         generationConfig: {
           temperature: 0,
-          maxOutputTokens: 8192, // Aumentado para evitar cortes
+          maxOutputTokens: 8192,
           responseMimeType: 'application/json',
         },
       });
@@ -146,43 +140,51 @@ async function callGemini(prompt) {
 
 export async function POST(request) {
   try {
-    // Accept either raw JSON body (text/filePath) or multipart/form-data upload
     let inputText = '';
+    let referenceDate = '';
+
     const contentType = request.headers.get('content-type') || '';
+
     if (contentType.includes('multipart/form-data')) {
+      // Upload direto de arquivo via FormData (usado pelo dashboard)
       const formData = await request.formData();
       const file = formData.get('file');
+
       if (file && typeof file.arrayBuffer === 'function') {
         const arrayBuffer = await file.arrayBuffer();
         inputText = Buffer.from(arrayBuffer).toString('utf-8');
       } else if (formData.get('text')) {
         inputText = formData.get('text');
       } else {
-        return NextResponse.json({ error: 'File missing and no text provided' }, { status: 400 });
+        return NextResponse.json({ error: 'Arquivo ausente e nenhum texto fornecido' }, { status: 400 });
       }
+
       const refDate = formData.get('referenceDate');
       if (!refDate) {
-        return NextResponse.json({ error: 'referenceDate missing' }, { status: 400 });
+        return NextResponse.json({ error: 'referenceDate ausente' }, { status: 400 });
       }
       referenceDate = refDate;
+
     } else {
-      // Fallback to JSON body
-      const { text, referenceDate: refDate, filePath } = await request.json();
-      if (filePath) {
+      // JSON body: aceita { text, referenceDate } ou { filePath, referenceDate }
+      const body = await request.json();
+      referenceDate = body.referenceDate || '';
+
+      if (body.filePath) {
         try {
-          inputText = fs.readFileSync(filePath, 'utf8');
+          inputText = fs.readFileSync(body.filePath, 'utf8');
         } catch (e) {
-          return NextResponse.json({ error: `Failed to read file: ${e.message}` }, { status: 400 });
+          return NextResponse.json({ error: `Falha ao ler arquivo: ${e.message}` }, { status: 400 });
         }
-      } else if (text) {
-        inputText = text;
+      } else if (body.text) {
+        inputText = body.text;
       } else {
-        return NextResponse.json({ error: 'Dados incompletos: forneça texto ou caminho de arquivo' }, { status: 400 });
+        return NextResponse.json({ error: 'Dados incompletos: forneça text ou filePath' }, { status: 400 });
       }
-      if (!refDate) {
-        return NextResponse.json({ error: 'referenceDate missing' }, { status: 400 });
+
+      if (!referenceDate) {
+        return NextResponse.json({ error: 'referenceDate ausente' }, { status: 400 });
       }
-      referenceDate = refDate;
     }
 
     const limitedText = inputText.length > MAX_INPUT_CHARS ? inputText.slice(0, MAX_INPUT_CHARS) : inputText;
@@ -220,8 +222,12 @@ export async function POST(request) {
       } catch (e) {
         // fallback to Gemini for this filial if OpenAI fails
         if (process.env.GEMINI_API_KEY) {
-          const res = await callGemini(filialPrompt);
-          if (res && res.departamentos) departmentResults.push(...res.departamentos);
+          try {
+            const res = await callGemini(filialPrompt);
+            if (res && res.departamentos) departmentResults.push(...res.departamentos);
+          } catch (geminiErr) {
+            console.warn(`[Process] Falha ao processar filial ${fid}:`, geminiErr.message);
+          }
         }
       }
     }
@@ -235,14 +241,9 @@ export async function POST(request) {
     // Store in cache
     analysisCache.set(textHash, finalData);
 
-    return NextResponse.json({ success: true, data: finalData, qlikLink: getQlikLink() });
+    return NextResponse.json({ success: true, data: finalData });
   } catch (error) {
     console.error('Erro geral no processamento de IA:', error);
     return NextResponse.json({ error: 'Falha na IA: ' + error.message }, { status: 500 });
   }
-}
-
-// Optional helper to generate Qlik link (previously only link was returned)
-function getQlikLink() {
-  return 'https://panveldash.us.qlikcloud.com/';
 }
