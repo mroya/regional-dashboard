@@ -56,8 +56,8 @@ Responda somente com JSON valido, minificado, sem markdown e sem explicacoes.
 
 IMPORTANTE:
 - Extraia TODOS os campos de "geral" (diasUteis, diasRestantes, performanceGeral, tktMed, evTkt, medDesv, medEvlVda, genDesv, genEvlVda, hbDesv, hbEvlVda, ppDesv, ppEvlVda, cupomSVda, pbmRepr, taVlr, taVlrOntem).
-- Extraia TODAS as filiais encontradas no texto com seus indicadores.
-- Extraia os resumos por área (id "SUMMARY") e os departamentos por filial.
+- NÃO extraia a lista de filiais aqui (sempre retorne "filiais": []).
+- Extraia apenas os resumos por área (id "SUMMARY") para a regional (MED, HB (N-MED), CLINIC, GERAL).
 - Extraia a participação percentual (med, hb, gen, pp).
 - Mantenha os valores como strings originais (ex: "3.427.863", "67,34%").
 - Se não encontrar um valor, retorne "-".
@@ -74,9 +74,7 @@ FORMATO JSON:
     "hbDesv": "...", "hbEvlVda": "...", "ppDesv": "...", "ppEvlVda": "...",
     "cupomSVda": "...", "pbmRepr": "...", "taVlr": "...", "taVlrOntem": "..."
   },
-  "filiais": [
-    { "id": "123", "vdaEft": "...", "vdaOnt": "...", "alvo": "...", "desvioPerc": "...", "evlVda": "...", "mediaDia": "...", "rtRep": "..." }
-  ],
+  "filiais": [],
   "participacao": { "med": "...", "hb": "...", "gen": "...", "pp": "..." },
   "departamentos": [
     { "id": "SUMMARY", "departamento": "MED", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." },
@@ -169,18 +167,20 @@ function parseNum(str) {
 
 function parseFilialTableData(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  
+  const filiais = [];
   const departamentos = [];
   const filiaisExtra = {};
   const filialTotals = {};
   
   function normalizeId(idStr) {
     if (!idStr) return '';
-    return idStr.replace(/\D/g, '');
+    return idStr.replace(/\D/g, ''); // keep only numbers
   }
   
   let currentSection = '';
   
-  // First pass: extract filial totals
+  // First pass: extract filial totals and main filial indicators
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const upperLine = line.toUpperCase();
@@ -203,6 +203,14 @@ function parseFilialTableData(text) {
         const filialId = normalizeId(firstPart);
         if (filialId) {
           filialTotals[filialId] = parseNum(parts[1]);
+          filiais.push({
+            id: filialId,
+            vdaEft: parts[1] || '-',
+            vdaOnt: parts[2] || '-',
+            alvo: parts[3] || '-',
+            desvioPerc: parts[4] || '-',
+            evlVda: parts[5] || '-'
+          });
         }
       }
     }
@@ -241,9 +249,11 @@ function parseFilialTableData(text) {
       currentSection = 'TROCO_AMIGO';
       continue;
     } else if (upperLine.includes('--- PAGE ---') || upperLine.includes('DT.EMISSÃO') || upperLine.includes('DT. REFERÊNCIA') || upperLine.includes('REGIONAL 2') || upperLine.includes('Vda Eft')) {
+      // skip headers/metas
       continue;
     }
     
+    // Parse rows in sections
     if (currentSection) {
       const parts = line.split(/\s+/);
       const firstPart = parts[0];
@@ -304,7 +314,7 @@ function parseFilialTableData(text) {
     }
   }
   
-  return { departamentos, filiaisExtra };
+  return { filiais, departamentos, filiaisExtra };
 }
 
 export async function POST(request) {
@@ -359,7 +369,7 @@ export async function POST(request) {
     const limitedText = inputText.length > MAX_INPUT_CHARS ? inputText.slice(0, MAX_INPUT_CHARS) : inputText;
     
     // Cache Inteligente – inclui versão
-    const textHash = crypto.createHash('sha256').update(limitedText + "v16").digest('hex');
+    const textHash = crypto.createHash('sha256').update(limitedText + "v17").digest('hex');
     if (analysisCache.has(textHash)) {
       console.log('[Cache] Dados carregados do cache em memoria');
       return NextResponse.json({ success: true, data: analysisCache.get(textHash), fromCache: true });
@@ -377,12 +387,12 @@ export async function POST(request) {
     }
 
     // 2️⃣ Parse filial details programmatically to avoid Vercel 10s timeout & rate limit errors
-    const { departamentos: filialDepts, filiaisExtra } = parseFilialTableData(limitedText);
+    const { filiais: parsedFiliais, departamentos: filialDepts, filiaisExtra } = parseFilialTableData(limitedText);
 
     // Merge results
     const finalData = {
       ...summaryData,
-      filiais: (summaryData.filiais || []).map(f => ({
+      filiais: parsedFiliais.map(f => ({
         ...f,
         ...(filiaisExtra[f.id] || {
           cupomSVda: '-',
