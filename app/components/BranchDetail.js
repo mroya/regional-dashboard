@@ -107,8 +107,8 @@ export default function BranchDetail({ f, depts, setSelectedFilial, shareFilialW
           </h3>
           <div className="depts-grid-scroll">
             {[
-              { k: 'MEDICAMENTO_GERAL', l: 'Medicamento', icon: <Pill size={16} color="#3b82f6" /> },
-              { k: 'GENERICO', l: 'Genérico', icon: <Package size={16} color="#8b5cf6" /> },
+              { k: 'MEDICAMENTO_GERAL', l: 'Med', icon: <Pill size={16} color="#3b82f6" /> },
+              { k: 'GENERICO', l: 'Gen', icon: <Package size={16} color="#8b5cf6" /> },
               { k: 'HB', l: 'HB (Não Med)', icon: <ShoppingBag size={16} color="#f43f5e" /> },
               { k: 'PANVEL', l: 'Prod Panvel', icon: <Tag size={16} color="#f59e0b" /> }
             ].map(dept => {

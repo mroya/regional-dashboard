@@ -188,6 +188,14 @@ export function useDashboardData(user, referenceDate, setReferenceDate) {
       };
     });
 
+    // Calculate performance geral: (vdaEft / alvo) * 100 for GERAL summary department
+    const mainDept = (data.departamentos || []).find(d => d.departamento?.toUpperCase() === 'GERAL' && (!d.id || d.id === 'SUMMARY')) || 
+                     (data.departamentos || []).find(d => d.departamento?.toUpperCase().includes('MED') && (!d.id || d.id === 'SUMMARY')) || {};
+    const mainVdaEft = parseNum(mainDept.vdaEft);
+    const mainAlvo = parseNum(mainDept.alvo) || parseNum(mainDept.metaDia);
+    const perfGeralVal = mainAlvo > 0 ? (mainVdaEft / mainAlvo) * 100 : 0;
+    const performanceGeral = perfGeralVal > 0 ? perfGeralVal.toFixed(1).replace('.', ',') + '%' : (data.geral?.performanceGeral || '0%');
+
     return {
       ...data,
       geral: {
@@ -196,6 +204,7 @@ export function useDashboardData(user, referenceDate, setReferenceDate) {
         diasDecorridos: currentElapsed,
         diasRestantes,
         vlrDesvio: data.geral?.vlrDesvio || data.geral?.vlrDesv || '0',
+        performanceGeral,
       },
       filiais,
       departamentos,

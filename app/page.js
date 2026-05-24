@@ -219,7 +219,7 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   </div>
                 </div>
                 <div className="header-metrics">
-                  <div className="metric-main">
+                  <div className="metric-main" style={{ cursor: 'help' }} title="Performance Acumulada: Percentual da meta acumulada atingido até o momento (Venda Efetiva acumulada dividida pelo Alvo acumulado).">
                     <span className="label">Performance Acumulada</span>
                     <span className="value">{enrichedData.geral?.performanceGeral || '0%'}</span>
                   </div>
