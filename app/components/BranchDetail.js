@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, PieChart, Pill, Package, ShoppingBag, Tag, TrendingUp, TrendingDown } from 'lucide-react';
+import { ChevronLeft, PieChart, Pill, Package, ShoppingBag, Tag, TrendingUp, TrendingDown, Ticket, Heart } from 'lucide-react';
 import { formatCurrency, parseNum } from '../utils/formatters';
 
 export default function BranchDetail({ f, depts, setSelectedFilial, shareFilialWhatsApp }) {
@@ -100,7 +100,7 @@ export default function BranchDetail({ f, depts, setSelectedFilial, shareFilialW
         </div>
       </div>
 
-      {depts.some(x => x.id === f.id) && (
+      {(depts.some(x => x.id === f.id) || f.cupomSVda) && (
         <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '2rem' }}>
           <h3 style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>
             Desempenho por Departamento (Filial {f.id})
@@ -138,6 +138,48 @@ export default function BranchDetail({ f, depts, setSelectedFilial, shareFilialW
                 </div>
               );
             })}
+
+            {/* Cupom Bem Panvel */}
+            {f.cupomSVda && (
+              <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                  <Ticket size={16} color="#10b981" />
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>Cupom Bem</p>
+                </div>
+                <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                  {f.cupomSVda} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>%S/Vda</span>
+                </p>
+              </div>
+            )}
+
+            {/* PBM */}
+            {f.pbmRepr && (
+              <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                  <PieChart size={16} color="#0ea5e9" />
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>PBM</p>
+                </div>
+                <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                  {f.pbmRepr} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>%Repr 80/20</span>
+                </p>
+              </div>
+            )}
+
+            {/* Troco Amigo */}
+            {f.taVlr && (
+              <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                  <Heart size={16} color="#ec4899" />
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>Troco Amigo</p>
+                </div>
+                <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                  {f.taVlr} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Vlr</span>
+                </p>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', fontWeight: 600 }}>
+                  Ontem: {f.taVlrOntem || '-'}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -14,17 +14,20 @@ const MAX_INPUT_CHARS = 150000;
 const analysisCache = new Map();
 
 function buildPrompt(text, filialId = null) {
-  // If filialId is provided, we generate a concise prompt that extracts ONLY the department data for that filial.
+  // If filialId is provided, we generate a concise prompt that extracts department data and general indicators for that filial.
   if (filialId) {
     return `
-Voce e um analista financeiro. Analise o texto extraido de um PDF e extraia, para a filial ${filialId}, os indicadores de departamentos no formato JSON.
+Voce e um analista financeiro. Analise o texto extraido de um PDF e extraia, para a filial ${filialId}, os indicadores de departamentos e indicadores gerais no formato JSON.
 Responda somente com JSON valido, minificado, sem markdown e sem explicacoes.
 
 IMPORTANTE:
 - Extraia as colunas Vda Eft, Alvo, %Desv, %Evl Vda para os departamentos MEDICAMENTO_GERAL, GENERICO, HB e PANVEL conforme especificado no requisito original.
 - Calcule o share conforme descrito.
-- Mantenha os valores como strings originais.
-- Nunca retorne "..." literal; use "-" se ausente.
+- Extraia da tabela "CUPOM BEM PANVEL" a porcentagem da coluna "%S/Vda" para a filial ${filialId}.
+- Extraia da tabela "PBM" a porcentagem da coluna "PBM %Repr 80/20" para a filial ${filialId}.
+- Extraia da tabela "TROCO AMIGO" o valor da coluna "Vlr T.Amigo" como "taVlr" e o valor da coluna "Vlr Ontem" como "taVlrOntem" para a filial ${filialId}.
+- Mantenha os valores como strings originais (ex: "5,72%", "90,06%", "299,55", "50,91").
+- Nunca retorne "..." ou vazio; use "-" se ausente.
 
 TEXTO:
 ${text}
@@ -36,7 +39,13 @@ FORMATO JSON:
     { "id": "${filialId}", "departamento": "GENERICO", "vdaEft": "...", "alvo": "...", "desvioPerc": "...", "evolucaoPerc": "...", "share": "..." },
     { "id": "${filialId}", "departamento": "HB", "vdaEft": "...", "alvo": "...", "desvioPerc": "...", "evolucaoPerc": "...", "share": "..." },
     { "id": "${filialId}", "departamento": "PANVEL", "vdaEft": "...", "alvo": "...", "desvioPerc": "...", "evolucaoPerc": "...", "share": "..." }
-  ]
+  ],
+  "indicadores": {
+    "cupomSVda": "...",
+    "pbmRepr": "...",
+    "taVlr": "...",
+    "taVlrOntem": "..."
+  }
 }
 `;
   }
@@ -205,7 +214,7 @@ export async function POST(request) {
     const limitedText = inputText.length > MAX_INPUT_CHARS ? inputText.slice(0, MAX_INPUT_CHARS) : inputText;
     
     // Cache Inteligente – inclui versão
-    const textHash = crypto.createHash('sha256').update(limitedText + "v14").digest('hex');
+    const textHash = crypto.createHash('sha256').update(limitedText + "v15").digest('hex');
     if (analysisCache.has(textHash)) {
       console.log('[Cache] Dados carregados do cache em memoria');
       return NextResponse.json({ success: true, data: analysisCache.get(textHash), fromCache: true });
@@ -229,17 +238,20 @@ export async function POST(request) {
 
     // 3️⃣ Process each filial separately (concise prompt to stay under token limit)
     const departmentResults = [];
+    const filialExtraData = {};
     for (const fid of uniqueFilialIds) {
       const filialPrompt = buildPrompt(limitedText, fid);
       try {
         const res = await callOpenAI(filialPrompt);
         if (res && res.departamentos) departmentResults.push(...res.departamentos);
+        if (res && res.indicadores) filialExtraData[fid] = res.indicadores;
       } catch (e) {
         // fallback to Gemini for this filial if OpenAI fails
         if (process.env.GEMINI_API_KEY) {
           try {
             const res = await callGemini(filialPrompt);
             if (res && res.departamentos) departmentResults.push(...res.departamentos);
+            if (res && res.indicadores) filialExtraData[fid] = res.indicadores;
           } catch (geminiErr) {
             console.warn(`[Process] Falha ao processar filial ${fid}:`, geminiErr.message);
           }
@@ -250,6 +262,10 @@ export async function POST(request) {
     // Merge results
     const finalData = {
       ...summaryData,
+      filiais: (summaryData.filiais || []).map(f => ({
+        ...f,
+        ...(filialExtraData[f.id] || {})
+      })),
       departamentos: [...(summaryData.departamentos || []), ...departmentResults]
     };
 
