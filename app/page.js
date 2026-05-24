@@ -249,7 +249,7 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   <h3 style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>
                     % Participação Venda Efetiva sobre a Venda
                   </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+                  <div className="participacao-grid">
                     <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
                       <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Med</p>
                       <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-primary)' }}>{enrichedData.participacao.med || '0%'}</p>
@@ -307,7 +307,7 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                     <h3 style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>
                       Desempenho por Departamento (Total Regional)
                     </h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
+                    <div className="depts-grid-scroll">
                       
                       {/* Medicamento Total */}
                       <div className="stats-mini-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>

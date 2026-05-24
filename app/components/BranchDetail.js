@@ -55,7 +55,7 @@ export default function BranchDetail({ f, depts, setSelectedFilial, shareFilialW
 
       <div className="glass-panel" style={{marginTop:'2rem', padding:'1.5rem'}}>
         <h4 style={{marginBottom:'1rem', fontSize:'1.1rem'}}>Desempenho Acumulado (Até Ontem)</h4>
-        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(160px, 1fr))', gap:'1rem'}}>
+        <div className="branch-stats-grid">
           
           <div style={{background:'rgba(255,255,255,0.03)', padding:'1rem', borderRadius:'8px'}}>
             <p style={{fontSize:'0.8rem', color:'var(--text-secondary)'}}>Venda Acumulada</p>
