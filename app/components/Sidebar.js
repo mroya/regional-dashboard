@@ -134,7 +134,7 @@ export default function Sidebar({
         style={{ display: 'none' }}
       />
 
-      <button className="sidebar-btn-danger" onClick={handleClearData} disabled style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Função desabilitada temporariamente">
+      <button className="sidebar-btn-danger" onClick={handleClearData}>
         <Trash2 size={18} /> Limpar Dados
       </button>
 

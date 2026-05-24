@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { auth } from './lib/firebase';
+import { auth, db } from './lib/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { useDashboardData } from './hooks/useDashboardData';
 import { useWeather } from './hooks/useWeather';
@@ -53,6 +53,28 @@ export default function Dashboard() {
     });
     return unsub;
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    // Find the latest report uploaded
+    const fetchLatestReportDate = async () => {
+      try {
+        const { collection, query, orderBy, limit, getDocs } = await import('firebase/firestore');
+        const q = query(collection(db, 'reports'), orderBy('timestamp', 'desc'), limit(1));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const latestDoc = snapshot.docs[0];
+          console.log('[Firebase] Data mais recente encontrada:', latestDoc.id);
+          setReferenceDate(latestDoc.id);
+        }
+      } catch (err) {
+        console.error('[Firebase] Erro ao buscar data mais recente:', err);
+      }
+    };
+    
+    fetchLatestReportDate();
+  }, [user]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
