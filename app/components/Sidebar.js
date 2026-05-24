@@ -81,13 +81,48 @@ export default function Sidebar({
         href="https://panveldash.us.qlikcloud.com/" 
         target="_blank" 
         rel="noopener noreferrer" 
-        className="qlik-btn"
         onClick={() => setSidebarOpen(false)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.6rem',
+          padding: '0.8rem',
+          marginTop: '0.5rem',
+          width: '100%',
+          background: 'rgba(0, 151, 167, 0.1)',
+          border: '1px solid rgba(0, 151, 167, 0.35)',
+          borderRadius: '10px',
+          color: '#00bcd4',
+          fontSize: '0.9rem',
+          fontWeight: 600,
+          cursor: 'pointer',
+          textDecoration: 'none',
+          boxSizing: 'border-box',
+          transition: 'all 0.2s',
+        }}
       >
         <ExternalLink size={20} /> <span>Abrir Qlik Panvel</span>
       </a>
 
-      <label className="upload-btn" style={{ marginTop: '0.5rem' }}>
+      <label style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.6rem',
+        padding: '0.8rem',
+        marginTop: '0.5rem',
+        width: '100%',
+        background: 'rgba(99, 102, 241, 0.1)',
+        border: '1px solid rgba(99, 102, 241, 0.35)',
+        borderRadius: '10px',
+        color: '#818cf8',
+        fontSize: '0.9rem',
+        fontWeight: 600,
+        cursor: 'pointer',
+        boxSizing: 'border-box',
+        transition: 'all 0.2s',
+      }}>
         <UploadCloud size={20} /> <span>Carregar PDF</span>
         <input type="file" accept="application/pdf" onChange={(e) => { handleFileUpload(e); setSidebarOpen(false); }} style={{ display: 'none' }} />
       </label>
