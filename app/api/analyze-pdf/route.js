@@ -162,6 +162,151 @@ async function callGemini(prompt) {
   throw lastError || new Error("Todos os modelos de fallback do Gemini falharam.");
 }
 
+function parseNum(str) {
+  if (!str) return 0;
+  return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+function parseFilialTableData(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const departamentos = [];
+  const filiaisExtra = {};
+  const filialTotals = {};
+  
+  function normalizeId(idStr) {
+    if (!idStr) return '';
+    return idStr.replace(/\D/g, '');
+  }
+  
+  let currentSection = '';
+  
+  // First pass: extract filial totals
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const upperLine = line.toUpperCase();
+    
+    if (upperLine === 'TOTAL') {
+      currentSection = 'TOTAL';
+      continue;
+    } else if (upperLine.startsWith('TOTAL :') || upperLine.startsWith('TOTAL:')) {
+      currentSection = '';
+      continue;
+    } else if (upperLine.includes('MEDICAMENTO TOTAL') || upperLine.includes('MEDICAMENTO - RX') || upperLine.includes('PBM') || upperLine.includes('TROCO AMIGO')) {
+      currentSection = '';
+      continue;
+    }
+    
+    if (currentSection === 'TOTAL') {
+      const parts = line.split(/\s+/);
+      const firstPart = parts[0];
+      if (/^\d+/.test(firstPart)) {
+        const filialId = normalizeId(firstPart);
+        if (filialId) {
+          filialTotals[filialId] = parseNum(parts[1]);
+        }
+      }
+    }
+  }
+  
+  currentSection = '';
+  
+  // Second pass: parse departments and other indicators
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const upperLine = line.toUpperCase();
+    
+    // Detect section headers
+    if (upperLine.includes('MEDICAMENTO TOTAL')) {
+      currentSection = 'MEDICAMENTO_GERAL';
+      continue;
+    } else if (upperLine.includes('MEDICAMENTO - OTC') || upperLine.includes('MEDICAMENTO - RX') || upperLine.includes('MEDICAMENTO - BIO') || upperLine.includes('MARCA') || upperLine.includes('CLINIC')) {
+      currentSection = ''; // ignore sub-departments and clinic
+      continue;
+    } else if (upperLine.includes('GENÉRICO') || upperLine.includes('GENERICO')) {
+      currentSection = 'GENERICO';
+      continue;
+    } else if (upperLine.includes('HB (NÃO MEDICAMENTO)') || upperLine.includes('HB (NAO MEDICAMENTO)') || upperLine.includes('HB (N-MED)') || (upperLine.startsWith('HB') && upperLine.includes('MEDICAMENTO'))) {
+      currentSection = 'HB';
+      continue;
+    } else if (upperLine.includes('PRODUTOS PANVEL')) {
+      currentSection = 'PANVEL';
+      continue;
+    } else if (upperLine.includes('CUPOM BEM PANVEL')) {
+      currentSection = 'CUPOM_BEM';
+      continue;
+    } else if (upperLine.startsWith('PBM')) {
+      currentSection = 'PBM';
+      continue;
+    } else if (upperLine.includes('TROCO AMIGO')) {
+      currentSection = 'TROCO_AMIGO';
+      continue;
+    } else if (upperLine.includes('--- PAGE ---') || upperLine.includes('DT.EMISSÃO') || upperLine.includes('DT. REFERÊNCIA') || upperLine.includes('REGIONAL 2') || upperLine.includes('Vda Eft')) {
+      continue;
+    }
+    
+    if (currentSection) {
+      const parts = line.split(/\s+/);
+      const firstPart = parts[0];
+      
+      if (/^\d+/.test(firstPart)) {
+        const filialId = normalizeId(firstPart);
+        if (!filialId) continue;
+        
+        if (!filiaisExtra[filialId]) {
+          filiaisExtra[filialId] = {
+            cupomSVda: '-',
+            pbmRepr: '-',
+            taVlr: '-',
+            taVlrOntem: '-'
+          };
+        }
+        
+        const numericParts = parts.slice(1).map(p => p.trim());
+        
+        if (currentSection === 'MEDICAMENTO_GERAL' || currentSection === 'GENERICO' || currentSection === 'HB' || currentSection === 'PANVEL') {
+          const vdaEft = numericParts[0] || '-';
+          const alvo = numericParts[2] || '-';
+          const desvioPerc = numericParts[3] || '-';
+          const evolucaoPerc = numericParts[4] || '-';
+          
+          let share = '-';
+          const vdaEftNum = parseNum(vdaEft);
+          const filialTotal = filialTotals[filialId] || 0;
+          
+          if (currentSection === 'MEDICAMENTO_GERAL') {
+            share = filialTotal > 0 ? ((vdaEftNum / filialTotal) * 100).toFixed(2).replace('.', ',') + '%' : '-';
+          } else if (currentSection === 'GENERICO') {
+            share = numericParts[11] || '-';
+          } else if (currentSection === 'HB') {
+            share = filialTotal > 0 ? ((vdaEftNum / filialTotal) * 100).toFixed(2).replace('.', ',') + '%' : '-';
+          } else if (currentSection === 'PANVEL') {
+            share = numericParts[11] || '-';
+          }
+          
+          departamentos.push({
+            id: filialId,
+            departamento: currentSection,
+            vdaEft,
+            alvo,
+            desvioPerc,
+            evolucaoPerc,
+            share
+          });
+        } else if (currentSection === 'CUPOM_BEM') {
+          filiaisExtra[filialId].cupomSVda = parts[2] || '-';
+        } else if (currentSection === 'PBM') {
+          filiaisExtra[filialId].pbmRepr = parts[4] || '-';
+        } else if (currentSection === 'TROCO_AMIGO') {
+          filiaisExtra[filialId].taVlr = parts[1] || '-';
+          filiaisExtra[filialId].taVlrOntem = parts[8] || '-';
+        }
+      }
+    }
+  }
+  
+  return { departamentos, filiaisExtra };
+}
+
 export async function POST(request) {
   try {
     let inputText = '';
@@ -214,7 +359,7 @@ export async function POST(request) {
     const limitedText = inputText.length > MAX_INPUT_CHARS ? inputText.slice(0, MAX_INPUT_CHARS) : inputText;
     
     // Cache Inteligente – inclui versão
-    const textHash = crypto.createHash('sha256').update(limitedText + "v15").digest('hex');
+    const textHash = crypto.createHash('sha256').update(limitedText + "v16").digest('hex');
     if (analysisCache.has(textHash)) {
       console.log('[Cache] Dados carregados do cache em memoria');
       return NextResponse.json({ success: true, data: analysisCache.get(textHash), fromCache: true });
@@ -231,42 +376,22 @@ export async function POST(request) {
       summaryData = await callGemini(summaryPrompt);
     }
 
-    // 2️⃣ Detect filial IDs in the text (simple regex for numbers that look like IDs)
-    const filialIds = Array.from(limitedText.matchAll(/\bFilial\s*(\d{2,})\b/gi)).map(m => m[1]);
-    const uniqueFilialIds = [...new Set(filialIds)];
-    console.log('[Process] Filiais encontradas:', uniqueFilialIds);
-
-    // 3️⃣ Process each filial separately (concise prompt to stay under token limit)
-    const departmentResults = [];
-    const filialExtraData = {};
-    for (const fid of uniqueFilialIds) {
-      const filialPrompt = buildPrompt(limitedText, fid);
-      try {
-        const res = await callOpenAI(filialPrompt);
-        if (res && res.departamentos) departmentResults.push(...res.departamentos);
-        if (res && res.indicadores) filialExtraData[fid] = res.indicadores;
-      } catch (e) {
-        // fallback to Gemini for this filial if OpenAI fails
-        if (process.env.GEMINI_API_KEY) {
-          try {
-            const res = await callGemini(filialPrompt);
-            if (res && res.departamentos) departmentResults.push(...res.departamentos);
-            if (res && res.indicadores) filialExtraData[fid] = res.indicadores;
-          } catch (geminiErr) {
-            console.warn(`[Process] Falha ao processar filial ${fid}:`, geminiErr.message);
-          }
-        }
-      }
-    }
+    // 2️⃣ Parse filial details programmatically to avoid Vercel 10s timeout & rate limit errors
+    const { departamentos: filialDepts, filiaisExtra } = parseFilialTableData(limitedText);
 
     // Merge results
     const finalData = {
       ...summaryData,
       filiais: (summaryData.filiais || []).map(f => ({
         ...f,
-        ...(filialExtraData[f.id] || {})
+        ...(filiaisExtra[f.id] || {
+          cupomSVda: '-',
+          pbmRepr: '-',
+          taVlr: '-',
+          taVlrOntem: '-'
+        })
       })),
-      departamentos: [...(summaryData.departamentos || []), ...departmentResults]
+      departamentos: [...(summaryData.departamentos || []), ...filialDepts]
     };
 
     // Store in cache
