@@ -201,7 +201,7 @@ function parseFilialTableData(text) {
       const firstPart = parts[0];
       if (/^\d+/.test(firstPart)) {
         const filialId = normalizeId(firstPart);
-        if (filialId) {
+        if (filialId && filialId.length >= 2 && filialId.length <= 4) {
           filialTotals[filialId] = parseNum(parts[1]);
           filiais.push({
             id: filialId,
@@ -260,7 +260,7 @@ function parseFilialTableData(text) {
       
       if (/^\d+/.test(firstPart)) {
         const filialId = normalizeId(firstPart);
-        if (!filialId) continue;
+        if (!filialId || filialId.length < 2 || filialId.length > 4) continue;
         
         if (!filiaisExtra[filialId]) {
           filiaisExtra[filialId] = {
