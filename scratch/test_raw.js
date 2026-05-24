@@ -24,14 +24,24 @@ function splitIntoChunks(text, size) {
   return chunks;
 }
 
+// Helper to safely extract JSON (object or array) from model response
+function safeParseJson(text) {
+  let cleaned = text.trim().replace(/```json/g, '').replace(/```/g, '').trim();
+  const firstBrace = cleaned.search(/[\{\[]/);
+  if (firstBrace === -1) throw new Error('No JSON brace found');
+  cleaned = cleaned.slice(firstBrace);
+  const lastBrace = cleaned.lastIndexOf(cleaned[0] === '{' ? '}' : ']');
+  if (lastBrace !== -1) cleaned = cleaned.slice(0, lastBrace + 1);
+  return JSON.parse(cleaned);
+}
+
 // Base prompt (without the large text) – keep it concise
 function buildPrompt(chunkText, chunkIdx, totalChunks) {
-  return `
+  if (chunkIdx === 0) {
+    return `
 Extraia dados do relatório de vendas abaixo em formato JSON.
 Preencha todos os campos com os valores encontrados, mantendo o formato original (ex: "3.427.863", "67,34%").
 Se não encontrar um valor, retorne "-".
-
-Esta é a parte ${chunkIdx + 1} de ${totalChunks} do texto completo.
 
 TEXTO:
 ${chunkText}
@@ -46,12 +56,21 @@ FORMATO JSON:
   ]
 }
 `;
+  } else {
+    return `
+Extraia apenas a lista de "departamentos" do texto abaixo. Retorne apenas o objeto JSON com a chave "departamentos".
+TEXTO:
+${chunkText}
+FORMATO JSON:
+{ "departamentos": [ { "id": "...", "departamento": "...", "vdaEft": "...", "alvo": "...", "projecao": "...", "desvioPerc": "...", "vlrDesvio": "..." } ] }
+`;
+  }
 }
 
 async function run() {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-1.5-flash',
     generationConfig: {
       temperature: 0,
       maxOutputTokens: 8192,
@@ -62,7 +81,6 @@ async function run() {
   const chunks = splitIntoChunks(fullText, CHUNK_SIZE);
   console.log(`Total chunks to process: ${chunks.length}`);
 
-  // Accumulator for merged result
   const mergedResult = {
     geral: {},
     filiais: [],
@@ -70,13 +88,12 @@ async function run() {
     departamentos: [],
   };
 
-  // Helper to deduplicate by a key (id)
   const dedup = (arr, key) => {
-    const seen = new Set();
+    const seen = new Map();
     return arr.filter(item => {
-      if (!item[key]) return true; // keep if no key
+      if (!item[key]) return true;
       if (seen.has(item[key])) return false;
-      seen.add(item[key]);
+      seen.set(item[key], true);
       return true;
     });
   };
@@ -85,45 +102,28 @@ async function run() {
     const prompt = buildPrompt(chunks[i], i, chunks.length);
     console.log(`Sending request for chunk ${i + 1}/${chunks.length}...`);
     try {
-      const result = await model.generateContent(prompt);
-      if (!result.response || !result.response.candidates) {
-        console.warn(`No candidates returned for chunk ${i + 1}`);
-        continue;
-      }
-      const text = result.response.candidates[0].content.parts.map(p => p.text).join('');
-      // Try parsing JSON; if parsing fails, log and skip
-      let partial;
-      try {
-        partial = JSON.parse(text);
-      } catch (e) {
-        console.error(`Failed to parse JSON for chunk ${i + 1}:`, e.message);
-        console.error('Response excerpt:', text.slice(0, 200));
-        continue;
-      }
-
-      // Merge geral – keep first non‑placeholder values
-      if (partial.geral) {
-        for (const [k, v] of Object.entries(partial.geral)) {
-          if (v && v !== '-' && !(k in mergedResult.geral)) {
-            mergedResult.geral[k] = v;
+        const result = await model.generateContent(prompt);
+        const raw = result.response.text();
+        let parsed;
+        try {
+          parsed = safeParseJson(raw);
+        } catch (e) {
+          console.error(`Failed to parse JSON for chunk ${i + 1}:`, e.message);
+          continue;
+        }
+        if (i === 0) {
+          if (parsed.geral) Object.assign(mergedResult.geral, parsed.geral);
+          if (parsed.participacao) Object.assign(mergedResult.participacao, parsed.participacao);
+          if (Array.isArray(parsed.filiais)) mergedResult.filiais.push(...parsed.filiais);
+          if (Array.isArray(parsed.departamentos)) mergedResult.departamentos.push(...parsed.departamentos);
+        } else {
+          // Only departamentos expected
+          if (Array.isArray(parsed)) {
+            mergedResult.departamentos.push(...parsed);
+          } else if (Array.isArray(parsed.departamentos)) {
+            mergedResult.departamentos.push(...parsed.departamentos);
           }
         }
-      }
-      // Merge participacao – similar logic
-      if (partial.participacao) {
-        for (const [k, v] of Object.entries(partial.participacao)) {
-          if (v && v !== '-' && !(k in mergedResult.participacao)) {
-            mergedResult.participacao[k] = v;
-          }
-        }
-      }
-      // Append arrays
-      if (Array.isArray(partial.filiais)) {
-        mergedResult.filiais.push(...partial.filiais);
-      }
-      if (Array.isArray(partial.departamentos)) {
-        mergedResult.departamentos.push(...partial.departamentos);
-      }
     } catch (err) {
       console.error(`Error processing chunk ${i + 1}:`, err);
     }

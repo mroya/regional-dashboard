@@ -1,0 +1,27 @@
+{
+  "geral": {},
+  "filiais": [
+    {
+      "id": "922(POA)",
+      "vdaEft": "24,91",
+      "vdaOnt": "20",
+      "alvo": "1,25",
+      "desvioPerc": "0,68%",
+      "evlVda": "0,89%",
+      "mediaDia": "8,00",
+      "rtRep": "3"
+    }
+  ],
+  "participacao": {},
+  "departamentos": [
+    {
+      "id": "SUMMARY",
+      "departamento": "MED",
+      "vdaEft": "3.683,59",
+      "alvo": "2.844",
+      "projecao": "1,30",
+      "desvioPerc": "100,00%",
+      "vlrDesvio": "5,02%"
+    }
+  ]
+}

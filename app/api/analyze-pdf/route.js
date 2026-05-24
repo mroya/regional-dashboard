@@ -139,13 +139,28 @@ async function callGemini(prompt) {
 
 export async function POST(request) {
   try {
-    const { text, referenceDate } = await request.json();
+    // Accept either raw text or a file path for PDF upload
+    const { text, referenceDate, filePath } = await request.json();
 
-    if (!text || !referenceDate) {
-      return NextResponse.json({ error: 'Dados incompletos' }, { status: 400 });
+    let inputText = '';
+    if (filePath) {
+      // Simple file read – in a real scenario you would parse the PDF to extract text
+      try {
+        inputText = fs.readFileSync(filePath, 'utf8');
+      } catch (e) {
+        return NextResponse.json({ error: `Failed to read file: ${e.message}` }, { status: 400 });
+      }
+    } else if (text) {
+      inputText = text;
+    } else {
+      return NextResponse.json({ error: 'Dados incompletos: forneça texto ou caminho de arquivo' }, { status: 400 });
     }
 
-    const limitedText = text.length > MAX_INPUT_CHARS ? text.slice(0, MAX_INPUT_CHARS) : text;
+    if (!referenceDate) {
+      return NextResponse.json({ error: 'referenceDate missing' }, { status: 400 });
+    }
+
+    const limitedText = inputText.length > MAX_INPUT_CHARS ? inputText.slice(0, MAX_INPUT_CHARS) : inputText;
     
     // Cache Inteligente – inclui versão
     const textHash = crypto.createHash('sha256').update(limitedText + "v13").digest('hex');
@@ -202,3 +217,7 @@ export async function POST(request) {
   }
 }
 
+// Optional helper to generate Qlik link (previously only link was returned)
+function getQlikLink() {
+  return 'https://panveldash.us.qlikcloud.com/';
+}
