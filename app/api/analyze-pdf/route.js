@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+const fs = require('fs');
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -210,7 +211,7 @@ export async function POST(request) {
     // Store in cache
     analysisCache.set(textHash, finalData);
 
-    return NextResponse.json({ success: true, data: finalData });
+    return NextResponse.json({ success: true, data: finalData, qlikLink: getQlikLink() });
   } catch (error) {
     console.error('Erro geral no processamento de IA:', error);
     return NextResponse.json({ error: 'Falha na IA: ' + error.message }, { status: 500 });
