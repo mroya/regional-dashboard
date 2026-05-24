@@ -11,7 +11,7 @@ import RegionalStats from './components/RegionalStats';
 import BranchDetail from './components/BranchDetail';
 import FiliaisDailyTable from './components/FiliaisDailyTable';
 import dynamic from 'next/dynamic';
-import { Brain, CheckCircle2, FileText, Loader2, Receipt, TrendingUp, TrendingDown, Pill, Package, ShoppingBag, Tag, Ticket, PieChart, Heart } from 'lucide-react';
+import { Brain, CheckCircle2, FileText, Loader2, Receipt, TrendingUp, TrendingDown, Pill, Package, ShoppingBag, Tag, Ticket, PieChart, Heart, HelpCircle } from 'lucide-react';
 
 
 
@@ -220,7 +220,9 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                 </div>
                 <div className="header-metrics">
                   <div className="metric-main" style={{ cursor: 'help' }} title="Performance Acumulada: Percentual da meta acumulada atingido até o momento (Venda Efetiva acumulada dividida pelo Alvo acumulado).">
-                    <span className="label">Performance Acumulada</span>
+                    <span className="label" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      Performance Acumulada <HelpCircle size={12} style={{ opacity: 0.7 }} />
+                    </span>
                     <span className="value">{enrichedData.geral?.performanceGeral || '0%'}</span>
                   </div>
                 </div>

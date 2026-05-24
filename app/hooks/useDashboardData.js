@@ -189,12 +189,19 @@ export function useDashboardData(user, referenceDate, setReferenceDate) {
     });
 
     // Calculate performance geral: (vdaEft / alvo) * 100 for GERAL summary department
-    const mainDept = (data.departamentos || []).find(d => d.departamento?.toUpperCase() === 'GERAL' && (!d.id || d.id === 'SUMMARY')) || 
-                     (data.departamentos || []).find(d => d.departamento?.toUpperCase().includes('MED') && (!d.id || d.id === 'SUMMARY')) || {};
-    const mainVdaEft = parseNum(mainDept.vdaEft);
-    const mainAlvo = parseNum(mainDept.alvo) || parseNum(mainDept.metaDia);
-    const perfGeralVal = mainAlvo > 0 ? (mainVdaEft / mainAlvo) * 100 : 0;
-    const performanceGeral = perfGeralVal > 0 ? perfGeralVal.toFixed(1).replace('.', ',') + '%' : (data.geral?.performanceGeral || '0%');
+    let performanceGeral = data.geral?.performanceGeral || '0%';
+    if (performanceGeral === '-' || performanceGeral === '0%') {
+      const mainDept = (data.departamentos || []).find(d => d.departamento?.toUpperCase() === 'GERAL' && (!d.id || d.id === 'SUMMARY')) || 
+                       (data.departamentos || []).find(d => d.departamento?.toUpperCase().includes('MED') && (!d.id || d.id === 'SUMMARY')) || {};
+      const mainVdaEft = parseNum(mainDept.vdaEft) || parseNum(data.geral?.vdaEft) || parseNum(data.geral?.venda);
+      const mainAlvo = parseNum(mainDept.alvo) || parseNum(mainDept.metaDia) || parseNum(data.geral?.alvo) || parseNum(data.geral?.meta);
+      const perfGeralVal = mainAlvo > 0 ? (mainVdaEft / mainAlvo) * 100 : 0;
+      if (perfGeralVal > 0) {
+        performanceGeral = perfGeralVal.toFixed(1).replace('.', ',') + '%';
+      }
+    } else {
+      performanceGeral = performanceGeral.replace('.', ',');
+    }
 
     return {
       ...data,
