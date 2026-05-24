@@ -2,10 +2,16 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-const fs = require('fs');
+import fs from 'fs';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 const MAX_INPUT_CHARS = 150000;
 
@@ -140,25 +146,43 @@ async function callGemini(prompt) {
 
 export async function POST(request) {
   try {
-    // Accept either raw text or a file path for PDF upload
-    const { text, referenceDate, filePath } = await request.json();
-
+    // Accept either raw JSON body (text/filePath) or multipart/form-data upload
     let inputText = '';
-    if (filePath) {
-      // Simple file read – in a real scenario you would parse the PDF to extract text
-      try {
-        inputText = fs.readFileSync(filePath, 'utf8');
-      } catch (e) {
-        return NextResponse.json({ error: `Failed to read file: ${e.message}` }, { status: 400 });
+    const contentType = request.headers.get('content-type') || '';
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const file = formData.get('file');
+      if (file && typeof file.arrayBuffer === 'function') {
+        const arrayBuffer = await file.arrayBuffer();
+        inputText = Buffer.from(arrayBuffer).toString('utf-8');
+      } else if (formData.get('text')) {
+        inputText = formData.get('text');
+      } else {
+        return NextResponse.json({ error: 'File missing and no text provided' }, { status: 400 });
       }
-    } else if (text) {
-      inputText = text;
+      const refDate = formData.get('referenceDate');
+      if (!refDate) {
+        return NextResponse.json({ error: 'referenceDate missing' }, { status: 400 });
+      }
+      referenceDate = refDate;
     } else {
-      return NextResponse.json({ error: 'Dados incompletos: forneça texto ou caminho de arquivo' }, { status: 400 });
-    }
-
-    if (!referenceDate) {
-      return NextResponse.json({ error: 'referenceDate missing' }, { status: 400 });
+      // Fallback to JSON body
+      const { text, referenceDate: refDate, filePath } = await request.json();
+      if (filePath) {
+        try {
+          inputText = fs.readFileSync(filePath, 'utf8');
+        } catch (e) {
+          return NextResponse.json({ error: `Failed to read file: ${e.message}` }, { status: 400 });
+        }
+      } else if (text) {
+        inputText = text;
+      } else {
+        return NextResponse.json({ error: 'Dados incompletos: forneça texto ou caminho de arquivo' }, { status: 400 });
+      }
+      if (!refDate) {
+        return NextResponse.json({ error: 'referenceDate missing' }, { status: 400 });
+      }
+      referenceDate = refDate;
     }
 
     const limitedText = inputText.length > MAX_INPUT_CHARS ? inputText.slice(0, MAX_INPUT_CHARS) : inputText;
