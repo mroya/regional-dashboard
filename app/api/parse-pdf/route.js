@@ -69,7 +69,7 @@ export async function POST(req) {
     const extractData = {
       ...parseRawRows(allRows),
       rawRows: allRows,
-      text: fullText,
+      text: allRows.map(row => row.join(' ')).join('\n'),
     };
 
     return new Response(JSON.stringify(extractData), {
