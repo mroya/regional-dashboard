@@ -36,67 +36,67 @@ export default function BranchDetail({ f, depts, setSelectedFilial, shareFilialW
         </div>
       </div>
 
-      <div className="detail-stats" style={{marginTop:'2rem'}}>
-        <div className="glass-panel stat-card" style={{borderTop: `3px solid ${f.dentroMeta ? '#10b981' : '#ef4444'}`}}>
-          <div className="stat-label">Projeção (Mês)</div>
-          <div className="stat-value" style={{color: f.dentroMeta ? '#10b981' : '#ef4444'}}>{formatCurrency(f.projecaoFinal)}</div>
-          <div className="stat-sub">Meta: {formatCurrency(f.alvoMensalEst)}</div>
+      {/* 6 Cards idênticos à visão Regional */}
+      <div className="metrics-grid" style={{ marginTop: '2rem' }}>
+        <div className="glass-panel metric-card orange" style={{ cursor: 'help' }} title={`Projeção final do mês estimado para esta filial: ${formatCurrency(f.projecaoFinal)}`}>
+          <span className="icon">📈</span>
+          <h3>Projeção (Mês)</h3>
+          <div className="big-value">{f.percProj.toFixed(1)}%</div>
+          <p>Valor: {formatCurrency(f.projecaoFinal)}</p>
         </div>
-        <div className="glass-panel stat-card" style={{borderTop: '3px solid #3b82f6'}}>
-          <div className="stat-label">Meta Diária</div>
-          <div className="stat-value" style={{color:'#3b82f6'}}>R$ {f.metaDia}</div>
+
+        <div className="glass-panel metric-card blue" style={{ cursor: 'help' }} title="Meta Diária exigida para esta filial.">
+          <span className="icon">📅</span>
+          <h3>Meta Diária</h3>
+          <div className="big-value">{formatCurrency(parseNum(f.metaDia))}</div>
+          <p>Valor Proporcional</p>
         </div>
-        <div className="glass-panel stat-card" style={{borderTop: '3px solid #8b5cf6'}}>
-          <div className="stat-label">Média Diária Real</div>
-          <div className="stat-value" style={{color:'#8b5cf6'}}>{formatCurrency(f.mediaReal)}</div>
-          <div className="stat-sub">Meta/dia: {formatCurrency(f.mediaAlvoNec)}</div>
+
+        <div className="glass-panel metric-card purple" style={{ cursor: 'help' }} title={`Média Dia: Média real de faturamento por dia decorrido.\nMeta/Dia: Ritmo médio exigido (${formatCurrency(f.mediaAlvoNec)}).`}>
+          <span className="icon">💰</span>
+          <h3>Média Dia</h3>
+          <div className="big-value">{formatCurrency(f.mediaReal)}</div>
+          <p>Meta/Dia: {formatCurrency(f.mediaAlvoNec)}</p>
+        </div>
+
+        <div className="glass-panel metric-card blue" style={{ cursor: 'help' }} title={`Vda Eft: Faturamento total acumulado pela filial no mês.\nOntem: Venda realizada no dia anterior (${f.vdaOnt}).`}>
+          <span className="icon">V</span>
+          <h3>Vda Eft</h3>
+          <div className="big-value">{f.vdaEft || '-'}</div>
+          <p>Ontem: {f.vdaOnt || '-'}</p>
+        </div>
+
+        <div className="glass-panel metric-card blue" style={{ cursor: 'help' }} title={`Alvo: Meta proporcional acumulada até ontem.\nMeta Total: Meta cheia do mês (${formatCurrency(f.alvoMensalEst)}).`}>
+          <span className="icon">A</span>
+          <h3>Alvo (Meta Acumulada)</h3>
+          <div className="big-value">{f.alvo || '-'}</div>
+          <p>Meta Total: {formatCurrency(f.alvoMensalEst)}</p>
+        </div>
+
+        <div className="glass-panel metric-card orange" style={{ cursor: 'help' }} title={`Desvio: Desvio percentual acumulado.\nEvolução: Comparativo vs ano/mês anterior (${f.evlVda}).`}>
+          <span className="icon">%</span>
+          <h3>% Desv</h3>
+          <div className="big-value" style={{ color: parseNum(f.desvioPerc) >= 0 ? '#10b981' : '#ef4444' }}>
+            {f.desvioPerc || '-'}
+          </div>
+          <p>Evolução: <span style={{ color: parseNum(f.evlVda) >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}>{f.evlVda || '-'}</span></p>
         </div>
       </div>
 
-      <div className="glass-panel" style={{marginTop:'2rem', padding:'1.5rem'}}>
-        <h4 style={{marginBottom:'1rem', fontSize:'1.1rem'}}>Desempenho Acumulado (Até Ontem)</h4>
-        <div className="branch-stats-grid">
-          
-          <div style={{background:'rgba(255,255,255,0.03)', padding:'1rem', borderRadius:'8px'}}>
-            <p style={{fontSize:'0.8rem', color:'var(--text-secondary)'}}>Venda Acumulada</p>
-            <p style={{fontSize:'1.4rem', fontWeight:800}}>{f.vdaEft || '-'}</p>
-          </div>
-          
-          <div style={{background:'rgba(255,255,255,0.03)', padding:'1rem', borderRadius:'8px'}}>
-            <p style={{fontSize:'0.8rem', color:'var(--text-secondary)'}}>Meta Acumulada</p>
-            <p style={{fontSize:'1.4rem', fontWeight:800}}>{f.alvo || '-'}</p>
-          </div>
-
-          <div style={{background:'rgba(255,255,255,0.03)', padding:'1rem', borderRadius:'8px'}}>
-            <p style={{fontSize:'0.8rem', color:'var(--text-secondary)'}}>% Desvio</p>
-            <p style={{fontSize:'1.4rem', fontWeight:800, color: parseNum(f.desvioPerc) >= 0 ? '#10b981' : '#ef4444'}}>{f.desvioPerc || '-'}</p>
-          </div>
-          
-          <div style={{background:'rgba(255,255,255,0.03)', padding:'1rem', borderRadius:'8px'}}>
-            <p style={{fontSize:'0.8rem', color:'var(--text-secondary)'}}>% Evolução</p>
-            <p style={{fontSize:'1.4rem', fontWeight:800, color: parseNum(f.evlVda) >= 0 ? '#10b981' : '#ef4444'}}>{f.evlVda || '-'}</p>
-          </div>
-
-          <div style={{background:'rgba(255,255,255,0.03)', padding:'1rem', borderRadius:'8px'}}>
-            <p style={{fontSize:'0.8rem', color:'var(--text-secondary)'}}>Venda Ontem</p>
-            <p style={{fontSize:'1.4rem', fontWeight:800}}>{f.vdaOnt || '-'}</p>
-          </div>
+      {/* Barra de Progresso & Acumulado */}
+      <div className="glass-panel" style={{ marginTop: '1.5rem', padding: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+          <span style={{ color: 'var(--text-secondary)' }}>Progresso da Meta Acumulada</span>
+          <span><strong style={{ color: 'var(--text-primary)' }}>{f.vdaEft || 0}</strong> / {f.alvo || 0}</span>
         </div>
-        
-        <div style={{marginTop:'1.5rem'}}>
-          <div style={{display:'flex', justifyContent:'space-between', marginBottom:'0.5rem', fontSize:'0.85rem'}}>
-            <span style={{color:'var(--text-secondary)'}}>Progresso da Meta Acumulada</span>
-            <span><strong style={{color:'var(--text-primary)'}}>{f.vdaEft || 0}</strong> / {f.alvo || 0}</span>
-          </div>
-          <div style={{height:'8px', background:'rgba(255,255,255,0.1)', borderRadius:'10px', overflow:'hidden'}}>
-             <div style={{
-               height:'100%', 
-               width: `${Math.min(100, (parseNum(f.vdaEft) / (parseNum(f.alvo) || 1)) * 100)}%`,
-               background: parseNum(f.desvioPerc) >= 0 ? '#10b981' : '#ef4444',
-               borderRadius:'10px',
-               transition: 'width 1s ease-out'
-             }}></div>
-          </div>
+        <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden' }}>
+           <div style={{
+             height: '100%', 
+             width: `${Math.min(100, (parseNum(f.vdaEft) / (parseNum(f.alvo) || 1)) * 100)}%`,
+             background: parseNum(f.desvioPerc) >= 0 ? '#10b981' : '#ef4444',
+             borderRadius: '10px',
+             transition: 'width 1s ease-out'
+           }}></div>
         </div>
       </div>
 
