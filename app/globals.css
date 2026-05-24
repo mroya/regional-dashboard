@@ -377,6 +377,57 @@ body {
   border-color: var(--danger);
 }
 
+/* Qlik link button */
+.qlik-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  background: rgba(0, 151, 167, 0.1);
+  border: 1px solid rgba(0, 151, 167, 0.35);
+  border-radius: var(--radius-md);
+  color: #00bcd4;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.qlik-btn:hover {
+  background: rgba(0, 151, 167, 0.2);
+  border-color: #00bcd4;
+}
+
+/* Upload PDF button */
+.upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: var(--radius-md);
+  color: #818cf8;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.upload-btn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: #818cf8;
+}
+
+
 .date-display {
   display: flex;
   justify-content: space-between;
