@@ -177,6 +177,24 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                   </div>
                   <h1>Visão Do Coordenador</h1>
                   <p className="subtitle">Área 02 Sul POA • {new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.6rem', flexWrap: 'wrap' }}>
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                      background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)',
+                      borderRadius: '20px', padding: '0.3rem 0.85rem', fontSize: '0.8rem', fontWeight: 600, color: '#818cf8'
+                    }}>
+                      📅 Dados de: {new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    </div>
+                    {updatedAt && (
+                      <div style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                        background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
+                        borderRadius: '20px', padding: '0.3rem 0.85rem', fontSize: '0.75rem', fontWeight: 500, color: '#6ee7b7'
+                      }}>
+                        🕐 Atualizado: {updatedAt}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="header-metrics">
                   <div className="metric-main">
