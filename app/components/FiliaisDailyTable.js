@@ -105,101 +105,40 @@ export default function FiliaisDailyTable({ filiais, onFilialClick }) {
       
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-        gap: '1.5rem' 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', 
+        gap: '1rem' 
       }}>
         {sortedFiliais.map(f => {
           const desvioNum = parseNum(f.desvioPerc || '0');
           const evlNum = parseNum(f.evlVda || '0');
-          const vdaNum = parseNum(f.vdaEft || '0');
-          const alvoNum = parseNum(f.alvo || f.metaDia || '0');
           
-          const progresso = alvoNum > 0 ? Math.min(100, (vdaNum / alvoNum) * 100) : 0;
-          const isOnTarget = desvioNum >= 0;
-
           return (
             <div 
               key={f.id} 
-              className="glass-panel branch-card hover-lift"
-              style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}
+              className="stats-mini-card hover-lift"
+              style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
               onClick={() => onFilialClick && onFilialClick(String(f.id))}
             >
-              {/* Background Glow */}
-              <div style={{
-                position: 'absolute',
-                top: '-50px',
-                right: '-50px',
-                width: '100px',
-                height: '100px',
-                background: isOnTarget ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                filter: 'blur(30px)',
-                borderRadius: '50%'
-              }}></div>
-
-              {/* Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.5rem', borderRadius: '8px' }}>
-                    <Store size={18} color="var(--accent-primary)" />
-                  </div>
-                  <h4 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700' }}>{f.id}</h4>
-                </div>
-                
-                {/* Desvio Badge */}
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '4px',
-                  background: isOnTarget ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                  color: isOnTarget ? '#10b981' : '#ef4444',
-                  padding: '4px 10px',
-                  borderRadius: '20px',
-                  fontSize: '0.85rem',
-                  fontWeight: '600'
-                }}>
-                  {isOnTarget ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                  {f.desvioPerc || '0%'}
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                <Store size={16} color="var(--accent-primary)" />
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>Filial {f.id}</p>
               </div>
 
-              {/* Main Progress (Venda vs Alvo) */}
-              <div style={{ marginTop: '0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Venda: <strong style={{ color: 'var(--text-primary)' }}>{f.vdaEft || '-'}</strong></span>
-                  <span style={{ color: 'var(--text-secondary)' }}>Alvo: <strong style={{ color: 'var(--text-primary)' }}>{f.alvo || f.metaDia || '-'}</strong></span>
-                </div>
-                {/* Progress Bar */}
-                <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden' }}>
-                  <div style={{ 
-                    height: '100%', 
-                    width: progresso + '%', 
-                    background: isOnTarget ? '#10b981' : '#ef4444',
-                    borderRadius: '10px',
-                    transition: 'width 1s ease-out'
-                  }}></div>
-                </div>
+              <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                {f.desvioPerc || '0%'} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Desv</span>
+              </p>
+
+              <div style={{ fontSize: '0.85rem', color: evlNum >= 0 ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', fontWeight: 600 }}>
+                {evlNum >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                {f.evlVda || '0%'} Evol
               </div>
 
-              <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.05)', margin: '0.5rem 0' }} />
-
-              {/* Micro Metrics Bottom */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Vda Ontem</span>
-                  <span style={{ fontSize: '1rem', fontWeight: '600' }}>{f.vdaOnt || '-'}</span>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                  <span>Vda:</span> <strong style={{ color: 'var(--text-primary)' }}>{f.vdaEft || '-'}</strong>
                 </div>
-                
-                <ArrowRight size={16} color="var(--text-secondary)" style={{ opacity: 0.5 }} />
-
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>% Evolução</span>
-                  <span style={{ 
-                    fontSize: '1rem', 
-                    fontWeight: '700',
-                    color: evlNum >= 0 ? '#10b981' : '#ef4444'
-                  }}>
-                    {f.evlVda || '-'}
-                  </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Alvo:</span> <strong>{f.alvo || f.metaDia || '-'}</strong>
                 </div>
               </div>
             </div>
