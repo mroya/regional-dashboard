@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ChevronLeft, PieChart, Pill, Package, ShoppingBag, Tag, TrendingUp, TrendingDown, Ticket, Heart } from 'lucide-react';
 import { formatCurrency, parseNum } from '../utils/formatters';
 
 export default function BranchDetail({ f, depts, setSelectedFilial, shareFilialWhatsApp }) {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   return (
     <div className="animate-fade-in">
       <div style={{
