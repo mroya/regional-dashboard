@@ -134,9 +134,11 @@ export default function Sidebar({
         style={{ display: 'none' }}
       />
 
+      {/* 
       <button className="sidebar-btn-danger" onClick={handleClearData}>
         <Trash2 size={18} /> Limpar Dados
       </button>
+      */}
 
       <button onClick={handleLogout} className="btn outline-btn" style={{ color: 'var(--danger)' }}>
         <LogOut size={18} /> Sair
