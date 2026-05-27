@@ -4,8 +4,14 @@ import { formatCurrency, parseNum } from '../utils/formatters';
 
 export default function BranchDetail({ f, depts, setSelectedFilial, shareFilialWhatsApp }) {
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+    // Tenta rolar imediatamente sem animação
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    // Adiciona um pequeno atraso para garantir que o DOM já atualizou
+    const timeout = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, [f.id]);
 
   return (
     <div className="animate-fade-in">
