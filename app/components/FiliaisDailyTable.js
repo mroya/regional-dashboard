@@ -120,8 +120,12 @@ export default function FiliaisDailyTable({ filiais, onFilialClick }) {
               onClick={() => onFilialClick && onFilialClick(String(f.id))}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
-                <Store size={16} color="var(--accent-primary)" />
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>Filial {f.id}</p>
+                <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '0.3rem', borderRadius: '6px' }}>
+                  <Store size={16} color="#3b82f6" />
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>
+                  Filial <span style={{ fontSize: '1.1rem', color: 'var(--text-primary)', fontWeight: 800 }}>{f.id}</span>
+                </p>
               </div>
 
               <p style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
