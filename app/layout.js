@@ -1,13 +1,13 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Dashboard Regional - Área 02',
-  description: 'Painel de Gestão Regional Área 02',
+  title: 'Nexus AI Regional - Dashboard',
+  description: 'Painel de Gestão Regional - Nexus AI',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Dashboard Regional',
+    title: 'Nexus AI Regional',
   },
   icons: {
     icon: '/icon-512.png',

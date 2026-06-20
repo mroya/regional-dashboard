@@ -1,5 +1,5 @@
 import React from 'react';
-import { UploadCloud, LogOut, User, Calendar, X, Trash2, FileText, ExternalLink } from 'lucide-react';
+import { UploadCloud, LogOut, User, Calendar, X, Trash2, FileText, ExternalLink, Zap, Sparkles } from 'lucide-react';
 import { formatDateBR } from '../utils/formatters';
 
 export default function Sidebar({ 
@@ -9,18 +9,41 @@ export default function Sidebar({
 }) {
   return (
     <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-      <div className="sidebar-header">
-        <div style={{flex:1}}>
-          <h3 style={{marginBottom:'0.1rem'}}>Dashboard</h3>
-          <p style={{display:'flex', alignItems:'center', gap:'0.3rem', fontSize:'0.8rem', color:'var(--text-secondary)'}}>
+      <div className="sidebar-header" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-start', paddingBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {/* Logo Icon */}
+          <div className="relative flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 shadow-md shrink-0" style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #2563eb, #4f46e5)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(255, 255, 255, 0.15)', borderRadius: '8px', filter: 'blur(0.5px)' }}></div>
+            <Zap size={16} className="text-white relative z-10" fill="currentColor" style={{ color: '#ffffff', position: 'relative', zIndex: 10 }} />
+            <Sparkles size={6} className="absolute text-yellow-400 animate-pulse" style={{ color: '#facc15', position: 'absolute', top: '2px', right: '2px', zIndex: 10 }} />
+          </div>
+          
+          {/* Logo Text */}
+          <div className="flex flex-col">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', lineHeight: 1 }}>
+              <h3 style={{ fontSize: '0.95rem', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.05em', color: 'var(--text-primary)', margin: 0, lineHeight: 1 }}>
+                NEXUS <span style={{ color: '#2563eb' }}>AI</span>
+              </h3>
+              <span style={{ fontSize: '7px', padding: '0.05rem 0.3rem', borderRadius: '999px', border: '1px solid rgba(59, 130, 246, 0.3)', background: 'rgba(59, 130, 246, 0.08)', color: '#60a5fa', fontWeight: 'bold', textTransform: 'uppercase', fontStyle: 'italic' }}>
+                V1.3.4
+              </span>
+            </div>
+            <span style={{ fontSize: '7px', fontWeight: 900, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.15em', fontStyle: 'italic', marginTop: '0.15rem', lineHeight: 1 }}>
+              ROYA AI WEBDESIGN
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
+          <p style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0 }}>
             <User size={11} /> {user?.email?.split('@')[0]}
           </p>
-        </div>
-        <div style={{display:'flex', gap:'0.4rem', alignItems:'center', flexShrink:0}}>
-          <button onClick={() => setDarkMode(!darkMode)} className="menu-toggle">
-            {darkMode ? '☀️' : '🌙'}
-          </button>
-          {sidebarOpen && <button className="menu-toggle" onClick={() => setSidebarOpen(false)}><X size={18} /></button>}
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
+            <button onClick={() => setDarkMode(!darkMode)} className="menu-toggle" style={{ cursor: 'pointer', padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
+              {darkMode ? '☀️' : '🌙'}
+            </button>
+            {sidebarOpen && <button className="menu-toggle" onClick={() => setSidebarOpen(false)} style={{ cursor: 'pointer', padding: '0.25rem' }}><X size={14} /></button>}
+          </div>
         </div>
       </div>
 

@@ -11,7 +11,7 @@ import RegionalStats from './components/RegionalStats';
 import BranchDetail from './components/BranchDetail';
 import FiliaisDailyTable from './components/FiliaisDailyTable';
 import dynamic from 'next/dynamic';
-import { Brain, CheckCircle2, FileText, Loader2, Receipt, TrendingUp, TrendingDown, Pill, Package, ShoppingBag, Tag, Ticket, PieChart, Heart, HelpCircle } from 'lucide-react';
+import { Brain, CheckCircle2, FileText, Loader2, Receipt, TrendingUp, TrendingDown, Pill, Package, ShoppingBag, Tag, Ticket, PieChart, Heart, HelpCircle, Zap, Sparkles } from 'lucide-react';
 
 
 
@@ -192,14 +192,39 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
         {enrichedData ? (
           selectedFilial === 'REGIONAL' ? (
             <div className="animate-fade-in">
-              <header className="main-header glass-panel">
-                <div className="header-info">
-                  <div className="status-badge">
-                    <span className="dot"></span> NA META
+              <header className="main-header glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  {/* Logo Icon */}
+                  <div className="relative flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 shadow-md shrink-0" style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #2563eb, #4f46e5)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(255, 255, 255, 0.15)', borderRadius: '12px', filter: 'blur(0.5px)' }}></div>
+                    <Zap size={20} className="text-white relative z-10" fill="currentColor" style={{ color: '#ffffff', position: 'relative', zIndex: 10 }} />
+                    <Sparkles size={8} className="absolute text-yellow-400 animate-pulse" style={{ color: '#facc15', position: 'absolute', top: '4px', right: '4px', zIndex: 10 }} />
                   </div>
-                  <h1>Visão Do Coordenador</h1>
-                  <p className="subtitle">Área 02 Sul POA • {new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.6rem', flexWrap: 'wrap' }}>
+                  
+                  {/* Logo Text */}
+                  <div className="flex flex-col">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', lineHeight: 1 }}>
+                      <h2 style={{ fontSize: '1.25rem', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.05em', color: 'var(--text-primary)', margin: 0, lineHeight: 1 }}>
+                        NEXUS <span style={{ color: '#2563eb' }}>AI</span> <span style={{ color: '#3b82f6', fontWeight: 900, fontSize: '0.9rem', marginLeft: '0.2rem' }}>REGIONAL</span>
+                      </h2>
+                      <span style={{ fontSize: '8px', padding: '0.15rem 0.45rem', borderRadius: '999px', border: '1px solid rgba(59, 130, 246, 0.3)', background: 'rgba(59, 130, 246, 0.08)', color: '#60a5fa', fontWeight: 'bold', textTransform: 'uppercase', fontStyle: 'italic' }}>
+                        V1.3.4
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '8px', fontWeight: 900, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.15em', fontStyle: 'italic', marginTop: '0.25rem', lineHeight: 1 }}>
+                      ROYA AI WEBDESIGN
+                    </span>
+                  </div>
+                </div>
+
+                <div className="header-info" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
+                  <div className="status-badge success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', width: 'fit-content' }}>
+                    <span className="dot" style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', marginRight: '4px' }}></span> NA META
+                  </div>
+                  <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>Visão Do Coordenador</h1>
+                  <p className="subtitle" style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Área 02 Sul POA • {new Date(referenceDate + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.6rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                     <div style={{
                       display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                       background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)',
