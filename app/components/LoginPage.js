@@ -26,7 +26,7 @@ export default function LoginPage({ authMode, setAuthMode, loginEmail, setLoginE
               REGIONAL
             </span>
             <span style={{ fontSize: '9px', fontWeight: 900, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.2em', fontStyle: 'italic', marginTop: '0.2rem' }}>
-              ROYA AI WEBDESIGN
+              MR Labs
             </span>
           </div>
         </div>

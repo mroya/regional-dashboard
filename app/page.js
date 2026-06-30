@@ -212,7 +212,7 @@ Vamos com tudo entregar esse resultado! ${e_trophy}`;
                       </span>
                     </div>
                     <span style={{ fontSize: '8px', fontWeight: 900, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.15em', fontStyle: 'italic', marginTop: '0.25rem', lineHeight: 1 }}>
-                      ROYA AI WEBDESIGN
+                      MR Labs
                     </span>
                   </div>
                 </div>

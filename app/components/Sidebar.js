@@ -29,7 +29,7 @@ export default function Sidebar({
               </span>
             </div>
             <span style={{ fontSize: '7px', fontWeight: 900, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.15em', fontStyle: 'italic', marginTop: '0.15rem', lineHeight: 1 }}>
-              ROYA AI WEBDESIGN
+              MR Labs
             </span>
           </div>
         </div>
